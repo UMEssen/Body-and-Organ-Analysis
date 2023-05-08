@@ -1,0 +1,32 @@
+name: Docker Image CI
+
+on:
+  release:
+    types: [published]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install poetry
+      run: |
+        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+        export PATH="/root/.local/bin:$PATH"
+        poetry run pip install -U pip
+        poetry install
+        export PACKAGE_VERSION=$(poetry version -s)
+    - name: Generate version
+      run: ./scripts/generate_version.sh
+    - name: Build the Docker image
+      run: |
+        docker build -t ship-ai/boa-task-gpu:latest ship-ai/boa-task-gpu:{PACKAGE_VERSION} --file scripts/task_gpu.dockerfile .
+        docker build -t ship-ai/boa-task:latest ship-ai/boa-task:{PACKAGE_VERSION} --file scripts/task.dockerfile .
+        docker build -t ship-ai/boa-orthanc:latest ship-ai/boa-orthanc:{PACKAGE_VERSION} --file scripts/orthanc.dockerfile .
+        docker build -t ship-ai/boa-rabbitmq:latest ship-ai/boa-rabbitmq:{PACKAGE_VERSION} --file scripts/rabbitmq.dockerfile .
+        docker build -t ship-ai/boa-cli:latest ship-ai/boa-cli:{PACKAGE_VERSION} --file scripts/cli.dockerfile .
