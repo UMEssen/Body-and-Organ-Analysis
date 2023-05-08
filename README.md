@@ -37,7 +37,7 @@ If you use this tool, please make sure to cite the following papers: [BCA](https
 ## How to run?
 
 ### Environment Variables
-Set up the environment variables by changing the corresponding line in `.env`, if you do not need a specific environment variable, please delete it from `.env`.
+Set up the environment variables by changing the corresponding line in `.env`, if you do not need a specific environment variable, please delete it from `.env`. You can find an example environment file in [.env_sample](./env_sample).
 - `RABBITMQ_USERNAME`: Select a username for your user for the task broker, which is going to manage the tasks coming from the Orthanc instance. You can skip this if you already have a RabbitMQ instance running. If you use your instance, please read the [Notes-on-RabbitMQ](#Notes-on-RabbitMQ) section below.
 - `RABBITMQ_PASSWORD`: Select a safe password for the broker. You can skip this if you have skipped the step above.
 - `CELERY_BROKER`: The default is `amqp://TODO:TODO@rabbitmq/`, where you have to substitute the first TODO with `RABBITMQ_USERNAME`, and the second TODO with `RABBITMQ_PASSWORD`. If you already have a RabbitMQ instance running, you can use that URL instead.
