@@ -1,0 +1,45 @@
+{% if bmd_measurements is not none %}
+
+<article>
+    <h2>Bone Mineral Density</h2>
+    <section style="page-break-inside: avoid">
+        <div style="width: 100%; display: flex; flex-wrap: wrap; justify-content: stretch;">
+            {% for name, image, _, _ in bmd_measurements %}
+            {% if image is not none %}
+            <div style="flex: 1; margin-bottom:0.5cm; text-align: center;">
+                <div style="font-size: 1.17em; font-weight: bolder">{{name}}</div>
+                <img style="width: 3.25cm" src="{{ image }}" />
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <table class="striped">
+            <thead>
+                <tr>
+                    <th />
+                    {% for column_name in ["Mean", "StdDev", "Median", "Minimum", "Maximum"] %}
+                    <th>{{ column_name }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, _, data, error in bmd_measurements %}
+                <tr>
+                    <th>{{ name }}</th>
+                    {% if data is not none %}
+                    <td>{{ '%.2f' % data.density_mean }} HU</td>
+                    <td>{{ '%.2f' % data.density_std }} HU</td>
+                    <td>{{ '%.2f' % data.density_median }} HU</td>
+                    <td>{{ '%d' % data.density_min }} HU</td>
+                    <td>{{ '%d' % data.density_max }} HU</td>
+                    {% else %}
+                    <td colspan=5>{{error}}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</article>
+
+{% endif %}

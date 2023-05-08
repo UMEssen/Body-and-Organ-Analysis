@@ -1,0 +1,39 @@
+{% extends 'index.html.jinja' %}
+
+{% block doc_title %}Example Report{% endblock %}
+
+{% block content %}
+  <article>
+    <h2>First Level</h2>
+    <section>
+        <h3>Second Level</h3>
+        <section>
+            <h4> Third Level</h4>
+    </section>
+  </article>
+  <article>
+    <h2>Example Table</h2>
+    <section>
+        <table class="striped">
+            <thead>
+                <tr>
+                    <th>A</th>
+                    <th>B</th>
+                    <th>C</th>
+                    <th>D</th>
+                    <th>E</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(10) %}
+                <tr>
+                    {% for j in range(5) %}
+                        <td>{{ i * 5 + j + 1 }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+  </article>
+{% endblock %}

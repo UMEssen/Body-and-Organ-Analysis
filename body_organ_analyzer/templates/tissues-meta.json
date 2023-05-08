@@ -1,0 +1,135 @@
+{
+  "@schema": "https://raw.githubusercontent.com/qiicr/dcmqi/master/doc/schemas/seg-schema.json#",
+  "ContentCreatorName": "SHIP AI",
+  "ClinicalTrialSeriesID": "Session1",
+  "ClinicalTrialTimePointID": "1",
+  "ClinicalTrialCoordinatingCenterName": "UKE",
+  "SeriesDescription": "Tissue Segmentation",
+  "SeriesNumber": "42002",
+  "InstanceNumber": "1",
+  "ContentLabel": "SEGMENTATION",
+  "ContentDescription": "Image segmentation",
+  "segmentAttributes": [
+    [
+      {
+        "labelID": 1,
+        "SegmentDescription": "Muscle",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-13001",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Muscle"
+        },
+        "recommendedDisplayRGBValue": [238, 193, 112]
+      },
+      {
+        "labelID": 2,
+        "SegmentDescription": "Bone",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D016E",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Bone"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-D016E",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Bone"
+        },
+        "recommendedDisplayRGBValue": [192, 128, 192]
+      },
+      {
+        "labelID": 3,
+        "SegmentDescription": "Subcutaneous Adipose Tissue",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "recommendedDisplayRGBValue": [211, 78, 36]
+      },
+      {
+        "labelID": 4,
+        "SegmentDescription": "Visceral Adipose Tissue",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "recommendedDisplayRGBValue": [6, 158, 45]
+      },
+      {
+        "labelID": 5,
+        "SegmentDescription": "Intermuscular Adipose Tissue",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "recommendedDisplayRGBValue": [0, 109, 119]
+      },
+      {
+        "labelID": 6,
+        "SegmentDescription": "Pericardial Adipose Tissue",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "recommendedDisplayRGBValue": [142, 184, 229]
+      },
+      {
+        "labelID": 7,
+        "SegmentDescription": "Epicardial Adipose Tissue",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "recommendedDisplayRGBValue": [161, 22, 146]
+      }
+    ]
+  ]
+}

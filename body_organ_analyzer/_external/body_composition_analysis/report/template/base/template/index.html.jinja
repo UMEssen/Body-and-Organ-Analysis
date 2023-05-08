@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{ __app_title }}</title>
+    <link href="_template_style.css" rel="stylesheet" />
+    {% block header %}{% endblock %}
+  </head>
+
+  <body>
+    <footer id="footerAppInfo">
+      <table>
+        <tr><td><b>App Version</b></td><td>{{ app_version }}</td></tr>
+        {% if model_version is defined and model_version|length %}
+        <tr><td><b>Model Version</b></td><td>{{ model_version }}</td></tr>
+        {% endif %}
+        <tr><td><b>Contact</b></td><td>{{ contact_email }}</td></tr>
+      </table>
+    </footer>
+    <header>
+      <h1>{% block doc_title %}No Title{% endblock %}</h1>
+    </header>
+    {% block content %}{% endblock %}
+  </body>
+</html>

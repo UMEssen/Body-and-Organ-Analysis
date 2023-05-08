@@ -1,0 +1,72 @@
+<article id="measurements">
+    <h2>Slice-Wise Measurements</h2>
+    <section>
+        <table class="striped">
+            <thead>
+                <tr>
+                <th>#</th>
+                <th>Bone (mL)</th>
+                <th>Muscle (mL)</th>
+                <th>TAT (mL)</th>
+                <th>IMAT (mL)</th>
+                <th>SAT (mL)</th>
+                <th>VAT (mL)</th>
+                <th>PAT (mL)</th>
+                <th>EAT (mL)</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for _, row in slicewise_measurements.iterrows() %}
+                <tr class="{{'text-disabled' if row.has_artifacts else ''}}">
+                <td>{{ '%d' % (row.slice_idx + 1) }}</td>
+                <td>{{ '%.2f' % row.Bone }}</td>
+                <td>{{ '%.2f' % row.Muscle }}</td>
+                <td>{{ '%.2f' % row.TAT }}</td>
+                <td>{{ '%.2f' % row.IMAT }}</td>
+                <td>{{ '%.2f' % row.SAT }}</td>
+                <td>{{ '%.2f' % row.VAT }}</td>
+                <td>{{ '%.2f' % row.PAT }}</td>
+                <td>{{ '%.2f' % row.EAT }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</article>
+<article id="slicewise_measurements_no_limbs">
+    <h2>Slice-Wise Measurements Without Limbs</h2>
+    <section>
+        <table class="striped">
+            <thead>
+                <tr>
+                <th>#</th>
+                <th>Bone (mL)</th>
+                <th>Muscle (mL)</th>
+                <th>TAT (mL)</th>
+                <th>IMAT (mL)</th>
+                <th>SAT (mL)</th>
+                <th>VAT (mL)</th>
+                <th>PAT (mL)</th>
+                <th>EAT (mL)</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for _, row in slicewise_measurements_no_limbs.iterrows() %}
+                <tr class="{{'text-disabled' if row.has_artifacts else ''}}">
+                <td>{{ '%d' % (row.slice_idx + 1) }}</td>
+                <td>{{ '%.2f' % row.Bone }}</td>
+                <td>{{ '%.2f' % row.Muscle }}</td>
+                <td>{{ '%.2f' % row.TAT }}</td>
+                <td>{{ '%.2f' % row.IMAT }}</td>
+                <td>{{ '%.2f' % row.SAT }}</td>
+                <td>{{ '%.2f' % row.VAT }}</td>
+                <td>{{ '%.2f' % row.PAT }}</td>
+                <td>{{ '%.2f' % row.EAT }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</article>
