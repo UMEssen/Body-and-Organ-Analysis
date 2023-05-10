@@ -63,8 +63,9 @@ def analyze_ct(
         )
         models = [x for x in models if x != "bca"]
 
-    seg_output = processed_output_folder  # / "segmentations"
-    # seg_output.mkdir(parents=True, exist_ok=True)
+    seg_output = processed_output_folder
+    seg_output.mkdir(parents=True, exist_ok=True)
+
     start = time()
     totalsegmentator_params = dict(
         tta=False,
