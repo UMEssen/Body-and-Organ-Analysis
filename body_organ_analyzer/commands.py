@@ -56,6 +56,13 @@ def analyze_ct(
     ] + ct_info
     logger.info(f"Image loaded and retrieved: DONE in {time() - start_total:0.5f}s")
 
+    if "bca" in models:
+        logger.warning(
+            "The body composition analysis weights have not been released yet, "
+            "but they are coming soon! The body composition analysis computation will be skipped."
+        )
+        models = [x for x in models if x != "bca"]
+
     seg_output = processed_output_folder  # / "segmentations"
     # seg_output.mkdir(parents=True, exist_ok=True)
     start = time()
