@@ -102,9 +102,8 @@ If you are using your own RabbitMQ instance, please also use this setting, or co
 ### Run
 Load the docker images:
 
-TODO: Add here the names of the images
 ```bash
-docker pull
+docker pull # Published images coming soon!
 ```
 
 Download the [docker-compose.yml](./docker-compose.yml) file and run the following command
@@ -161,9 +160,8 @@ Currently, the produced DICOM-segs have placeholders for the anatomical names of
 Additionally, the BOA can also be run from the command line to compute all the segmentations in one go and without connecting to the PACS.
 
 First, get the image.
-TODO: Add here the names of the images
 ```bash
-docker pull
+docker pull # Published images coming soon!
 ```
 
 then you can run your image with
