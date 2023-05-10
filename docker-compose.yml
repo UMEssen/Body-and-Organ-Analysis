@@ -1,0 +1,100 @@
+version: "3.3"
+services:
+  rabbitmq:
+    image: ship-ai/rabbitmq
+    build:
+      dockerfile: scripts/rabbitmq.dockerfile
+      context: .
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    ports:
+      - "15672:15672"
+
+  worker-gpu:
+    image: ship-ai/boa-task-gpu
+    runtime: nvidia
+    build:
+      dockerfile: scripts/task_gpu.dockerfile
+      context: .
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=${NVIDIA_ID}
+      - CELERY_BROKER
+      - ORTHANC_URL
+      - ORTHANC_PORT
+      # Output vars
+      - PATIENT_INFO_IN_OUTPUT
+      - SMB_DIR_OUTPUT
+      - SMB_USER
+      - SMB_PWD
+      - SEGMENTATION_UPLOAD_URL
+      - UPLOAD_USER
+      - UPLOAD_PWD
+    restart: always
+    user: ${DOCKER_USER}
+    deploy:
+      resources:
+        limits:
+          cpus: '5'
+    shm_size: 1g
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - ${SEGMENTATION_DIR}:/storage_directory
+      - ${LOCAL_WEIGHTS_PATH}:/app/weights
+    command: ["python", "-m", "celery", "--app", "celery_task", "worker", "--concurrency=1", "--loglevel=INFO", "-P", "threads"]
+    depends_on:
+      - rabbitmq
+
+  worker:
+    image: ship-ai/boa-task
+    build:
+      dockerfile: scripts/task.dockerfile
+      context: .
+    environment:
+      - CELERY_BROKER
+      - ORTHANC_URL
+      - ORTHANC_PORT
+      - TRITON_URL
+      # Output vars
+      - PATIENT_INFO_IN_OUTPUT
+      - SEGMENTATION_UPLOAD_URL
+      - UPLOAD_USER
+      - UPLOAD_PWD
+      - SMB_DIR_OUTPUT
+      - SMB_USER
+      - SMB_PWD
+    restart: always
+    user: ${DOCKER_USER}
+    deploy:
+      resources:
+        limits:
+          cpus: '5'
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - ${SEGMENTATION_DIR}:/storage_directory
+      - ${LOCAL_WEIGHTS_PATH}:/app/weights
+    command: [ "python", "-m", "celery", "--app", "celery_task", "worker", "--concurrency=1", "--loglevel=INFO", "-P", "threads" ]
+    depends_on:
+      - rabbitmq
+
+  orthanc:
+    image: ship-ai/boa-orthanc
+    build:
+      dockerfile: scripts/orthanc.dockerfile
+      context: .
+    environment:
+      - CELERY_BROKER
+      - |
+        ORTHANC__REGISTERED_USERS=
+          {"${ORTHANC_USERNAME}": "${ORTHANC_PASSWORD}"}
+    restart: always
+    ports:
+      - "4242:4242"
+      - "${ORTHANC_PORT}:8042"
+    volumes:
+      - /tmp/orthanc-db/:/var/lib/orthanc/db/

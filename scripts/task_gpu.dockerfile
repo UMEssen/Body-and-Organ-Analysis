@@ -17,8 +17,6 @@ ENV TOTALSEG_WEIGHTS_PATH="/app/weights"
 ENV MPLCONFIGDIR = "/app/configs"
 ENV nnUNet_USE_TRITON=0
 
-COPY weights /app/weights
-
 COPY scripts/*.py /app/
 COPY pyproject.toml README.md /app/
 COPY body_organ_analyzer /app/body_organ_analyzer
