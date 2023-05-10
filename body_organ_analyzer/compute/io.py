@@ -38,7 +38,8 @@ def store_excel(paths_to_store: List[Path], store_path: str) -> None:
     )
     smbclient.makedirs(f"{full_name + store_path}", exist_ok=True)
     for p in paths_to_store:
-        smbclient.shutil.copy2(str(p), f"{full_name + store_path + p.name}")
+        if p.exists():
+            smbclient.shutil.copy2(str(p), f"{full_name + store_path + p.name}")
     smbclient.delete_session(server=server_name)
 
 
@@ -91,17 +92,18 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> List[Dict[str
     templates = sorted((Path("body_organ_analyzer") / "templates").glob("*-meta.json"))
     logger.info("Generating encapsulated PDF...")
     # Write encapsulated PDF DICOM
-    subprocess.call(
-        [
-            "pdf2dcm",
-            "--study-from",
-            dicom_files[0],
-            "--title",
-            "Body Composition Analysis Report",
-            str(segmentation_folder / "report.pdf"),
-            str(segmentation_folder / "report.dcm"),
-        ]
-    )
+    if (segmentation_folder / "report.pdf").exists():
+        subprocess.call(
+            [
+                "pdf2dcm",
+                "--study-from",
+                dicom_files[0],
+                "--title",
+                "Body Composition Analysis Report",
+                str(segmentation_folder / "report.pdf"),
+                str(segmentation_folder / "report.dcm"),
+            ]
+        )
     logger.info("Generating DICOMs...")
     for i, template_name in enumerate(templates):
         output_kind = template_name.name.replace("-meta.json", "")
@@ -155,16 +157,17 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> List[Dict[str
         )
         # out_dcm.save_as(segmentation_folder / f"{output_kind}.dcm")
         generated_dicoms.append(out_dcm)
-    pdf_dcm = pydicom.dcmread(segmentation_folder / "report.dcm")
-    pdf_dcm.SeriesDescription = "Body Composition Analysis Report"
-    set_dcm_params(
-        img_dcm=img_dcm,
-        out_dcm=pdf_dcm,
-        series_id=len(templates),
-        output_name="report",
-        timestamp=timestamp,
-    )
-    generated_dicoms.append(pdf_dcm)
+    if (segmentation_folder / "report.dcm").exists():
+        pdf_dcm = pydicom.dcmread(segmentation_folder / "report.dcm")
+        pdf_dcm.SeriesDescription = "Body Composition Analysis Report"
+        set_dcm_params(
+            img_dcm=img_dcm,
+            out_dcm=pdf_dcm,
+            series_id=len(templates),
+            output_name="report",
+            timestamp=timestamp,
+        )
+        generated_dicoms.append(pdf_dcm)
 
     # Use Orthanc DICOM-Web interface to upload files
     new_session = requests.Session()
