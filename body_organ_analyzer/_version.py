@@ -1,3 +1,3 @@
 # This file was generated automatically, do not edit
-__version__ = "N/A"
-__githash__ = "N/A"
+__version__ = "0.1.0"
+__githash__ = "49442e9"
