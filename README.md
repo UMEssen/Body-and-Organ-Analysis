@@ -20,7 +20,7 @@
   * [Command Line Tool](#command-line-tool)
 
 ## What is it?
-BOA is a state-of-the-art solution for accurately segmenting the whole body and all organs on CT scans developed by the [SHIP-AI group at the Institute for Artificial Intelligence in Medicine](https://ship-ai.ikim.nrw/). Combining the [TotalSegmentator](https://arxiv.org/abs/2208.05868) and the [Body Composition Analysis](https://pubmed.ncbi.nlm.nih.gov/32945971/), this tool is capable of analyzing medical images and identifying the different structures within the human body, including bones, muscles, organs, and blood vessels.
+BOA is a tool for segmentation of CT scans developed by the [SHIP-AI group at the Institute for Artificial Intelligence in Medicine](https://ship-ai.ikim.nrw/). Combining the [TotalSegmentator](https://arxiv.org/abs/2208.05868) and the [Body Composition Analysis](https://pubmed.ncbi.nlm.nih.gov/32945971/), this tool is capable of analyzing medical images and identifying the different structures within the human body, including bones, muscles, organs, and blood vessels.
 
 If you use this tool, please make sure to cite the following papers: [BCA](https://pubmed.ncbi.nlm.nih.gov/32945971/), [TotalSegmentator](https://arxiv.org/abs/2208.05868) and [nnU-Net](https://www.nature.com/articles/s41592-020-01008-z).
 
