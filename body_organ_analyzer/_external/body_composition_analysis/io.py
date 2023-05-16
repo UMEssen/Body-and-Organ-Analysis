@@ -73,20 +73,24 @@ def resample_to_thickness(image: sitk.Image, thickness: float) -> sitk.Image:
     return image
 
 
-def process_image(img: nibabel.Nifti1Image) -> sitk.Image:
+def process_image(
+    img: nibabel.Nifti1Image, resample_thickness: float = None
+) -> sitk.Image:
     image = nib_to_sitk(load_nibabel_image_with_axcodes(img, axcodes="LPS"))
     # Checks for width/height=512 and int16 have been removed
     slice_thickness = image.GetSpacing()[2]
-    if not np.isclose(slice_thickness, 5.0):
+    if resample_thickness is not None and not np.isclose(
+        slice_thickness, resample_thickness
+    ):
         # logger.warning(
         #     f"Unexpected slice thickness found in input image: got "
         #     f"{slice_thickness:.2f}mm, expected 5.00mm. Resampling to expected slice "
         #     "thickness"
         # )
-        image = resample_to_thickness(image, 5.0)
+        image = resample_to_thickness(image, resample_thickness)
 
     return image
 
 
-def load_image(path: pathlib.Path) -> sitk.Image:
-    return process_image(nibabel.load(path))
+def load_image(path: pathlib.Path, resample_thickness: float = None) -> sitk.Image:
+    return process_image(nibabel.load(path), resample_thickness=resample_thickness)
