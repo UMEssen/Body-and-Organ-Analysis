@@ -43,10 +43,10 @@ def get_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
-        "--compute-contrast-information",
+        "--skip-contrast-information",
         default=False,
         action="store_true",
-        help="Whether to compute the IV phase and GIT contrast presence.",
+        help="Whether to skip the computation of the IV phase and GIT contrast presence.",
     )
 
     parser.add_argument(
@@ -169,7 +169,7 @@ def run() -> None:
         processed_output_folder=args.output_dir,
         excel_output_folder=args.output_dir,
         models=models_to_compute,
-        compute_contrast_information=args.compute_contrast_information,
+        compute_contrast_information=not args.skip_contrast_information,
         total_preview=args.preview,
         nr_thr_resamp=args.nr_thr_resamp,
         nr_thr_saving=args.nr_thr_saving,
@@ -178,6 +178,7 @@ def run() -> None:
         bca_pdf=not args.bca_no_pdf,
         bca_compute_bmd=not args.bca_skip_bmd,
         recompute=args.force_recompute,
+        keep_debug_information=args.keep_debug_segmentations,
     )
 
     if args.radiomics:

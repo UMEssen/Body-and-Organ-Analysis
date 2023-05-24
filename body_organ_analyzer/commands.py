@@ -39,6 +39,7 @@ def analyze_ct(
     bca_examined_body_region: str = None,
     bca_pdf: bool = True,
     bca_compute_bmd: bool = True,
+    keep_debug_information: bool = False,
     recompute: bool = False,
 ) -> Path:
     start_total = time()
@@ -91,7 +92,7 @@ def analyze_ct(
             save_pdf=bca_pdf,
             compute_bmd=bca_compute_bmd,
         ),
-        keep_debug_segmentations=False,
+        keep_debug_segmentations=keep_debug_information,
         recompute=recompute,
     )
     logger.info(f"All models computed: DONE in {time() - start:0.5f}s")
@@ -116,25 +117,29 @@ def analyze_ct(
         ct_info += region_information
 
     if compute_contrast_information:
-        start = time()
-        contrast_information = predict(
-            ct_path=ct_path,
-            segmentation_folder=seg_output,
-            one_mask_per_file=False,
-        )
-        logger.info(f"Contrast phase predicted: DONE in {time() - start:0.5f}s")
-        ct_info.append(
-            {
-                "name": "PredictedContrastPhase",
-                "value": contrast_information["phase_ensemble_predicted_class"],
-            }
-        )
-        ct_info.append(
-            {
-                "name": "PredictedContrastInGIT",
-                "value": contrast_information["git_ensemble_predicted_class"],
-            }
-        )
+        try:
+            start = time()
+            contrast_information = predict(
+                ct_path=ct_path,
+                segmentation_folder=seg_output,
+                one_mask_per_file=False,
+            )
+            logger.info(f"Contrast phase predicted: DONE in {time() - start:0.5f}s")
+            ct_info.append(
+                {
+                    "name": "PredictedContrastPhase",
+                    "value": contrast_information["phase_ensemble_predicted_class"],
+                }
+            )
+            ct_info.append(
+                {
+                    "name": "PredictedContrastInGIT",
+                    "value": contrast_information["git_ensemble_predicted_class"],
+                }
+            )
+        except AssertionError:
+            logger.warning("Contrast phase prediction failed")
+
     info_df = pd.DataFrame(ct_info).set_index("name")
 
     excel_path = excel_output_folder / "output.xlsx"
@@ -152,7 +157,7 @@ def analyze_ct(
             slices_df.to_excel(writer, sheet_name="bca-slice_measurements", index=False)
         if slices_no_limbs_df is not None:
             slices_no_limbs_df.to_excel(
-                writer, sheet_name="bca-slice_measurements_no_limbs", index=False
+                writer, sheet_name="bca-slice_measurements_no_ext", index=False
             )
         if bmd_df is not None:
             bmd_df.to_excel(writer, sheet_name="bmd", index=False)
