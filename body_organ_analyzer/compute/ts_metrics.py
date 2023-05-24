@@ -114,15 +114,19 @@ def compute_segmentator_metrics(
         if not model_path.exists():
             records.append({"ModelName": convert_name(model_name), "Present": False})
             continue
+    additional_info = []
+    for name, value in [
+        ("Noise", autochton_std),
+        ("CNRAorta", cnr_aorta),
+        ("CNRVCI", cnr_vci),
+        ("CNRPortalSplenicVein", crn_pv),
+        ("MaxAxisL3_cm", major_axis),
+        ("MinAxisL3_cm", minor_axis),
+        ("MeanAxisL3_cm", mean_axis),
+    ]:
+        if value is not None:
+            additional_info.append({"name": name, "value": value})
     return (
-        [
-            {"name": "Noise", "value": autochton_std},
-            {"name": "CNRAorta", "value": cnr_aorta},
-            {"name": "CNRVCI", "value": cnr_vci},
-            {"name": "CNRPortalSplenicVein", "value": crn_pv},
-            {"name": "MaxAxisL3_cm", "value": major_axis},
-            {"name": "MinAxisL3_cm", "value": minor_axis},
-            {"name": "MeanAxisL3_cm", "value": mean_axis},
-        ],
+        additional_info,
         pd.DataFrame(records).sort_values(by=["ModelName", "BodyRegion"]),
     )

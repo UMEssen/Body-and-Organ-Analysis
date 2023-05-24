@@ -73,6 +73,8 @@ def metrics_for_each_region(
             measurements[region_name]["cnr"] = (
                 np.mean(hu_region) - autochton_mean
             ) / autochton_std
+        else:
+            measurements[region_name]["cnr"] = None
     return measurements
 
 
@@ -99,9 +101,11 @@ def compute_measurements(
         if not model_path.exists():
             continue
         model_image = load_image(model_path)
-        assert (
-            ct_image.GetSpacing() == model_image.GetSpacing()  # type: ignore
-        ), "The spacing of the image and of the segmentation should be the same"
+        assert np.isclose(
+            ct_image.GetSpacing(), model_image.GetSpacing()
+        ).all(), (  # type: ignore
+            "The spacing of the image and of the segmentation should be the same"
+        )
         model_data = sitk.GetArrayViewFromImage(model_image)
         if model_name == "total":
             autochton_mean, autochton_std = autochton_reference(
