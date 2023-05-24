@@ -537,7 +537,7 @@ class Builder:
                 .astype(float)
                 .to_dict("records")
             ),
-            "slices_no_limbs": (
+            "slices_no_extremities": (
                 kwargs["slicewise_measurements_no_limbs"]
                 .rename(
                     columns={
@@ -572,7 +572,7 @@ class Builder:
                             columns={x: x.lower() for x in measurements.columns},
                         ).to_dict()
                     ),
-                    "measurements_no_limbs": (
+                    "measurements_no_extremities": (
                         measurements_no_limbs.rename(
                             index={
                                 "Mean": "mean",

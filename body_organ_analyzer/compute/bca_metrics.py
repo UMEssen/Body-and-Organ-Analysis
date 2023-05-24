@@ -78,7 +78,7 @@ def compute_bca_metrics(
                             "Present": False,
                         },
                         {
-                            "BodyPart": f"{convert_name(aggregated_name)}_NoLimbs",
+                            "BodyPart": f"{convert_name(aggregated_name)}_NoExtremities",
                             "Present": False,
                         },
                     ]
@@ -86,7 +86,7 @@ def compute_bca_metrics(
             )
             continue
         # Convert to DataFrame and rename rows and columns
-        for measurement in ["measurements", "measurements_no_limbs"]:
+        for measurement in ["measurements", "measurements_no_extremities"]:
             current_df = (
                 pd.DataFrame.from_dict(
                     json_measurements["aggregated"][aggregated_name][measurement]
@@ -103,7 +103,7 @@ def compute_bca_metrics(
             dfs.append(current_df)
     aggregation_df = pd.concat(dfs, copy=False)
     slices_df = pd.DataFrame(json_measurements["slices"])
-    slices_no_limbs_df = pd.DataFrame(json_measurements["slices_no_limbs"])
+    slices_no_limbs_df = pd.DataFrame(json_measurements["slices_no_extremities"])
     bmd_df = pd.DataFrame(json_measurements["bmd"]).T.reset_index()
     bmd_df.rename(
         {"index": "vertebrae"},

@@ -3,7 +3,17 @@ from typing import Dict, List, Optional
 
 from dataclasses_json import dataclass_json
 
-CHOSEN_BMD_VERTEBRAE = ["L1", "L2", "L3", "L4", "L5", "T10", "T11", "T12"]
+CHOSEN_BMD_VERTEBRAE = [
+    "L5",
+    "L4",
+    "L3",
+    "L2",
+    "L1",
+    "T12",
+    "T11",
+    "T10",
+    "T9",
+]
 
 
 @dataclass_json

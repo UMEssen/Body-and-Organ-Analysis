@@ -228,7 +228,7 @@ def run_pipeline(
         vertebrae=vertebrae, detected_body_part=body_part
     )
     bmd = None
-    if vertebrae_info is not None and compute_bmd:
+    if vertebrae_info is not None and len(vertebrae_info) > 0 and compute_bmd:
         vertebrae_slice_mapping = {
             k: vertebrae_info[k] for k in CHOSEN_BMD_VERTEBRAE if k in vertebrae_info
         }
@@ -241,7 +241,7 @@ def run_pipeline(
         pdf_bytes = builder.create_pdf("report.html.jinja", **prepared_data)
     json_data = builder.create_json(**prepared_data)
 
-    if vertebrae_info is not None:
+    if vertebrae_info is not None and len(vertebrae_info) > 0:
         with (output_dir / "vertebrae.json").open("w") as ofile:
             json.dump(vertebrae_info, ofile, indent=2)
     if bmd is not None:
