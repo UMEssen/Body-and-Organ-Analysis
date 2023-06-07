@@ -1,0 +1,78 @@
+{% if aggregated_measurements|length > 0 %}
+
+<article>
+    <h2>Aggregated Measurements</h2>
+    {% for name, group, image, data, data_no_limbs in aggregated_measurements %}
+    <section style="page-break-inside: avoid">
+        <h3>{{name}}</h3>
+        <div style="width: 100%; display: flex">
+            <div style="flex: 1; align-self: center">
+                <img style="width: 3cm" src="{{ image }}" />
+            </div>
+            <div style="flex: 4">
+                <h4>All Voxels</h4>
+                <table class="striped">
+                    <thead>
+                        <tr>
+                            <th />
+                            {% for column_name in data.columns %}
+                            <th>{{ column_name }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, values in data.iterrows() %}
+                        <tr>
+                            <th>{{ index }}</th>
+                            {% for value in values %}
+                                {% if 'HU' in index %}
+                                <td>{{ 'N/A' if value is none else '%.2f' % value }} HU</td>
+                                {% elif value is none %}
+                                <td>-</td>
+                                {% elif value < 1000 %}
+                                <td>{{ '%.2f' % value }} mL</td>
+                                {% else %}
+                                <td>{{ '%.3f' % (value / 1000) }} L</td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <br/>
+                <h4>Without Extremities</h4>
+                <table class="striped">
+                    <thead>
+                        <tr>
+                            <th />
+                            {% for column_name in data_no_limbs.columns %}
+                            <th>{{ column_name }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, values in data_no_limbs.iterrows() %}
+                        <tr>
+                            <th>{{ index }}</th>
+                            {% for value in values %}
+                                {% if 'HU' in index %}
+                                <td>{{ 'N/A' if value is none else '%.2f' % value }} HU</td>
+                                {% elif value is none %}
+                                <td>-</td>
+                                {% elif value < 1000 %}
+                                <td>{{ '%.2f' % value }} mL</td>
+                                {% else %}
+                                <td>{{ '%.3f' % (value / 1000) }} L</td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+    {% endfor %}
+</article>
+
+{% endif %}

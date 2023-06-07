@@ -1,0 +1,13 @@
+{% extends 'index.html.jinja' %}
+
+{% block doc_title %}Body Composition Analysis Report{% endblock %}
+
+{% block content %}
+  {% include 'blocks/summary.html.jinja' %}
+  {% include 'blocks/equidistant_check.html.jinja' %}
+  {% include 'blocks/tissue_heatmaps.html.jinja' %}
+  {% include 'blocks/measurements_aggregated.html.jinja' %}
+  {% include 'blocks/measurements_per_slice.html.jinja' %}
+  {% include 'blocks/other_findings.html.jinja' %}
+  {% include 'blocks/bmd.html.jinja' %}
+{% endblock %}

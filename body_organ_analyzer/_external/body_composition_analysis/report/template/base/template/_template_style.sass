@@ -1,0 +1,208 @@
+@font-face
+  font-family: OpenSans
+  font-weight: 400
+  src: url(fonts/OpenSans-Regular.ttf)
+
+@font-face
+  font-family: OpenSans
+  font-style: italic
+  font-weight: 400
+  src: url(fonts/OpenSans-Italic.ttf)
+
+@font-face
+  font-family: OpenSans
+  font-weight: 300
+  src: url(fonts/OpenSans-Light.ttf)
+
+@font-face
+  font-family: OpenSans
+  font-style: italic
+  font-weight: 300
+  src: url(fonts/OpenSans-LightItalic.ttf)
+
+@font-face
+  font-family: OpenSans
+  font-weight: bold
+  src: url(fonts/OpenSans-Bold.ttf)
+
+@font-face
+  font-family: OpenSans
+  font-style: italic
+  font-weight: bold
+  src: url(fonts/OpenSans-BoldItalic.ttf)
+
+@font-face
+  font-family: Roboto
+  font-weight: 400
+  src: url(fonts/Roboto-Regular.ttf)
+
+@font-face
+  font-family: Roboto
+  font-style: italic
+  font-weight: 400
+  src: url(fonts/Roboto-Italic.ttf)
+
+@font-face
+  font-family: Roboto
+  font-weight: 300
+  src: url(fonts/Roboto-Light.ttf)
+
+@font-face
+  font-family: Roboto
+  font-style: italic
+  font-weight: 300
+  src: url(fonts/Roboto-LightItalic.ttf)
+
+@font-face
+  font-family: Roboto
+  font-weight: bold
+  src: url(fonts/Roboto-Bold.ttf)
+
+@font-face
+  font-family: Roboto
+  font-style: italic
+  font-weight: bold
+  src: url(fonts/Roboto-BoldItalic.ttf)
+
+$ship-primary: #2D3748
+$ship-secondary: #FC8181
+
+$background-00dp: rgb(255, 255, 255)
+$background-01dp: #e6eaef
+$background-02dp: #ced5e0
+
+$divider-color: $ship-primary
+
+$text-light: #fff
+$text-dark: $ship-primary
+
+@page
+  size: A4
+  margin: 2cm 0cm 2cm 0cm
+  padding: 0.5cm
+
+  @top-left
+    content: ''
+    display: block
+    width: 7cm
+    height: 100%
+    background-image: url(ume.svg)
+    background-position: left center
+    background-repeat: no-repeat
+    background-size: 100% 100%
+    margin-left: 0.5cm
+
+  @top-center
+    background-color: $ship-primary
+    content: ''
+    width: 100%
+    height: 100%
+    z-index: -1
+    display: block
+
+  @top-right
+    content: ''
+    display: block
+    width: 8cm
+    height: 100%
+    background-image: url(boa+ship-ai.svg)
+    background-position: right center
+    background-repeat: no-repeat
+    background-size: 100% 100%
+    margin-right: 0.5cm
+
+  @bottom-left
+    content: element(footerAppInfo)
+    margin-left: 0.5cm
+    width: 5cm
+
+  @bottom-center
+    background-color: $ship-primary
+    width: 100%
+    height: 100%
+    z-index: -1
+    display: block
+    content: 'Not for clinical use!'
+    color: $ship-secondary
+    font-size: 3.0em
+    font-weight: bold
+
+  @bottom-right
+    background-color: $ship-secondary
+    color: $ship-primary
+    content: counter(page)
+    width: 1cm
+    height: 1cm
+    border-radius: 0.5cm
+    text-align: center
+    width: 1cm
+    font-weight: bold
+    margin: 0.5cm
+    font-size: 1.25em
+
+#footerAppInfo
+  position: running(footerAppInfo)
+  color: $text-light
+
+h1, h2, h3, h4, h5, h6
+  padding: 0
+  padding-bottom: 0.2cm
+  padding-top: 0.0cm
+  margin: 0
+  font-family: Roboto
+  color: $text-dark
+
+h1
+  margin-left: 0.5cm
+  font-size: 3em
+
+h2
+  border-bottom: 1px solid $divider-color
+
+article, section
+  table
+    width: 100%
+    border-collapse: collapse
+    text-align: center
+
+    thead
+      display: table-header-group
+    td
+      div.rotate90
+        transform: rotate(-90deg)
+    thead
+      tr
+        background-color: $ship-primary
+        th
+          color: $text-light
+    tbody
+      th
+        background-color: $ship-primary
+        color: $text-light
+    tr
+      background-color: $background-00dp
+  table.striped
+    tr:nth-child(even)
+      background-color: $background-01dp
+
+html
+  font-family: OpenSans
+  font-size: 0.6em
+  background-color: $background-00dp
+  color: $text-dark
+
+  body
+    padding: 0
+    margin: 0
+
+    article
+      margin: 0cm
+      margin-bottom: 0.5cm
+      padding: 0.5cm
+      background-color: $background-00dp
+      box-decoration-break: clone
+
+      section
+        margin-top: 0.5cm
+        margin-left: 0.5cm
+        margin-right: 0.5cm

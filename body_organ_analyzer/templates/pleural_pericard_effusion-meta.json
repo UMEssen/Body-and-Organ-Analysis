@@ -1,0 +1,64 @@
+{
+  "@schema": "https://raw.githubusercontent.com/qiicr/dcmqi/master/doc/schemas/seg-schema.json#",
+  "ContentCreatorName": "SHIP AI",
+  "ClinicalTrialSeriesID": "Session1",
+  "ClinicalTrialTimePointID": "1",
+  "ClinicalTrialCoordinatingCenterName": "UKE",
+  "SeriesDescription": "Pleural Pericardial Effusion Segmentation",
+  "SeriesNumber": "42001",
+  "InstanceNumber": "1",
+  "ContentLabel": "SEGMENTATION",
+  "ContentDescription": "Image segmentation",
+  "segmentAttributes": [
+    [
+      {
+        "labelID": 1,
+        "SegmentDescription": "Lung Pleural",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 2,
+        "SegmentDescription": "Pleural Effusion",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 3,
+        "SegmentDescription": "Pericardial Effusion",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      }
+    ]
+  ]
+}

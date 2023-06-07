@@ -1,0 +1,12 @@
+{% if other_findings|length > 0%}
+<article style="page-break-inside: avoid">
+    <h2>Other Findings</h2>
+    <section>
+        <ul style="padding-left: 0">
+            {% for finding in other_findings %}
+            <li>{{ finding }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+</article>
+{% endif %}

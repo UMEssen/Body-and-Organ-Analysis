@@ -1,0 +1,1680 @@
+{
+  "@schema": "https://raw.githubusercontent.com/qiicr/dcmqi/master/doc/schemas/seg-schema.json#",
+  "ContentCreatorName": "SHIP AI",
+  "ClinicalTrialSeriesID": "Session1",
+  "ClinicalTrialTimePointID": "1",
+  "ClinicalTrialCoordinatingCenterName": "UKE",
+  "SeriesDescription": "Total Body Segmentation",
+  "SeriesNumber": "42001",
+  "InstanceNumber": "1",
+  "ContentLabel": "SEGMENTATION",
+  "ContentDescription": "Image segmentation",
+  "segmentAttributes": [
+    [
+      {
+        "labelID": 1,
+        "SegmentDescription": "Spleen",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 2,
+        "SegmentDescription": "Kidney Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 3,
+        "SegmentDescription": "Kidney Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 4,
+        "SegmentDescription": "Gallbladder",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 5,
+        "SegmentDescription": "Liver",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 6,
+        "SegmentDescription": "Stomach",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 7,
+        "SegmentDescription": "Aorta",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 8,
+        "SegmentDescription": "Inferior Vena Cava",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 9,
+        "SegmentDescription": "Portal Vein And Splenic Vein",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 10,
+        "SegmentDescription": "Pancreas",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 11,
+        "SegmentDescription": "Adrenal Gland Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 12,
+        "SegmentDescription": "Adrenal Gland Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 13,
+        "SegmentDescription": "Lung Upper Lobe Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 14,
+        "SegmentDescription": "Lung Lower Lobe Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 15,
+        "SegmentDescription": "Lung Upper Lobe Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 16,
+        "SegmentDescription": "Lung Middle Lobe Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 17,
+        "SegmentDescription": "Lung Lower Lobe Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 18,
+        "SegmentDescription": "Vertebrae L5",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 19,
+        "SegmentDescription": "Vertebrae L4",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 20,
+        "SegmentDescription": "Vertebrae L3",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 21,
+        "SegmentDescription": "Vertebrae L2",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 22,
+        "SegmentDescription": "Vertebrae L1",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 23,
+        "SegmentDescription": "Vertebrae T12",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 24,
+        "SegmentDescription": "Vertebrae T11",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 25,
+        "SegmentDescription": "Vertebrae T10",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 26,
+        "SegmentDescription": "Vertebrae T9",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 27,
+        "SegmentDescription": "Vertebrae T8",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 28,
+        "SegmentDescription": "Vertebrae T7",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 29,
+        "SegmentDescription": "Vertebrae T6",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 30,
+        "SegmentDescription": "Vertebrae T5",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 31,
+        "SegmentDescription": "Vertebrae T4",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 32,
+        "SegmentDescription": "Vertebrae T3",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 33,
+        "SegmentDescription": "Vertebrae T2",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 34,
+        "SegmentDescription": "Vertebrae T1",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 35,
+        "SegmentDescription": "Vertebrae C7",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 36,
+        "SegmentDescription": "Vertebrae C6",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 37,
+        "SegmentDescription": "Vertebrae C5",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 38,
+        "SegmentDescription": "Vertebrae C4",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 39,
+        "SegmentDescription": "Vertebrae C3",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 40,
+        "SegmentDescription": "Vertebrae C2",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 41,
+        "SegmentDescription": "Vertebrae C1",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 42,
+        "SegmentDescription": "Esophagus",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 43,
+        "SegmentDescription": "Trachea",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 44,
+        "SegmentDescription": "Heart Myocardium",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 45,
+        "SegmentDescription": "Heart Atrium Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 46,
+        "SegmentDescription": "Heart Ventricle Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 47,
+        "SegmentDescription": "Heart Atrium Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 48,
+        "SegmentDescription": "Heart Ventricle Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 49,
+        "SegmentDescription": "Pulmonary Artery",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 50,
+        "SegmentDescription": "Brain",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 51,
+        "SegmentDescription": "Iliac Artery Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 52,
+        "SegmentDescription": "Iliac Artery Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 53,
+        "SegmentDescription": "Iliac Vena Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 54,
+        "SegmentDescription": "Iliac Vena Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 55,
+        "SegmentDescription": "Small Bowel",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 56,
+        "SegmentDescription": "Duodenum",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 57,
+        "SegmentDescription": "Colon",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 58,
+        "SegmentDescription": "Rib Left 1",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 59,
+        "SegmentDescription": "Rib Left 2",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 60,
+        "SegmentDescription": "Rib Left 3",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 61,
+        "SegmentDescription": "Rib Left 4",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 62,
+        "SegmentDescription": "Rib Left 5",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 63,
+        "SegmentDescription": "Rib Left 6",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 64,
+        "SegmentDescription": "Rib Left 7",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 65,
+        "SegmentDescription": "Rib Left 8",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 66,
+        "SegmentDescription": "Rib Left 9",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 67,
+        "SegmentDescription": "Rib Left 10",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 68,
+        "SegmentDescription": "Rib Left 11",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 69,
+        "SegmentDescription": "Rib Left 12",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 70,
+        "SegmentDescription": "Rib Right 1",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 71,
+        "SegmentDescription": "Rib Right 2",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 72,
+        "SegmentDescription": "Rib Right 3",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 73,
+        "SegmentDescription": "Rib Right 4",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 74,
+        "SegmentDescription": "Rib Right 5",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 75,
+        "SegmentDescription": "Rib Right 6",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 76,
+        "SegmentDescription": "Rib Right 7",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 77,
+        "SegmentDescription": "Rib Right 8",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 78,
+        "SegmentDescription": "Rib Right 9",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 79,
+        "SegmentDescription": "Rib Right 10",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 80,
+        "SegmentDescription": "Rib Right 11",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 81,
+        "SegmentDescription": "Rib Right 12",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 82,
+        "SegmentDescription": "Humerus Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 83,
+        "SegmentDescription": "Humerus Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 84,
+        "SegmentDescription": "Scapula Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 85,
+        "SegmentDescription": "Scapula Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 86,
+        "SegmentDescription": "Clavicula Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 87,
+        "SegmentDescription": "Clavicula Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 88,
+        "SegmentDescription": "Femur Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 89,
+        "SegmentDescription": "Femur Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 90,
+        "SegmentDescription": "Hip Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 91,
+        "SegmentDescription": "Hip Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 92,
+        "SegmentDescription": "Sacrum",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 93,
+        "SegmentDescription": "Face",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 94,
+        "SegmentDescription": "Gluteus Maximus Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 95,
+        "SegmentDescription": "Gluteus Maximus Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 96,
+        "SegmentDescription": "Gluteus Medius Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 97,
+        "SegmentDescription": "Gluteus Medius Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 98,
+        "SegmentDescription": "Gluteus Minimus Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 99,
+        "SegmentDescription": "Gluteus Minimus Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 100,
+        "SegmentDescription": "Autochthon Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 101,
+        "SegmentDescription": "Autochthon Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 102,
+        "SegmentDescription": "Iliopsoas Left",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 103,
+        "SegmentDescription": "Iliopsoas Right",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      },
+      {
+        "labelID": 104,
+        "SegmentDescription": "Urinary Bladder",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "TotalSegmentator",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "TODO",
+          "CodingSchemeDesignator": "TODO",
+          "CodeMeaning": "TODO"
+        }
+      }
+    ]
+  ]
+}

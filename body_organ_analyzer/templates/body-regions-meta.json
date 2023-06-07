@@ -1,0 +1,203 @@
+{
+  "@schema": "https://raw.githubusercontent.com/qiicr/dcmqi/master/doc/schemas/seg-schema.json#",
+  "ContentCreatorName": "SHIP AI",
+  "ClinicalTrialSeriesID": "Session1",
+  "ClinicalTrialTimePointID": "1",
+  "ClinicalTrialCoordinatingCenterName": "UKE",
+  "SeriesDescription": "Body Region Segmentation",
+  "SeriesNumber": "42001",
+  "InstanceNumber": "1",
+  "ContentLabel": "SEGMENTATION",
+  "ContentDescription": "Image segmentation",
+  "segmentAttributes": [
+    [
+      {
+        "labelID": 1,
+        "SegmentDescription": "Subcutaneous Tissue",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "recommendedDisplayRGBValue": [211, 78, 36]
+      },
+      {
+        "labelID": 2,
+        "SegmentDescription": "Muscle",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-13001",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Muscle"
+        },
+        "recommendedDisplayRGBValue": [238, 193, 112]
+      },
+      {
+        "labelID": 3,
+        "SegmentDescription": "Abdominal Cavity",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D4000",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Abdomen"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-D4010",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Abdominal cavity"
+        },
+        "recommendedDisplayRGBValue": [6, 158, 45]
+      },
+      {
+        "labelID": 4,
+        "SegmentDescription": "Thoracic Cavity",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D3000",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Thorax"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-D3000",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Thorax"
+        },
+        "recommendedDisplayRGBValue": [0, 0, 224]
+      },
+      {
+        "labelID": 5,
+        "SegmentDescription": "Bone",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D016E",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Bone"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-D016E",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Bone"
+        },
+        "recommendedDisplayRGBValue": [192, 128, 192]
+      },
+      {
+        "labelID": 6,
+        "SegmentDescription": "Glands",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0060",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Organ"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-D0060",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Organ"
+        },
+        "recommendedDisplayRGBValue": [0, 224, 0]
+      },
+      {
+        "labelID": 7,
+        "SegmentDescription": "Pericardium",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-39000",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Pericardium"
+        },
+        "recommendedDisplayRGBValue": [161, 22, 146]
+      },
+      {
+        "labelID": 8,
+        "SegmentDescription": "Breast Implant",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "A-04830",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Breast implant, type not specified"
+        },
+        "recommendedDisplayRGBValue": [192, 0, 0]
+      },
+      {
+        "labelID": 9,
+        "SegmentDescription": "Mediastinum",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D3000",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Thorax"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-D3300",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Mediastinum"
+        },
+        "recommendedDisplayRGBValue": [142, 184, 229]
+      },
+      {
+        "labelID": 10,
+        "SegmentDescription": "Brain",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0060",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Organ"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-A0100",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Brain"
+        },
+        "recommendedDisplayRGBValue": [192, 0, 192]
+      },
+      {
+        "labelID": 11,
+        "SegmentDescription": "Spinal Cord",
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "bca",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0060",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Organ"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-A7010",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Spinal cord"
+        },
+        "recommendedDisplayRGBValue": [192, 0, 100]
+      }
+    ]
+  ]
+}

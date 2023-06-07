@@ -1,0 +1,25 @@
+<article style="page-break-inside: avoid">
+    <h2>Tissue Heatmaps</h2>
+    <section>
+        <table id="tissue-heatmaps">
+            <tr>
+                <td />
+                {% for tissue, _, _ in tissue_heatmaps %}
+                    <td>{{ tissue.name.capitalize() if tissue.name in ('BONE', 'MUSCLE') else tissue.name }}</td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td><div class="rotate90">Coronal</div></td>
+                {% for _, heatmap, _ in tissue_heatmaps %}
+                    <td><img style="width: 2cm" src="{{ heatmap }}"/></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td><div class="rotate90">Sagittal</div></td>
+                {% for _, _, heatmap in tissue_heatmaps %}
+                    <td><img style="width: 2cm" src="{{ heatmap }}"/></td>
+                {% endfor %}
+            </tr>
+        </table>
+    </section>
+</article>

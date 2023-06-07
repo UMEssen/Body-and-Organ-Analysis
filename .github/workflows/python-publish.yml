@@ -1,0 +1,30 @@
+name: Upload to PyPi
+
+on:
+  release:
+    types: [published]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.8"
+    - name: Install poetry
+      run: |
+        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+        export PATH="/root/.local/bin:$PATH"
+        poetry run pip install -U pip
+        poetry install
+    - name: Publish package
+      run: poetry publish --build --username __token__ --password ${{ secrets.PYPI_TOKEN }}

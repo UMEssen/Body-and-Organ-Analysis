@@ -1,0 +1,25 @@
+<article style="page-break-inside: avoid">
+    <h2>Equidistant Axial Slices</h2>
+    <section>
+        <table style="width: 100%">
+            <tr>
+                <td />
+                {% for name, _, _ in equidistant_slice_check %}
+                    <td>{{ name }}</td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td style="width: 1cm"><div class="rotate90">Tissues</div></td>
+                {% for _, image, _ in equidistant_slice_check %}
+                    <td><img style="width: 3cm" src="{{ image }}"/></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td style="width: 1cm"><div class="rotate90">Body Regions</div></td>
+                {% for _, _, image in equidistant_slice_check %}
+                    <td><img style="width: 3cm" src="{{ image }}"/></td>
+                {% endfor %}
+            </tr>
+        </table>
+    </section>
+</article>
