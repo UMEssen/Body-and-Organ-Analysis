@@ -43,6 +43,16 @@ def remove_debug_segmentations(
         (segmentation_folder / r).unlink(missing_ok=True)
 
 
+def range_warning(ct_image_data: np.ndarray) -> None:
+    if np.any(ct_image_data < -1024) or np.any(ct_image_data > 3071):
+        logger.warning(
+            f"Unexpected CT values found in input image: "
+            f"got {np.min(ct_image_data)}-{np.max(ct_image_data)}, expected -1024-3071. "
+            f"The values have been clipped to the expected range. "
+            "Please check the segmentations to ensure that everything is correct."
+        )
+
+
 def compute_all_models(
     ct_path: pathlib.Path,
     segmentation_folder: pathlib.Path,
@@ -70,6 +80,8 @@ def compute_all_models(
     logger.info(f"Voxel spacing: {ct_orig.header.get_zooms()}")  # type: ignore
     logger.info(f"Input Axcodes:    {nib.aff2axcodes(ct_orig.affine)}")  # type: ignore
     ct_image_data = load_nibabel_image_with_axcodes(ct_orig, axcodes="LPS")
+    range_warning(ct_image_data.get_fdata())
+
     # We use the BCA as a reference to check if we should generate a body segmentation first
     one_resampling = convert_resampling_slices(
         slices=ct_image_data.shape[-1],

@@ -219,9 +219,10 @@ def nnUNet_predict_image(
             logger.info(f"tmp_dir: {tmp_dir}")
 
         img_in_orig = nib.load(file_in)
-        img_in = nib.Nifti1Image(
-            img_in_orig.get_fdata(), img_in_orig.affine
-        )  # copy img_in_orig
+        origin_data = img_in_orig.get_fdata()
+        if np.any(origin_data < -1024) or np.any(origin_data > 3071):
+            origin_data = np.clip(origin_data, -1024, 3071)
+        img_in = nib.Nifti1Image(origin_data, img_in_orig.affine)  # copy img_in_orig
 
         if crop is not None:
             if type(crop) is str and crop in {"lung", "pelvis", "heart"}:
