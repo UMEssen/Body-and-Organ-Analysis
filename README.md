@@ -115,15 +115,13 @@ Download the [docker-compose.yml](./docker-compose.yml) file and run the followi
 docker compose up orthanc rabbitmq worker-gpu -d
 ```
 with `worker-gpu` if you want to use a local GPU and `worker` if you have Triton instance running.  Remove `rabbitmq` in case you already have an instance running.
-```bash
-docker compose up orthanc rabbitmq worker-gpu -d
-```
-same as above, `worker-gpu` or `worker` can be used, and the `rabbitmq` instance can be omitted.
 
 You can also just
 ```bash
 docker compose up -d
 ```
+
+!!!**IMPORTANT**!!!: if you are using windows, substitute the `docker-compose` with `docker -f docker-compose-win.yml`. `docker-compose-win.yml` has not been tested extensively so if you have any problems please contact us!
 
 ### Send a study to the analyzer
 You can then add the instance to your PACS of choice by adding `{YOUR_IP}` and the port `4242` to the location manager to your PACS. Below there is a screenshot of how this looks in Horos.
@@ -177,7 +175,9 @@ or clone the repository and build the image
 docker build -t ship-ai/boa-cli --file scripts/cli.dockerfile .
 ```
 
-then you can run your image with
+then you can run your image!
+
+### Run on Linux
 ```bash
 docker run \
     --rm \
@@ -186,7 +186,23 @@ docker run \
     -v $LOCAL_WEIGHTS_PATH:/app/weights \ # Add this to avoid redownloading
     --runtime=nvidia \
     --network host \
-    --user $(id -u):$(id -g) \ # Adds your user ID
+    --user $(id -u):$(id -g) \ # This sets your user ID
+    --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
+    --entrypoint /bin/sh \
+    ship-ai/boa-cli \
+    -c \
+    "python body_organ_analyzer --input-image /image.nii.gz --output-dir /workspace/ --models all --verbose"
+```
+
+### Run on Windows
+```bash
+docker run \
+    --rm \
+    -v $INPUT_FILE:/image.nii.gz \
+    -v $WORKING_DIR:/workspace \
+    -v $LOCAL_WEIGHTS_PATH:/app/weights \ # Add this to avoid redownloading
+    --gpus all \
+    --network host \
     --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
     --entrypoint /bin/sh \
     ship-ai/boa-cli \
@@ -200,5 +216,4 @@ The command can be customized with the following options:
 * In `--models` you can specify which models you want to run: `total` for the TotalSegmentator, `bca` for the Body Composition Analysis, `total+bca` for both or `all` for all the possible models: `body`, `total`, `lung_vessels`, `cerebral_bleed`, `hip_implant`, `coronary_arteries`, `pleural_pericard_effusion`, `liver_vessels`, `bca`.
 * You can also specify whether you want to extract the radiomics features by adding `--radiomics`. **CAREFUL**: This has currently not been tested extensively, so it might not work as expected.
 * During the process some segmentations are generated, which are then postprocessed and the original segmentations are deleted. If you want all versions of the segmentations, you can add `--keep-debug-segmentations`.
-* **NOT TESTED**: You can also run this with a Triton by adding the `--triton-url`.
 * There are other parameters that either belong to the BCA or to the TotalSegmentator, which you can view in [`cli.py`](cli.py).

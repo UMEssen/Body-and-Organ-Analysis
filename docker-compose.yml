@@ -17,6 +17,9 @@ services:
     build:
       dockerfile: scripts/task_gpu.dockerfile
       context: .
+      args:
+        - GIT_VERSION=${GIT_VERSION}
+        - PACKAGE_VERSION=${PACKAGE_VERSION}
     environment:
       - NVIDIA_VISIBLE_DEVICES=${NVIDIA_ID}
       - CELERY_BROKER
@@ -56,6 +59,9 @@ services:
     build:
       dockerfile: scripts/task.dockerfile
       context: .
+      args:
+        - GIT_VERSION=${GIT_VERSION}
+        - PACKAGE_VERSION=${PACKAGE_VERSION}
     environment:
       - CELERY_BROKER
       - ORTHANC_URL
@@ -91,6 +97,9 @@ services:
     build:
       dockerfile: scripts/orthanc.dockerfile
       context: .
+      args:
+        - GIT_VERSION=${GIT_VERSION}
+        - PACKAGE_VERSION=${PACKAGE_VERSION}
     environment:
       - CELERY_BROKER
       - |
