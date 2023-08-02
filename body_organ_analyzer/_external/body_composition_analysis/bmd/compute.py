@@ -156,9 +156,9 @@ def create_info_for_roi(image: np.ndarray, roi: np.ndarray) -> RoiMeasurement:
     num_dense_voxels = (masked_image > 500).sum()
 
     return RoiMeasurement(
-        density_mean=masked_image.mean(),
-        density_std=masked_image.std(),
-        density_median=np.median(masked_image),
+        density_mean=float(masked_image.mean()),
+        density_std=float(masked_image.std()),
+        density_median=float(np.median(masked_image)),
         density_min=int(masked_image.min()),
         density_max=int(masked_image.max()),
         num_dense_roi_voxels=int(num_dense_voxels),

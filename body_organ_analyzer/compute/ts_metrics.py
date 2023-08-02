@@ -10,10 +10,13 @@ import SimpleITK as sitk
 from body_composition_analysis.io import load_image
 from scipy import spatial
 from totalsegmentator.map_to_binary import reverse_class_map_complete
-from totalsegmentator.util import ADDITIONAL_MODELS_OUTPUT_NAME, create_mask
 
 from body_organ_analyzer.compute.geometry import find_axes
-from body_organ_analyzer.compute.util import convert_name
+from body_organ_analyzer.compute.util import (
+    ADDITIONAL_MODELS_OUTPUT_NAME,
+    convert_name,
+    create_mask,
+)
 
 logger = logging.getLogger(__name__)
 

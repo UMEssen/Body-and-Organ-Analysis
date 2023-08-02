@@ -74,10 +74,10 @@ def resample_to_thickness(image: sitk.Image, thickness: float) -> sitk.Image:
 
 
 def process_image(
-    img: nibabel.Nifti1Image, resample_thickness: float = None
+    img: nibabel.Nifti1Image,
+    resample_thickness: float = None,
 ) -> sitk.Image:
     image = nib_to_sitk(load_nibabel_image_with_axcodes(img, axcodes="LPS"))
-    # Checks for width/height=512 and int16 have been removed
     slice_thickness = image.GetSpacing()[2]
     if resample_thickness is not None and not np.isclose(
         slice_thickness, resample_thickness
@@ -93,4 +93,7 @@ def process_image(
 
 
 def load_image(path: pathlib.Path, resample_thickness: float = None) -> sitk.Image:
-    return process_image(nibabel.load(path), resample_thickness=resample_thickness)
+    return process_image(
+        nibabel.load(path),
+        resample_thickness=resample_thickness,
+    )

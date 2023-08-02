@@ -267,6 +267,10 @@ def nnUNet_predict_image(
         else:
             img_in_rsp = img_in
 
+        qform = img_in_rsp.get_qform()
+        img_in_rsp.set_qform(qform)
+        sform = img_in_rsp.get_sform()
+        img_in_rsp.set_sform(sform)
         nib.save(img_in_rsp, tmp_dir / "s01_0000.nii.gz")
 
         # nr_voxels_thr = 512*512*900

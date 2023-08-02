@@ -6,13 +6,13 @@ from typing import Dict, List
 
 import pandas as pd
 from boa_contrast import predict
-from totalsegmentator.util import ADDITIONAL_MODELS_OUTPUT_NAME
 
 from body_organ_analyzer._version import __githash__, __version__
 from body_organ_analyzer.compute.bca_metrics import compute_bca_metrics
 from body_organ_analyzer.compute.inference import compute_all_models
 from body_organ_analyzer.compute.io import get_image_info
 from body_organ_analyzer.compute.ts_metrics import compute_segmentator_metrics
+from body_organ_analyzer.compute.util import ADDITIONAL_MODELS_OUTPUT_NAME
 
 logger = logging.getLogger(__name__)
 # Suppress PyTorch warnings

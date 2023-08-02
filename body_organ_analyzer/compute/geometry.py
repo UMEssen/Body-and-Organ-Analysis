@@ -1,6 +1,6 @@
 import math
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import Any, List, Sequence, Tuple
 
 import cv2 as cv
 import numpy as np
@@ -17,7 +17,7 @@ class Point:
 
 
 def find_minor_point(
-    contours: np.ndarray,
+    contours: Sequence[Any],
     mid_point: Point,
     rotated_point: Point,
     length: int,
@@ -29,7 +29,9 @@ def find_minor_point(
         int(mid_point.y + rotated_point.y * length),
     )
     # Draw the contours on an array
-    contour_array = cv.drawContours(np.zeros(target_size), contours, -1, 1, 2)
+    contour_array = cv.drawContours(
+        np.zeros(target_size), contours, contourIdx=-1, color=1, thickness=2
+    )
     # Draw the lines on an array
     p_array = cv.line(
         np.zeros(target_size),
