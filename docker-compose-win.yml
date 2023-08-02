@@ -1,0 +1,70 @@
+version: "3.3"
+services:
+  rabbitmq:
+    image: ship-ai/rabbitmq
+    build:
+      dockerfile: scripts/rabbitmq.dockerfile
+      context: .
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    ports:
+      - "15672:15672"
+
+  worker-gpu:
+    image: ship-ai/boa-task-gpu
+    build:
+      dockerfile: scripts/task_gpu.dockerfile
+      context: .
+      args:
+        - GIT_VERSION=${GIT_VERSION}
+        - PACKAGE_VERSION=${PACKAGE_VERSION}
+    environment:
+      - CELERY_BROKER
+      - ORTHANC_URL
+      - ORTHANC_PORT
+      - ORTHANC_USERNAME
+      - ORTHANC_PASSWORD
+      # Output vars
+      - PATIENT_INFO_IN_OUTPUT
+      - SMB_DIR_OUTPUT
+      - SMB_USER
+      - SMB_PWD
+      - SEGMENTATION_UPLOAD_URL
+      - UPLOAD_USER
+      - UPLOAD_PWD
+    restart: always
+    shm_size: 1g
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    volumes:
+      - ${SEGMENTATION_DIR}:/storage_directory
+      - ${LOCAL_WEIGHTS_PATH}:/app/weights
+    command: ["python", "-m", "celery", "--app", "celery_task", "worker", "--concurrency=1", "--loglevel=INFO", "-P", "threads"]
+    depends_on:
+      - rabbitmq
+
+  orthanc:
+    image: ship-ai/boa-orthanc
+    build:
+      dockerfile: scripts/orthanc.dockerfile
+      context: .
+      args:
+        - GIT_VERSION=${GIT_VERSION}
+        - PACKAGE_VERSION=${PACKAGE_VERSION}
+    environment:
+      - VERBOSE_ENABLED=true
+      - VERBOSE_STARTUP=true
+      - CELERY_BROKER
+      - |
+        ORTHANC__REGISTERED_USERS=
+          {"${ORTHANC_USERNAME}": "${ORTHANC_PASSWORD}"}
+    restart: always
+    ports:
+      - "4242:4242"
+      - "${ORTHANC_PORT}:8042"
+
+networks:
+  default:
+    name: boa
