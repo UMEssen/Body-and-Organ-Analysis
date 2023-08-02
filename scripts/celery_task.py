@@ -25,7 +25,7 @@ BASE_MODELS, _ = imports.optional_import(
     module="body_organ_analyzer.compute.constants", name="BASE_MODELS"
 )
 ADDITIONAL_MODELS_OUTPUT_NAME, _ = imports.optional_import(
-    module="totalsegmentator.util", name="ADDITIONAL_MODELS_OUTPUT_NAME"
+    module="body_organ_analyzer.compute.util", name="ADDITIONAL_MODELS_OUTPUT_NAME"
 )
 
 store_dicoms, _ = imports.optional_import(
@@ -224,34 +224,8 @@ def save_data_persistent(
     output_folder: Path,
     new_excel_path: Optional[Path],
     secondary_excel_path: str,
+    output_information: str,
 ) -> None:
-    if (
-        all(
-            # Envs need to exist and not be TODO or empty
-            env in os.environ and os.environ[env] not in {"", "TODO"}
-            for env in ["SMB_USER", "SMB_PWD", "SMB_DIR_OUTPUT"]
-        )
-        and new_excel_path is not None
-    ):
-        start = time()
-        try:
-            store_excel(
-                paths_to_store=[
-                    new_excel_path,
-                    output_folder / "report.pdf",
-                    output_folder / "preview_total.png",
-                ],
-                store_path=secondary_excel_path,
-            )
-        except Exception:
-            traceback.print_exc()
-            logger.error("Storing Excel in SMB storage failed.")
-        logger.info(f"Storing Excel in SMB storage: DONE in {time() - start:0.5f}s")
-    else:
-        logger.info(
-            "The variables SMB_USER, SMB_PWD and SMB_DIR_OUTPUT are not set, "
-            "the Excel file will not be stored in SMB storage."
-        )
     if all(
         # Envs need to exist and not be TODO or empty
         env in os.environ and os.environ[env] not in {"", "TODO"}
@@ -264,11 +238,51 @@ def save_data_persistent(
             )
         except Exception:
             traceback.print_exc()
+            output_information += traceback.format_exc() + "\n\n"
             logger.error("Storing segmentation in DicomWeb failed.")
     else:
         logger.info(
             "The variables UPLOAD_USER, UPLOAD_PWD and SEGMENTATION_UPLOAD_URL are not set, "
             "the segmentations will not be uploaded."
+        )
+
+    if len(output_information) > 0:
+        with open(output_folder / "debug_information.txt", "w") as f:
+            f.write(output_information)
+    if all(
+        # Envs need to exist and not be TODO or empty
+        env in os.environ and os.environ[env] not in {"", "TODO"}
+        for env in ["SMB_USER", "SMB_PWD", "SMB_DIR_OUTPUT"]
+    ):
+        start = time()
+        try:
+            if new_excel_path is None:
+                store_excel(
+                    paths_to_store=[
+                        output_folder / "debug_information.txt",
+                    ],
+                    store_path=secondary_excel_path,
+                )
+                logger.error("No excel file was generated.")
+            else:
+                store_excel(
+                    paths_to_store=[
+                        new_excel_path,
+                        output_folder / "report.pdf",
+                        output_folder / "preview_total.png",
+                        output_folder / "preview_total.pdf",
+                        output_folder / "debug_information.txt",
+                    ],
+                    store_path=secondary_excel_path,
+                )
+        except Exception:
+            traceback.print_exc()
+            logger.error("Storing Excel in SMB storage failed.")
+        logger.info(f"Storing Excel in SMB storage: DONE in {time() - start:0.5f}s")
+    else:
+        logger.info(
+            "The variables SMB_USER, SMB_PWD and SMB_DIR_OUTPUT are not set, "
+            "the Excel file will not be stored in SMB storage."
         )
 
 
@@ -348,36 +362,45 @@ def analyze_stable_series(resource_id: str) -> None:
     ).json()
     secondary_excel_path = _get_naming_scheme(metadata, dicom_tags, patient_info)
 
+    logger.info(f"The target directory is {secondary_excel_path}.")
+
     start_init = time()
+    output_information = ""
     with tempfile.TemporaryDirectory() as working_dir:
         if output_root is not None:
             logger.info(
                 f"The outputs will be stored in {output_root / secondary_excel_path[1:]}"
             )
+            output_folder = output_root / secondary_excel_path[1:]
+            output_folder.mkdir(parents=True, exist_ok=True)
         else:
-            output_root = Path(working_dir)
+            output_folder = Path(working_dir)
         input_data_folder = download_dicoms_from_orthanc(
             session=session,
-            output_folder=output_root,
+            output_folder=output_folder,
             base_url=base_url,
             series_intances=series_info["Instances"],
         )
+        if len(list(input_data_folder.glob("*.dcm"))) == 0:
+            output_information += "No DICOMs could be downloaded for this series.\n\n"
         try:
             new_excel_path: Optional[Path] = build_excel(
                 input_data_folder=input_data_folder,
-                output_folder=output_root,
+                output_folder=output_folder,
                 dicom_tags=dicom_tags,
             )
         except Exception:
             traceback.print_exc()
+            output_information += traceback.format_exc() + "\n\n"
             new_excel_path = None
             logger.error("The Excel build failed.")
 
         save_data_persistent(
             input_data_folder=input_data_folder,
-            output_folder=output_root,
+            output_folder=output_folder,
             new_excel_path=new_excel_path,
             secondary_excel_path=secondary_excel_path,
+            output_information=output_information,
         )
 
     logger.info(f"Entire pipeline: DONE in {time() - start_init:0.5f}s")

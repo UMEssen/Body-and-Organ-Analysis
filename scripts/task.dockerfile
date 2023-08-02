@@ -11,11 +11,17 @@ COPY --from=poetry2requirements /Requirements.txt /tmp
 RUN apt-get -y update; DEBIAN_FRONTEND=noninteractive apt-get -y install \
     curl ffmpeg libsm6 libxext6 libpangocairo-1.0-0 dcmtk xvfb
 
+ARG PACKAGE_VERSION
+ARG GIT_VERSION
+ENV BOA_VERSION=$PACKAGE_VERSION
+ENV BOA_GITHASH=$GIT_VERSION
 WORKDIR /app
 
 ENV TOTALSEG_WEIGHTS_PATH="/app/weights"
 ENV MPLCONFIGDIR = "/app/configs"
 ENV nnUNet_USE_TRITON=1
+
+COPY weights /app/weights
 
 COPY scripts/*.py /app/
 COPY pyproject.toml README.md /app/
