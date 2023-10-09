@@ -44,6 +44,7 @@ jobs:
           poetry install --with dev
       - name: Run MyPy
         run: |
+          mkdir .mypy_cache
           poetry run mypy --install-types --non-interactive body_organ_analyzer
       - name: Run Flake8
         run: |
