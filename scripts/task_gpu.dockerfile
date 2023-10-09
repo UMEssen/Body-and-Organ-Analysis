@@ -27,7 +27,7 @@ COPY weights /app/weights
 
 COPY scripts/*.py /app/
 COPY pyproject.toml README.md /app/
-COPY body_organ_analyzer /app/body_organ_analyzer
+COPY body_organ_analysis /app/body_organ_analysis
 
 RUN chmod a+rwx -R /app && \
     pip3 install -U pip && \

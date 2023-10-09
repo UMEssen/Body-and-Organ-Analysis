@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-TARGET_FILE=body_organ_analyzer/_version.py
+TARGET_FILE=body_organ_analysis/_version.py
 export PACKAGE_VERSION=$(cat pyproject.toml | grep -e "^version" | cut -d'"' -f 2)
 export GIT_VERSION=$(git rev-parse --short HEAD)
 
