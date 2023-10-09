@@ -1,13 +1,20 @@
 {% extends 'index.html.jinja' %}
 
-{% block doc_title %}Body Composition Analysis Report{% endblock %}
+{% block doc_title %}Body and Organ Analyzer Report{% endblock %}
 
 {% block content %}
   {% include 'blocks/summary.html.jinja' %}
+  {% include 'blocks/summary_totalsegmentator.html.jinja' %}
   {% include 'blocks/equidistant_check.html.jinja' %}
   {% include 'blocks/tissue_heatmaps.html.jinja' %}
   {% include 'blocks/measurements_aggregated.html.jinja' %}
-  {% include 'blocks/measurements_per_slice.html.jinja' %}
+  {% include 'blocks/measurements_total.html.jinja' %}
   {% include 'blocks/other_findings.html.jinja' %}
   {% include 'blocks/bmd.html.jinja' %}
+  <article style="page-break-inside: avoid">
+    <h2>Acknowledgements</h2>
+    <section>
+      The full body segmentations were computed using the <a href="https://pubs.rsna.org/doi/10.1148/ryai.230024">TotalSegmentator models</a>, and the "TotalSegmentator Measurements" were also computed using these segmentations.
+    </section>
+  </article>
 {% endblock %}

@@ -1,21 +1,17 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Union
 
 import numpy as np
 import SimpleITK as sitk
-from body_composition_analysis.report.plots.colors import (
-    BODY_REGION_COLOR_MAP,
-    TISSUE_COLOR_MAP,
-)
 
 
 def create_equidistant_overview(
-    image: sitk.Image, regions: sitk.Image, tissues: sitk.Image, opacity: float = 0.25
-) -> List[Tuple[str, np.ndarray, np.ndarray]]:
+    image: sitk.Image,
+    segmentations: List[Tuple[sitk.Image, Dict[int, Tuple[int, int, int]]]],
+    opacity: float = 0.25,
+) -> List[List[Union[str, np.ndarray]]]:
     image = sitk.GetArrayViewFromImage(image)
-    tissue_seg = sitk.GetArrayViewFromImage(tissues)
-    region_seg = sitk.GetArrayViewFromImage(regions)
-
-    num_slices = tissue_seg.shape[0]
+    segmentations_arr = [(sitk.GetArrayViewFromImage(s), c) for s, c in segmentations]
+    num_slices = image.shape[0]
     locations = [
         0,
         int(num_slices * 0.25),
@@ -28,24 +24,17 @@ def create_equidistant_overview(
     result = []
     for name, slice_idx in zip(names, locations):
         slice_image = np.clip((image[slice_idx, ...] + 150) / 400.0, 0.0, 1.0) * 255
-        slice_seg = tissue_seg[slice_idx, ...]
-        slice_seg_rgb = TISSUE_COLOR_MAP[slice_seg]
 
-        composed = np.where(
-            slice_seg[..., np.newaxis] > 0,
-            slice_image[..., np.newaxis] * (1 - opacity) + slice_seg_rgb * opacity,
-            slice_image[..., np.newaxis],
-        )
+        slices = [name]
+        for seg, color_map in segmentations_arr:
+            slice_seg = seg[slice_idx, ...]
+            slice_seg_rgb = color_map[slice_seg]
 
-        slice_seg = region_seg[slice_idx, ...]
-        slice_seg_rgb = BODY_REGION_COLOR_MAP[slice_seg]
-
-        composed2 = np.where(
-            slice_seg[..., np.newaxis] > 0,
-            slice_image[..., np.newaxis] * (1 - opacity) + slice_seg_rgb * opacity,
-            slice_image[..., np.newaxis],
-        )
-
-        result.append((name, composed, composed2))
-
+            composed = np.where(
+                slice_seg[..., np.newaxis] > 0,
+                slice_image[..., np.newaxis] * (1 - opacity) + slice_seg_rgb * opacity,
+                slice_image[..., np.newaxis],
+            )
+            slices.append(composed)
+        result.append(slices)
     return result

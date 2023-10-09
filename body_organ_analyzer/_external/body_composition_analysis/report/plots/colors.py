@@ -1,5 +1,5 @@
 from typing import List, Tuple
-
+import colorsys
 import numpy as np
 from body_composition_analysis.tissue.definition import BodyRegion, Tissue
 from matplotlib.colors import LinearSegmentedColormap
@@ -66,6 +66,27 @@ def _generate_body_region_color_map() -> np.ndarray:
 
 
 BODY_REGION_COLOR_MAP = _generate_body_region_color_map()
+
+
+def _generate_general_color_map(num_colors: int) -> np.ndarray:
+    cmap = np.full((256, 3), 255, dtype=np.uint8)
+    cmap[0, :] = 0
+    colors = get_colors(num_colors)
+    for label, color in enumerate(colors):
+        cmap[label] = color
+    return cmap
+
+
+def get_colors(num_colors: int):
+    return [
+        tuple(
+            int(c * 255) for c in colorsys.hsv_to_rgb((x * 1.0) / num_colors, 1.0, 1.0)
+        )
+        for x in range(num_colors)
+    ]
+
+
+TOTAL_COLOR_MAP = _generate_general_color_map(104)
 
 
 def tempo() -> LinearSegmentedColormap:

@@ -19,9 +19,16 @@ from body_composition_analysis.report.plots.aggregation import create_aggregatio
 from body_composition_analysis.report.plots.bmd import create_roi_overlay
 from body_composition_analysis.report.plots.check import create_equidistant_overview
 from body_composition_analysis.report.plots.heatmaps import create_tissue_heatmaps
-from body_composition_analysis.report.plots.overview import create_tissue_summary
+from body_composition_analysis.report.plots.overview import (
+    create_tissue_summary,
+    create_totalsegmentator_summary,
+)
 from body_composition_analysis.tissue.definition import BodyRegion, Tissue
-
+from body_composition_analysis.report.plots.colors import (
+    BODY_REGION_COLOR_MAP,
+    TISSUE_COLOR_MAP,
+    TOTAL_COLOR_MAP,
+)
 from body_organ_analyzer._version import __githash__, __version__
 
 logger = logging.getLogger(__name__)
@@ -191,7 +198,6 @@ class Builder:
             slices = np.where(mask.any(axis=(1, 2)))[0]
             groups.append(("Abdominal Cavity", slices.min(), slices.max() + 1))
 
-            # TODO Add vertebrae regions
         if AggregatableBodyPart.THORAX in self.examined_body_part:
             mask = np.isin(
                 region_data,
@@ -235,7 +241,7 @@ class Builder:
         body_parts_data = sitk.GetArrayViewFromImage(self._body_parts)
         tissue_data = sitk.GetArrayViewFromImage(self._tissues)
         no_extremity_mask = body_parts_data == BodyParts.TRUNC
-        for (name, min_z, max_z) in groups:
+        for name, min_z, max_z in groups:
             image_region = image_data[min_z:max_z]
             tissue_region = tissue_data[min_z:max_z]
             measurements = self._descriptive_statistics_from_measurements(
@@ -406,7 +412,11 @@ class Builder:
         return result
 
     def prepare(
-        self, vertebrae: Optional[Dict[str, Tuple[int, int]]], bmd: Optional[BMD]
+        self,
+        vertebrae: Optional[Dict[str, Tuple[int, int]]] = None,
+        bmd: Optional[BMD] = None,
+        total: Optional[sitk.Image] = None,
+        total_measurements: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         ml_per_voxel = np.prod(self._image.GetSpacing()) / 1000.0
         tissue_data = sitk.GetArrayViewFromImage(self._tissues)
@@ -461,6 +471,16 @@ class Builder:
             image_summary
         ).decode("utf-8")
 
+        total_summary = (
+            [
+                _to_embedded_image(img, f"total_overview_{i}")
+                for i, img in enumerate(
+                    create_totalsegmentator_summary(self._image, total)
+                )
+            ]
+            if total is not None
+            else None
+        )
         heatmaps = [
             (
                 x[0],
@@ -477,20 +497,27 @@ class Builder:
             "75%": "q3",
             "Last": "q4",
         }
+        equidistance_slices_segs = [
+            (self._body_regions, BODY_REGION_COLOR_MAP),
+            (self._tissues, TISSUE_COLOR_MAP),
+        ]
+        seg_names = ["body-regions", "tissues"]
+        if total is not None:
+            equidistance_slices_segs.append((total, TOTAL_COLOR_MAP))
+            seg_names.append("total")
         equidistant_slice_check = [
-            (
-                x[0],
+            [x[0]]
+            + [
                 _to_embedded_image(
-                    x[1],
-                    f"equidistant_check_tissues_{name_mapping.get(x[0], x[0].lower())}",
-                ),
-                _to_embedded_image(
-                    x[2],
-                    f"equidistant_check_body-regions_{name_mapping.get(x[0], x[0].lower())}",
-                ),
-            )
+                    x[seg_slice_idx + 1],
+                    f"equidistant_check_{seg_names[seg_slice_idx]}_"
+                    f"{name_mapping.get(x[0], x[0].lower())}",
+                )
+                for seg_slice_idx in range(len(seg_names))
+            ]
             for x in create_equidistant_overview(
-                self._image, self._body_regions, self._tissues
+                self._image,
+                equidistance_slices_segs,
             )
         ]
 
@@ -514,6 +541,25 @@ class Builder:
                 if k in bmd.errors or k in bmd.measurements
             ]
 
+        if (
+            total_measurements is None
+            or "segmentations" not in total_measurements
+            or "total" not in total_measurements["segmentations"]
+        ):
+            df_total = None
+        else:
+            df_total = pd.DataFrame(total_measurements["segmentations"]["total"]).T
+            df_total = df_total.loc[df_total["present"]]
+            df_total.drop(columns="present", inplace=True)
+            df_total.rename(
+                index={v: v.replace("_", " ").title() for v in df_total.index},
+                columns={
+                    "25th_percentile_hu": "twentyfive_percentile_hu",
+                    "75th_percentile_hu": "seventyfive_percentile_hu",
+                },
+                inplace=True,
+            )
+
         return dict(
             aggregated_measurements=aggregations,
             equidistant_slice_check=equidistant_slice_check,
@@ -521,8 +567,10 @@ class Builder:
             other_findings=self.generate_secondary_findings(),
             slicewise_measurements=df,
             slicewise_measurements_no_limbs=df_no_limbs,
+            measurements_total=df_total,
             tissue_heatmaps=heatmaps,
             bmd_measurements=bmd_measurements,
+            summary_totalsegmentator=total_summary,
         )
 
     def create_json(self, **kwargs: Any) -> Dict[str, Any]:

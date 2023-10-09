@@ -208,6 +208,19 @@ def run_pipeline(
     body_parts = process_image(body_parts)
     tissues = process_image(sitk_to_nib(tissues))
     vertebrae = process_image(vertebrae)
+
+    total = None
+    if (output_dir / "total.nii.gz").exists():
+        if not (output_dir / "vertebrae.nii.zg").exists():
+            total = vertebrae
+        else:
+            total = load_image(output_dir / "total.nii.gz")
+
+    total_measurements = None
+    if (output_dir / "total-measurements.json").exists():
+        with open(output_dir / "total-measurements.json") as ifile:
+            total_measurements = json.load(ifile)
+
     logger.info("All scans have been loaded and preprocessed.")
     # If appropriate perform a vertebrae localization
     if examined_body_region:
@@ -236,7 +249,9 @@ def run_pipeline(
     # Build report
     builder = Builder(image, body_parts, body_regions, tissues)
     builder.examined_body_part = body_part
-    prepared_data = builder.prepare(vertebrae_info, bmd)
+    prepared_data = builder.prepare(
+        vertebrae_info, bmd, total=total, total_measurements=total_measurements
+    )
     if save_pdf:
         pdf_bytes = builder.create_pdf("report.html.jinja", **prepared_data)
     json_data = builder.create_json(**prepared_data)

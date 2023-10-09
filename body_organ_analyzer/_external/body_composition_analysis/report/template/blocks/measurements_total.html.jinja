@@ -1,0 +1,44 @@
+{% if measurements_total is not none %}
+<article id="measurements">
+    <h2>TotalSegmentator Measurements</h2>
+    <section>
+        <table class="striped">
+            <thead>
+                <tr>
+                <th>Region</th>
+                <th>Volume (mL)</th>
+                <th>Mean HU</th>
+                <th>Std HU</th>
+                <th>Min HU</th>
+                <th>Median HU</th>
+                <th>Max HU</th>
+                <th>25th Percentile HU</th>
+                <th>75th Percentile HU</th>
+                <th>CNR</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for row in measurements_total.itertuples() %}
+                <tr class="{{'text-disabled' if row.has_artifacts else ''}}">
+                <td>{{ row.Index }}</td>
+                <td>{{ '%.2f' % row.volume_ml }}</td>
+                <td>{{ '%.2f' % row.mean_hu }}</td>
+                <td>{{ '%.2f' % row.std_hu }}</td>
+                <td>{{ '%.2f' % row.min_hu }}</td>
+                <td>{{ '%.2f' % row.median_hu }}</td>
+                <td>{{ '%.2f' % row.max_hu }}</td>
+                <td>{{ '%.2f' % row.twentyfive_percentile_hu }}</td>
+                <td>{{ '%.2f' % row.seventyfive_percentile_hu }}</td>
+                {% if row.cnr is not none %}
+                <td>{{ '%.2f' % row.cnr }}</td>
+                {% else %}
+                <td>N/A</td>
+                {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</article>
+{% endif %}

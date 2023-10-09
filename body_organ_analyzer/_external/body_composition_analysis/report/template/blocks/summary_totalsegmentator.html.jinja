@@ -1,0 +1,13 @@
+{% if summary_totalsegmentator is not none %}
+    <article style="page-break-inside: avoid">
+        <section>
+            <table id="total-summary">
+            <tr>
+                {% for image in summary_totalsegmentator %}
+                    <td><img style="width: 4cm" src="{{ image }}"/></td>
+                {% endfor %}
+            </tr>
+            </table>
+        </section>
+    </article>
+{% endif %}

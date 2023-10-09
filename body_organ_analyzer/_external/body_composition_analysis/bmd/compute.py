@@ -22,11 +22,12 @@ from scipy.ndimage import gaussian_filter
 def draw_line(
     bone_mask: np.ndarray, sample_pos1: np.ndarray, sample_pos2: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    min_value = np.array([0, 0])
     max_value = np.array([bone_mask.shape[0] - 1, bone_mask.shape[1] - 1])
     mask = np.zeros(bone_mask.shape, dtype=bool)
     rr, cc = skimage.draw.line(
-        *np.minimum(sample_pos1.round().astype(int), max_value),
-        *np.minimum(sample_pos2.round().astype(int), max_value),
+        *np.clip(sample_pos1.round().astype(int), min_value, max_value),
+        *np.clip(sample_pos2.round().astype(int), min_value, max_value),
     )
     mask[rr, cc] = True
 
