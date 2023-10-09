@@ -38,7 +38,7 @@ def analyze_ct(
     bca_median_filtering: bool = False,
     bca_examined_body_region: str = None,
     bca_pdf: bool = True,
-    bca_compute_bmd: bool = True,
+    bca_compute_bmd: bool = False,
     keep_debug_information: bool = False,
     recompute: bool = False,
     nnunet_verbose: bool = False,
