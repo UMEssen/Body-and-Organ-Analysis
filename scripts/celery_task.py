@@ -16,7 +16,6 @@ from celery.signals import worker_ready, worker_shutdown
 from unidecode import unidecode
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 pydicom, _ = imports.optional_import(module="pydicom")
 
@@ -79,7 +78,6 @@ def worker_shutdown_handler(**_: Any) -> None:
 app = Celery(
     broker=os.environ["CELERY_BROKER"],
 )
-
 app.conf.update(
     # Make sure that the task is acked upon successful completion
     task_acks_late=True,
@@ -90,10 +88,13 @@ app.conf.update(
     broker_pool_limit=0,
     # Ensure that is always on
     task_publish_retry=True,
-    # Retry at most 15 times
+    # Retry at most 5 times
     task_publish_retry_policy={
-        "max_retries": 15,
+        "max_retries": 5,
     },
+    # If this is not set to 1, the worker somehow has a memory leak
+    # https://stackoverflow.com/questions/17541452/celery-does-not-release-memory
+    worker_max_tasks_per_child=1,
 )
 app.steps["worker"].add(LivenessProbe)
 
@@ -132,10 +133,8 @@ def _process_info_element(
     return re.sub(r"[^\w\.]", "_", _replace_umlauts(layer_info[:-1]))
 
 
-def _get_naming_scheme(
-    metadata: Dict[str, str], dicom_tags: Dict[str, str], patient_info: bool = False
-) -> str:
-    p = f"/{metadata['CalledAET']}"
+def _get_naming_scheme(dicom_tags: Dict[str, str], patient_info: bool = False) -> str:
+    p = f"/{dicom_tags['CalledAET']}"
     study_layer = _process_info_element(
         dicom_tags, ["StudyDate", "AccessionNumber", "StudyDescription"]
     )
@@ -176,7 +175,6 @@ def download_dicoms_from_orthanc(
     base_url: str,
     series_intances: Dict[str, Any],
 ) -> Path:
-    logger.info(f"The outputs will be stored in {output_folder}")
     input_data_folder = output_folder / "input_dicoms"
     input_data_folder.mkdir(parents=True, exist_ok=True)
     start = time()
@@ -196,7 +194,7 @@ def build_excel(
 ) -> Path:
     # Setup before calling
     start = time()
-    models = BASE_MODELS + list(ADDITIONAL_MODELS_OUTPUT_NAME.keys()) + ["bca"]
+    models = BASE_MODELS + ["bca"]
     excel_path = analyze_ct(
         input_folder=input_data_folder,
         processed_output_folder=output_folder,
@@ -286,8 +284,44 @@ def save_data_persistent(
         )
 
 
-@app.task(ignore_result=True)
-def analyze_stable_series(resource_id: str) -> None:
+def get_dicom_tags(
+    session: requests.Session, base_url: str, resource_id: str
+) -> Dict[str, Any]:
+    # Get all the series information
+    series_response = session.get(
+        f"{base_url}/series/{resource_id}",
+    )
+    # TODO: Add checks to filter out the series that are not CTs
+
+    series_response.raise_for_status()
+    series_info = series_response.json()
+    # Get info about the patient
+    metadata = session.get(
+        f"{base_url}/instances/{series_info['Instances'][0]}/metadata?expand"
+    ).json()
+    dicom_tags = session.get(
+        f"{base_url}/instances/{series_info['Instances'][0]}/simplified-tags"
+    ).json()
+    useful_info = {
+        "Instances": series_info["Instances"],
+        "CalledAET": metadata["CalledAET"],
+    }
+    for tag in [
+        "StudyDate",
+        "AccessionNumber",
+        "StudyDescription",
+        "SeriesNumber",
+        "SeriesDescription",
+        "PatientName",
+        "PatientBirthDate",
+    ]:
+        if tag in dicom_tags:
+            useful_info[tag] = dicom_tags[tag]
+    return useful_info
+
+
+@app.task()
+def analyze_stable_series(resource_id: str) -> Dict[str, str]:
     patient_info = False
     if "PATIENT_INFO_IN_OUTPUT" in os.environ and os.environ[
         "PATIENT_INFO_IN_OUTPUT"
@@ -306,16 +340,6 @@ def analyze_stable_series(resource_id: str) -> None:
     session = requests.Session()
     session.auth = collect_auth()
     base_url = f"{os.environ['ORTHANC_URL']}:{os.environ['ORTHANC_PORT']}"
-
-    # Get all the series information
-    series_response = session.get(
-        f"{base_url}/series/{resource_id}",
-    )
-
-    # TODO: Add checks to filter out the series that are not CTs
-
-    series_response.raise_for_status()
-    series_info = series_response.json()
 
     if not Path("/storage_directory").exists():
         if (
@@ -353,20 +377,16 @@ def analyze_stable_series(resource_id: str) -> None:
     else:
         output_root = Path("/storage_directory")
 
-    # Get info about the patient
-    metadata = session.get(
-        f"{base_url}/instances/{series_info['Instances'][0]}/metadata?expand"
-    ).json()
-    dicom_tags = session.get(
-        f"{base_url}/instances/{series_info['Instances'][0]}/simplified-tags"
-    ).json()
-    secondary_excel_path = _get_naming_scheme(metadata, dicom_tags, patient_info)
+    dicom_tags = get_dicom_tags(
+        session=session, base_url=base_url, resource_id=resource_id
+    )
+    secondary_excel_path = _get_naming_scheme(dicom_tags, patient_info)
 
     logger.info(f"The target directory is {secondary_excel_path}.")
 
     start_init = time()
     output_information = ""
-    with tempfile.TemporaryDirectory() as working_dir:
+    with tempfile.TemporaryDirectory(prefix="boa_") as working_dir:
         if output_root is not None:
             logger.info(
                 f"The outputs will be stored in {output_root / secondary_excel_path[1:]}"
@@ -379,7 +399,7 @@ def analyze_stable_series(resource_id: str) -> None:
             session=session,
             output_folder=output_folder,
             base_url=base_url,
-            series_intances=series_info["Instances"],
+            series_intances=dicom_tags["Instances"],
         )
         if len(list(input_data_folder.glob("*.dcm"))) == 0:
             output_information += "No DICOMs could be downloaded for this series.\n\n"
@@ -402,7 +422,6 @@ def analyze_stable_series(resource_id: str) -> None:
             secondary_excel_path=secondary_excel_path,
             output_information=output_information,
         )
-
     logger.info(f"Entire pipeline: DONE in {time() - start_init:0.5f}s")
 
     # Remove series from orthanc
@@ -410,3 +429,5 @@ def analyze_stable_series(resource_id: str) -> None:
         f"{base_url}/series/{resource_id}",
     )
     delete_response.raise_for_status()
+
+    return {"outputs": secondary_excel_path[1:]}
