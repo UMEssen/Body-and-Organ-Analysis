@@ -167,7 +167,7 @@ def download_pretrained_weights(task_id):
         WEIGHTS_URL = "https://zenodo.org/record/7573746/files/Task008_HepaticVessel.zip?download=1"
     elif task_id == 542:
         config_dir = config_dir / "3d_fullres"
-        weights_path = config_dir / "Task008_HepaticVessel"
+        weights_path = config_dir / "Task542_BCA_inference"
         WEIGHTS_URL = "https://zenodo.org/record/7918824/files/Task542_BCA_inference.zip?download=1"
 
     for old_weight in old_weights:
@@ -175,7 +175,7 @@ def download_pretrained_weights(task_id):
             shutil.rmtree(config_dir / old_weight)
 
     if WEIGHTS_URL is not None and not weights_path.exists():
-        logger.info(f"Downloading pretrained weights for Task {task_id} (~230MB) ...")
+        logger.info(f"Downloading pretrained weights for Task {task_id}...")
 
         # r = requests.get(WEIGHTS_URL)
         # with zipfile.ZipFile(io.BytesIO(r.content)) as zip_f:
