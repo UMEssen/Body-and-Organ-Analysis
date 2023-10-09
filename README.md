@@ -5,16 +5,16 @@
   </a>
 </div>
 
-# BOA: Body and Organ Analyzer
+# BOA: Body and Organ Analysis
 
-- [BOA: Body and Organ Analyzer](#boa--body-and-organ-analyzer)
+- [BOA: Body and Organ Analysis](#boa--body-and-organ-analysis)
   * [What is it?](#what-is-it-)
   * [How does it work?](#how-does-it-work-)
   * [How to run?](#how-to-run-)
     + [Environment Variables](#environment-variables)
     + [Notes on RabbitMQ](#notes-on-rabbitmq)
     + [Run](#run)
-    + [Send a study to the analyzer](#send-a-study-to-the-analyzer)
+    + [Send a study to the BOA](#send-a-study-to-the-boa)
     + [Notes on Performance](#notes-on-performance)
   * [Outputs](#outputs)
   * [Command Line Tool](#command-line-tool)
@@ -22,10 +22,24 @@
 ## What is it?
 BOA is a tool for segmentation of CT scans developed by the [SHIP-AI group at the Institute for Artificial Intelligence in Medicine](https://ship-ai.ikim.nrw/). Combining the [TotalSegmentator](https://arxiv.org/abs/2208.05868) and the [Body Composition Analysis](https://pubmed.ncbi.nlm.nih.gov/32945971/), this tool is capable of analyzing medical images and identifying the different structures within the human body, including bones, muscles, organs, and blood vessels.
 
-If you use this tool, please make sure to cite the following papers: [BCA](https://pubmed.ncbi.nlm.nih.gov/32945971/), [TotalSegmentator](https://arxiv.org/abs/2208.05868) and [nnU-Net](https://www.nature.com/articles/s41592-020-01008-z).
+
+
+If you use this tool, please cite the following papers:
+
+```
+Haubold J, Baldini G, Parmar V, et al. A CT-Based Body and Organ Analysis for Radiologists at the Point of Care. Invest. Radiol. (In Press).
+```
+
+```
+Wasserthal J, Breit H-C, Meyer MT, et al. TotalSegmentator: Robust Segmentation of 104 Anatomic Structures in CT Images. Radiol. Artif. Intell. 2023:e230024. Available at: https://pubs.rsna.org/doi/10.1148/ryai.230024.
+```
+
+```
+Isensee F, Jaeger PF, Kohl SAA, et al. nnU-Net: a self-configuring method for deep learning-based biomedical image segmentation. Nat. Methods. 2021;18(2):203–211. Available at: https://www.nature.com/articles/s41592-020-01008-z.
+```
 
 ## How does it work?
-- The user sends a study to the analyzer.
+- The user sends a study to the BOA.
 - The study is received by the Orthanc instance, which then creates a task.
 - The task is picked up by a task management system, which then starts the segmentations and the computation of the Excel file with the measurements.
 - If specified, the segmentations are saved locally and uploaded to the DicomWeb instance.
@@ -124,7 +138,7 @@ docker compose up -d
 
 !!!**IMPORTANT**!!!: if you are using windows, substitute the `docker-compose` with `docker -f docker-compose-win.yml`. `docker-compose-win.yml` has not been tested extensively so if you have any problems please contact us!
 
-### Send a study to the analyzer
+### Send a study to the BOA
 You can then add the instance to your PACS of choice by adding `{YOUR_IP}` and the port `4242` to the location manager to your PACS. Below there is a screenshot of how this looks in Horos.
 
 <div align="center">
@@ -173,6 +187,7 @@ docker pull # Published images coming soon!
 
 or clone the repository and build the image
 ```bash
+source scripts/generate_version.sh
 docker build -t ship-ai/boa-cli --file scripts/cli.dockerfile .
 ```
 
@@ -192,7 +207,7 @@ docker run \
     --entrypoint /bin/sh \
     ship-ai/boa-cli \
     -c \
-    "python body_organ_analyzer --input-image /image.nii.gz --output-dir /workspace/ --models all --verbose"
+    "python body_organ_analysis --input-image /image.nii.gz --output-dir /workspace/ --models all --verbose"
 ```
 
 ### Run on Windows
@@ -208,7 +223,7 @@ docker run \
     --entrypoint /bin/sh \
     ship-ai/boa-cli \
     -c \
-    "python body_organ_analyzer --input-image /image.nii.gz --output-dir /workspace/ --models all --verbose"
+    "python body_organ_analysis --input-image /image.nii.gz --output-dir /workspace/ --models all --verbose"
 ```
 
 where `$INPUT_FILE` is the path to the input CT and `$WORKING_DIR` is the path to the directory where the results will be stored.
