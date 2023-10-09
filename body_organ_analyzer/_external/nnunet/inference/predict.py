@@ -104,6 +104,7 @@ def preprocess_save_to_queue(
         except KeyboardInterrupt:
             raise KeyboardInterrupt
         except Exception as e:
+            errors_in.append(l)
             print("error in", l)
             print(e)
     q.put("end")
