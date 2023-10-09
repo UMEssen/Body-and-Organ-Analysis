@@ -66,12 +66,11 @@ def inference(
         logger.info(
             f"Computing model {task_name} with ID {task_specific_params['task_id']}..."
         )
-        if task_name not in {"bca"}:
-            if isinstance(task_specific_params["task_id"], list):
-                for t_id in task_specific_params["task_id"]:
-                    download_pretrained_weights(t_id)
-            else:
-                download_pretrained_weights(task_specific_params["task_id"])
+        if isinstance(task_specific_params["task_id"], list):
+            for t_id in task_specific_params["task_id"]:
+                download_pretrained_weights(t_id)
+        else:
+            download_pretrained_weights(task_specific_params["task_id"])
         task_specific_params["crop"] = crop
         output = nnUNet_predict_image(
             file_in=ct_path,
