@@ -1,14 +1,15 @@
-import sys
-import os
-import itertools
-import pickle
-from pathlib import Path
+# import sys
+# import os
+# import itertools
+# import pickle
+# from pathlib import Path
 
-import nibabel as nib
+# import nibabel as nib
 import numpy as np
-import pandas as pd
-from tqdm import tqdm
-from fury import window, actor, ui, io, utils
+
+# import pandas as pd
+# from tqdm import tqdm
+from fury import window  # , actor, ui, io, utils
 
 from totalsegmentator.vtk_utils import contour_from_roi_smooth, plot_mask
 from totalsegmentator.map_to_binary import class_map
@@ -148,6 +149,51 @@ roi_groups = {
     "body": [["body_trunc", "body_extremities"]],
     "pleural_pericard_effusion": [["pleural_effusion", "pericardial_effusion"]],
     "liver_vessels": [["liver_vessels", "liver_tumor"]],
+    "heartchambers_test": [
+        ["heart_myocardium"],
+        ["heart_atrium_left", "heart_ventricle_left"],
+        ["heart_atrium_right", "heart_ventricle_right"],
+        ["aorta", "pulmonary_artery"],
+    ],
+    "bones_tissue_test": [
+        [
+            "femur",
+            "patella",
+            "tibia",
+            "fibula",
+            "tarsal",
+            "metatarsal",
+            "phalanges_feet",
+            "humerus",
+            "ulna",
+            "radius",
+            "carpal",
+            "metacarpal",
+            "phalanges_hand",
+            "sternum",
+            "skull",
+            "spinal_cord",
+        ],
+        ["subcutaneous_fat", "skeletal_muscle", "torso_fat"],
+    ],
+    "aortic_branches_test": [
+        [
+            "brachiocephalic_trunk",
+            "subclavian_artery_right",
+            "subclavian_artery_left",
+            "aorta",
+            "common_carotid_artery_right",
+            "common_carotid_artery_left",
+        ],
+        [
+            "superior_vena_cava",
+            "brachiocephalic_vein_left",
+            "brachiocephalic_vein_right",
+            "atrial_appendage_left",
+        ],
+        ["pulmunary_vein", "pulmunary_artery"],
+        ["heart_atrium_left", "heart_atrium_right", "thyroid_gland"],
+    ],
     "test": [
         [
             "carpal",
@@ -175,8 +221,7 @@ roi_groups = {
 }
 
 
-def plot_roi_group(ref_img, scene, rois, x, y, smoothing, roi_data, affine, task_name):
-    # ref_img = nib.load(subject_path)
+def plot_roi_group(scene, rois, x, y, smoothing, roi_data, affine, task_name):
     roi_actors = []
 
     for idx, roi in enumerate(rois):
@@ -209,23 +254,22 @@ def plot_subject(
     showm = window.ShowManager(scene, size=window_size, reset_camera=False)
     showm.initialize()
 
-    # ct_img = nib.load(subject_path)
-    data = ct_img.get_fdata()
-    data = data.transpose(1, 2, 0)  # Show sagittal view
-    data = data[::-1, :, :]
-    value_range = (-115, 225)  # soft tissue window
-    slice_actor = actor.slicer(data, ct_img.affine, value_range)
-    slice_actor.SetPosition(0, 0, 0)
-    scene.add(slice_actor)
+    # data = ct_img.get_fdata()
+    # data = data.transpose(1, 2, 0)  # Show sagittal view
+    # data = data[::-1, :, :]
+    # TODO: Make sure that this does not cause a memory leak anymore
+    # value_range = (-115, 225)  # soft tissue window
+    # slice_actor = actor.slicer(data, ct_img.affine, value_range)
+    # slice_actor.SetPosition(0, 0, 0)
+    # scene.add(slice_actor)
 
     # Plot 3D rois
     for idx, roi_group in enumerate(roi_groups[task_name]):
-        idx += 1  # increase by 1 because 0 is the ct image
+        # idx += 1  # increase by 1 because 0 is the ct image
         x = (idx % nr_cols) * subject_width
         # y = (idx // nr_cols) * subject_height
         y = 0
         plot_roi_group(
-            ct_img,
             scene,
             roi_group,
             x,

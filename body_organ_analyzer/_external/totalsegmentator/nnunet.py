@@ -88,6 +88,8 @@ def nnUNet_predict(
     folds=None,
     trainer="nnUNetTrainerV2",
     tta=False,
+    num_threads_preprocessing=6,
+    num_threads_nifti_save=2,
 ):
     """
     Identical to bash function nnUNet_predict
@@ -98,8 +100,8 @@ def nnUNet_predict(
             for only fold 0: [0]
     """
     save_npz = False
-    num_threads_preprocessing = 6
-    num_threads_nifti_save = 2
+    # num_threads_preprocessing = 6
+    # num_threads_nifti_save = 2
     # num_threads_preprocessing = 1
     # num_threads_nifti_save = 1
     lowres_segmentations = None
@@ -108,7 +110,7 @@ def nnUNet_predict(
     disable_tta = not tta
     overwrite_existing = False
     mode = "normal" if model == "2d" else "fastest"
-    all_in_gpu = True
+    all_in_gpu = True  # It is None on the last totalseg version, but they use an older version of nnunet that sets it to True if mode == "fastest", so to obtain the same results we have to do it like this
     step_size = 0.5
     chk = "model_final_checkpoint"
     disable_mixed_precision = False
@@ -123,7 +125,7 @@ def nnUNet_predict(
     model_folder_name = join(
         network_training_output_dir, model, task_name, trainer + "__" + plans_identifier
     )
-    print(f"using model stored in {model_folder_name}")
+    # logger.info(f"using model stored in {model_folder_name}")
 
     predict_from_folder(
         model_folder_name,
@@ -199,6 +201,8 @@ def nnUNet_predict_image(
     quiet=False,
     verbose=False,
     test=0,
+    compute_skin=False,
+    skip_saving=False,
 ):
     """
     crop: string or a nibabel image
@@ -207,6 +211,8 @@ def nnUNet_predict_image(
     file_in = Path(file_in)
     if file_out is not None:
         file_out = Path(file_out)
+    if not file_in.exists():
+        raise ValueError("ERROR: The input file or directory does not exist.")
     multimodel = type(task_id) is list
 
     # for debugging
@@ -219,6 +225,18 @@ def nnUNet_predict_image(
             logger.info(f"tmp_dir: {tmp_dir}")
 
         img_in_orig = nib.load(file_in)
+        if len(img_in_orig.shape) == 2:
+            raise ValueError(
+                "TotalSegmentator does not work for 2D images. Use a 3D image."
+            )
+        if len(img_in_orig.shape) > 3:
+            logger.warning(
+                f"WARNING: Input image has {len(img_in_orig.shape)} dimensions. "
+                f"Only using first three dimensions."
+            )
+            storage = img_in_orig.get_fdata()[:, :, :, 0]
+            img_in_orig = nib.Nifti1Image(storage, img_in_orig.affine)
+
         origin_data = img_in_orig.get_fdata()
         if np.any(origin_data < -1024) or np.any(origin_data > 3071):
             origin_data = np.clip(origin_data, -1024, 3071)
@@ -228,7 +246,8 @@ def nnUNet_predict_image(
             if type(crop) is str and crop in {"lung", "pelvis", "heart"}:
                 combine_masks(crop_path, crop_path / f"{crop}.nii.gz", crop)
             if type(crop) is str:
-                crop_mask_img = nib.load(crop_path / f"{crop}.nii.gz").get_fdata()
+                storage = nib.load(crop_path / f"{crop}.nii.gz")
+                crop_mask_img = storage.get_fdata()
             elif type(crop) is nib.Nifti1Image:
                 crop_mask_img = crop.get_fdata()
             else:
@@ -312,6 +331,23 @@ def nnUNet_predict_image(
 
         st = time.time()
         if multimodel:  # if running multiple models
+            # only compute model parts containing the roi subset
+            if roi_subset is not None:
+                part_names = []
+                new_task_id = []
+                for part_name, part_map in class_map_5_parts.items():
+                    if any(organ in roi_subset for organ in part_map.values()):
+                        # get taskid associated to model part_name
+                        map_partname_to_taskid = {
+                            v: k for k, v in map_taskid_to_partname.items()
+                        }
+                        new_task_id.append(map_partname_to_taskid[part_name])
+                        part_names.append(part_name)
+                task_id = new_task_id
+                if verbose:
+                    logger.info(
+                        f"Computing parts: {part_names} based on the provided roi_subset"
+                    )
             if test == 0:
                 class_map_inv = {v: k for k, v in class_map[task_name].items()}
                 (tmp_dir / "parts").mkdir(exist_ok=True)
@@ -322,7 +358,7 @@ def nnUNet_predict_image(
                     seg_combined[img_part] = np.zeros(img_shape, dtype=np.uint8)
                 # Run several tasks and combine results into one segmentation
                 for idx, tid in enumerate(task_id):
-                    logger.info(f"Predicting part {idx} of 5 ...")
+                    logger.info(f"Predicting part {idx + 1} of {len(task_id)} ...")
                     with nostdout(verbose):
                         nnUNet_predict(
                             tmp_dir, tmp_dir, tid, model, folds, trainer, tta
@@ -332,9 +368,10 @@ def nnUNet_predict_image(
                         (tmp_dir / f"{img_part}.nii.gz").rename(
                             tmp_dir / "parts" / f"{img_part}_{tid}.nii.gz"
                         )
-                        seg = nib.load(
+                        seg_img = nib.load(
                             tmp_dir / "parts" / f"{img_part}_{tid}.nii.gz"
-                        ).get_fdata()
+                        )
+                        seg = seg_img.get_fdata()
                         for jdx, class_name in class_map_5_parts[
                             map_taskid_to_partname[tid]
                         ].items():
@@ -358,7 +395,7 @@ def nnUNet_predict_image(
         else:
             if not quiet:
                 logger.info(f"Predicting...")
-            if test == 0 or test == 2:
+            if test == 0:
                 with nostdout(verbose):
                     nnUNet_predict(
                         tmp_dir, tmp_dir, task_id, model, folds, trainer, tta
@@ -450,9 +487,17 @@ def nnUNet_predict_image(
         if save_binary:
             img_data = (img_data > 0).astype(np.uint8)
 
-        if file_out is not None:
+        if file_out is not None and skip_saving is False:
             if not quiet:
                 logger.info("Saving segmentations...")
+
+            # Select subset of classes if required
+            selected_classes = class_map[task_name]
+            if roi_subset is not None:
+                selected_classes = {
+                    k: v for k, v in selected_classes.items() if v in roi_subset
+                }
+
             # Copy header to make output header exactly the same as input. But change dtype otherwise it will be
             # float or int and therefore the masks will need a lot more space.
             # (infos on header: https://nipy.org/nibabel/nifti_images.html)
@@ -476,12 +521,11 @@ def nnUNet_predict_image(
             else:  # save each class as a separate binary image
                 file_out.mkdir(exist_ok=True, parents=True)
 
-                # Select subset of classes if required
-                selected_classes = class_map[task_name]
-                if roi_subset is not None:
-                    selected_classes = {
-                        k: v for k, v in selected_classes.items() if v in roi_subset
-                    }
+                if np.prod(img_data.shape) > 512 * 512 * 1000:
+                    logger.info(
+                        f"Shape of output image is very big. Setting nr_threads_saving=1 to save memory."
+                    )
+                    nr_threads_saving = 1
 
                 # Code for single threaded execution  (runtime:24s)
                 if nr_threads_saving == 1:
@@ -490,7 +534,9 @@ def nnUNet_predict_image(
                         output_path = str(file_out / f"{v}.nii.gz")
                         nib.save(
                             nib.Nifti1Image(
-                                binary_img.astype(np.uint8), img_pred.affine, new_header
+                                binary_img.astype(np.uint8),
+                                img_pred.affine,
+                                new_header,
                             ),
                             output_path,
                         )
@@ -519,14 +565,6 @@ def nnUNet_predict_image(
                         disable=quiet,
                     )
 
-                    # Multihreaded saving with same functions as in nnUNet -> same speed as p_map
-                    # pool = Pool(nr_threads_saving)
-                    # results = []
-                    # for k, v in selected_classes.items():
-                    #     results.append(pool.starmap_async(save_segmentation_nifti, ((k, v, tmp_dir, file_out, nora_tag),) ))
-                    # _ = [i.get() for i in results]  # this actually starts the execution of the async functions
-                    # pool.close()
-                    # pool.join()
             if not quiet:
                 logger.info(f"  Saved in {time.time() - st:.2f}s")
 
@@ -550,9 +588,10 @@ def nnUNet_predict_image(
                 if not quiet:
                     logger.info("Creating body.nii.gz")
                 combine_masks(file_out, file_out / "body.nii.gz", "body")
-                if not quiet:
-                    logger.info("Creating skin.nii.gz")
-                skin = extract_skin(img_in_orig, nib.load(file_out / "body.nii.gz"))
-                nib.save(skin, file_out / "skin.nii.gz")
+                if compute_skin:
+                    if not quiet:
+                        logger.info("Creating skin.nii.gz")
+                    skin = extract_skin(img_in_orig, nib.load(file_out / "body.nii.gz"))
+                    nib.save(skin, file_out / "skin.nii.gz")
 
     return nib.Nifti1Image(img_data, img_pred.affine)

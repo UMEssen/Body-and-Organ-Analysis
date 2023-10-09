@@ -68,6 +68,8 @@ def resample_img_cucim(img, zoom=0.5, order=0, nr_cpus=-1):
 
     For small image no significant speedup.
     For large images reducing resampling time by over 50%.
+
+    On our slurm gpu cluster it is actually slower with cucim than without it.
     """
     import cupy as cp
     from cucim.skimage.transform import resize
@@ -174,6 +176,9 @@ def change_spacing(
     data = img_in.get_fdata()  # quite slow
     old_shape = np.array(data.shape)
     img_spacing = np.array(img_in.header.get_zooms())
+
+    if len(img_spacing) == 4:
+        img_spacing = img_spacing[:3]  # for 4D images only use spacing of first 3 dims
 
     if type(new_spacing) is float:
         new_spacing = [
