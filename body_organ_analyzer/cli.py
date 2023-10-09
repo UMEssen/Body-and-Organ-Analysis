@@ -122,12 +122,6 @@ def get_parser() -> argparse.ArgumentParser:
         help="Apply median filtering before thresholding tissues using Hounsfield Unit ranges",
     )
     parser.add_argument(
-        "--bca-skip-bmd",
-        default=False,
-        action="store_true",
-        help="Skip the computation of Bone Mineral Density (BMD) using the vertebrae segmentation",
-    )
-    parser.add_argument(
         "--bca-examined-body-region", choices=["abdomen", "neck", "thorax"]
     )
     parser.add_argument(
@@ -183,7 +177,7 @@ def run() -> None:
         bca_median_filtering=args.bca_median_filtering,
         bca_examined_body_region=args.bca_examined_body_region,
         bca_pdf=not args.bca_no_pdf,
-        bca_compute_bmd=not args.bca_skip_bmd,
+        bca_compute_bmd=False,
         recompute=args.force_recompute,
         keep_debug_information=args.keep_debug_segmentations,
         nnunet_verbose=args.nnunet_verbose,

@@ -13,10 +13,8 @@ import SimpleITK as sitk
 import skimage.measure
 import weasyprint
 from body_composition_analysis import debug_mode_enabled, get_debug_dir
-from body_composition_analysis.bmd.definition import BMD, CHOSEN_BMD_VERTEBRAE
 from body_composition_analysis.body_parts.definition import BodyParts
 from body_composition_analysis.report.plots.aggregation import create_aggregation_image
-from body_composition_analysis.report.plots.bmd import create_roi_overlay
 from body_composition_analysis.report.plots.check import create_equidistant_overview
 from body_composition_analysis.report.plots.heatmaps import create_tissue_heatmaps
 from body_composition_analysis.report.plots.overview import (
@@ -414,7 +412,7 @@ class Builder:
     def prepare(
         self,
         vertebrae: Optional[Dict[str, Tuple[int, int]]] = None,
-        bmd: Optional[BMD] = None,
+        bmd: Optional = None,
         total: Optional[sitk.Image] = None,
         total_measurements: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
@@ -523,23 +521,7 @@ class Builder:
 
         aggregations = self.generate_aggregated_measurements(df, df_no_limbs, vertebrae)
 
-        if bmd is None:
-            bmd_measurements = None
-        else:
-            bmd_measurements = [
-                (
-                    k,
-                    _to_embedded_image(
-                        create_roi_overlay(self._image, bmd.algorithm[k])
-                    ),
-                    bmd.measurements[k],
-                    None,
-                )
-                if k in bmd.measurements
-                else (k, None, None, bmd.errors[k])
-                for k in CHOSEN_BMD_VERTEBRAE
-                if k in bmd.errors or k in bmd.measurements
-            ]
+        bmd_measurements = None
 
         if (
             total_measurements is None

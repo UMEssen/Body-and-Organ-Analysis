@@ -6,8 +6,6 @@ from typing import Any, Dict, Mapping, Optional, Sequence
 import nibabel
 import numpy as np
 import SimpleITK as sitk
-from body_composition_analysis.bmd.compute import process_sample
-from body_composition_analysis.bmd.definition import BMD, CHOSEN_BMD_VERTEBRAE
 from body_composition_analysis.infer.infer import inference
 from body_composition_analysis.io import (
     load_image,
@@ -44,19 +42,6 @@ def create_vertebrae_info(
             continue
         vertebrae_info[vid] = (int(mask.min()), int(mask.max() + 1))
     return vertebrae_info
-
-
-def compute_bmd_from_vertebrae(
-    input_image: pathlib.Path,
-    input_body_regions: pathlib.Path,
-    vertebrae_slice_mapping: Mapping[str, Sequence[int]],
-    output: pathlib.Path,
-) -> None:
-    image = load_image(input_image)
-    body_regions = load_image(input_body_regions)
-    result = process_sample(image, body_regions, vertebrae_slice_mapping)
-    with output.open("w") as ofile:
-        ofile.write(result.to_json(indent=2))
 
 
 def compute_segmentation(
@@ -101,8 +86,6 @@ def report(
     input_tissues: pathlib.Path,
     output_report: pathlib.Path,
     output_measurements: pathlib.Path,
-    input_vertebrae: Optional[pathlib.Path] = None,
-    input_bmd: Optional[pathlib.Path] = None,
     examined_body_region: Optional[str] = None,
     save_pdf: bool = True,
 ) -> None:
@@ -113,12 +96,6 @@ def report(
     tissues = load_image(input_tissues)
     vertebrae = None
     bmd = None
-    if input_vertebrae:
-        with open(input_vertebrae) as ifile:
-            vertebrae = json.load(ifile)
-    if input_bmd:
-        with open(input_bmd) as ifile:
-            bmd = BMD.from_json(ifile.read())
 
     # Create report
     builder = Builder(image, body_parts, body_regions, tissues)
@@ -153,13 +130,15 @@ def run_pipeline(
     output_dir: pathlib.Path,
     examined_body_region: Optional[str] = None,
     median_filtering: bool = False,
-    compute_bmd: bool = True,
+    compute_bmd: bool = False,
     save_pdf: bool = True,
     force_split: bool = False,
     recompute: bool = True,
     crop_body: bool = False,
     totalsegmentator_params: Dict[str, Any] = None,
 ) -> None:
+    if compute_bmd:
+        logger.info("The BMD functionality will be soon part of the BOA, stay tuned!")
     totalsegmentator_params = totalsegmentator_params or {}
     # Write results back to disk
     output_dir.mkdir(exist_ok=True, parents=True)
@@ -241,11 +220,6 @@ def run_pipeline(
         vertebrae=vertebrae, detected_body_part=body_part
     )
     bmd = None
-    if vertebrae_info is not None and len(vertebrae_info) > 0 and compute_bmd:
-        vertebrae_slice_mapping = {
-            k: vertebrae_info[k] for k in CHOSEN_BMD_VERTEBRAE if k in vertebrae_info
-        }
-        bmd = process_sample(image, body_regions, vertebrae_slice_mapping)
     # Build report
     builder = Builder(image, body_parts, body_regions, tissues)
     builder.examined_body_part = body_part
