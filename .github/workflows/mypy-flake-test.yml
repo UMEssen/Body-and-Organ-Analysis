@@ -45,7 +45,7 @@ jobs:
       - name: Run MyPy
         run: |
           mkdir .mypy_cache
-          poetry run mypy --install-types --non-interactive body_organ_analyzer
+          poetry run mypy --install-types --non-interactive body_organ_analysis
       - name: Run Flake8
         run: |
-          poetry run flake8 body_organ_analyzer/
+          poetry run flake8 body_organ_analysis/
