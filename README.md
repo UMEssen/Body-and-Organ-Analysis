@@ -38,7 +38,7 @@ If you use this tool, please make sure to cite the following papers: [BCA](https
 
 ### Environment Variables
 Set up the environment variables by changing the corresponding line in `.env`, if you do not need a specific environment variable, please delete it from `.env`. You can find an example environment file in [.env_sample](./.env_sample).
-- `LOCAL_WEIGHTS_PATH`: The local paths where the TotalSegmentator (and BCA) weights should be stored after downloading. It is also possible to remove this variable, and the weights will be stored in the container. However, this means that the weights will be downloaded every time the container is newly created. **Note**: Please create the local directory before if you are not using the root user, this avoids having to change the permissions later. If you want the weights to be stored within the container, you can just remove lines 47 and 80 from [docker-compose.yml](./docker-compose.yml). **Note 2**: The BCA weights are currently not available but are coming soon!
+- `LOCAL_WEIGHTS_PATH`: The local paths where the TotalSegmentator (and BCA) weights should be stored after downloading. It is also possible to remove this variable, and the weights will be stored in the container. However, this means that the weights will be downloaded every time the container is newly created. **Note**: Please create the local directory before if you are not using the root user, this avoids having to change the permissions later. If you want the weights to be stored within the container, you can just remove lines 47 and 80 from [docker-compose.yml](./docker-compose.yml).
 - `RABBITMQ_USERNAME`: Select a username for your user for the task broker, which is going to manage the tasks coming from the Orthanc instance. You can skip this if you already have a RabbitMQ instance running. If you use your instance, please read the [Notes-on-RabbitMQ](#Notes-on-RabbitMQ) section below.
 - `RABBITMQ_PASSWORD`: Select a safe password for the broker. You can skip this if you have skipped the step above.
 - `CELERY_BROKER`: The default is `amqp://TODO:TODO@rabbitmq/`, where you have to substitute the first TODO with `RABBITMQ_USERNAME`, and the second TODO with `RABBITMQ_PASSWORD`. If you already have a RabbitMQ instance running, you can use that URL instead.
@@ -105,8 +105,9 @@ Load the docker images:
 ```bash
 docker pull # Published images coming soon!
 ```
-or clone the repository and build the images
+or clone the repository and build the images. If you are doing this, please set up the environment variables as described above first.
 ```bash
+source scripts/generate_version.sh
 docker compose build orthanc rabbitmq worker-gpu
 ```
 
