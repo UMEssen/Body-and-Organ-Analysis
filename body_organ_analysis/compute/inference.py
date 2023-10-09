@@ -16,8 +16,8 @@ from totalsegmentator.map_to_binary import reverse_class_map_complete
 from totalsegmentator.postprocessing import postprocess_lung_vessels
 from totalsegmentator.task_info import get_task_info
 
-from body_organ_analyzer.compute.measurements import compute_measurements
-from body_organ_analyzer.compute.util import convert_resampling_slices, create_mask
+from body_organ_analysis.compute.measurements import compute_measurements
+from body_organ_analysis.compute.util import convert_resampling_slices, create_mask
 
 setup_nnunet()
 from totalsegmentator.nnunet import nnUNet_predict_image  # noqa

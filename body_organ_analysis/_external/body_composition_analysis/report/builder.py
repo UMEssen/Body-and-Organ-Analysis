@@ -27,7 +27,7 @@ from body_composition_analysis.report.plots.colors import (
     TISSUE_COLOR_MAP,
     TOTAL_COLOR_MAP,
 )
-from body_organ_analyzer._version import __githash__, __version__
+from body_organ_analysis._version import __githash__, __version__
 
 logger = logging.getLogger(__name__)
 

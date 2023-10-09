@@ -11,8 +11,8 @@ from body_composition_analysis.io import load_image
 from scipy import spatial
 from totalsegmentator.map_to_binary import reverse_class_map_complete
 
-from body_organ_analyzer.compute.geometry import find_axes
-from body_organ_analyzer.compute.util import (
+from body_organ_analysis.compute.geometry import find_axes
+from body_organ_analysis.compute.util import (
     ADDITIONAL_MODELS_OUTPUT_NAME,
     convert_name,
     create_mask,

@@ -12,8 +12,8 @@ import pydicom
 import requests
 import SimpleITK as sitk
 
-from body_organ_analyzer._version import __githash__, __version__
-from body_organ_analyzer.compute.constants import SERIES_DESCRIPTIONS
+from body_organ_analysis._version import __githash__, __version__
+from body_organ_analysis.compute.constants import SERIES_DESCRIPTIONS
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +91,7 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> List[Dict[str
     start = time()
     output_dcm_info = []
     timestamp = datetime.now()
-    templates = sorted((Path("body_organ_analyzer") / "templates").glob("*-meta.json"))
+    templates = sorted((Path("body_organ_analysis") / "templates").glob("*-meta.json"))
     logger.info("Generating encapsulated PDF...")
     # Write encapsulated PDF DICOM
     if (segmentation_folder / "report.pdf").exists():

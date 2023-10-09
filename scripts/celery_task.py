@@ -19,19 +19,19 @@ logger = logging.getLogger(__name__)
 
 pydicom, _ = imports.optional_import(module="pydicom")
 
-analyze_ct, _ = imports.optional_import(module="body_organ_analyzer", name="analyze_ct")
+analyze_ct, _ = imports.optional_import(module="body_organ_analysis", name="analyze_ct")
 BASE_MODELS, _ = imports.optional_import(
-    module="body_organ_analyzer.compute.constants", name="BASE_MODELS"
+    module="body_organ_analysis.compute.constants", name="BASE_MODELS"
 )
 ADDITIONAL_MODELS_OUTPUT_NAME, _ = imports.optional_import(
-    module="body_organ_analyzer.compute.util", name="ADDITIONAL_MODELS_OUTPUT_NAME"
+    module="body_organ_analysis.compute.util", name="ADDITIONAL_MODELS_OUTPUT_NAME"
 )
 
 store_dicoms, _ = imports.optional_import(
-    module="body_organ_analyzer", name="store_dicoms"
+    module="body_organ_analysis", name="store_dicoms"
 )
 store_excel, _ = imports.optional_import(
-    module="body_organ_analyzer", name="store_excel"
+    module="body_organ_analysis", name="store_excel"
 )
 
 HEARTBEAT_FILE = Path("/tmp/worker_heartbeat")

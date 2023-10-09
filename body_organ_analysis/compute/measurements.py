@@ -6,7 +6,7 @@ import numpy as np
 import SimpleITK as sitk
 from totalsegmentator.map_to_binary import reverse_class_map_complete
 
-from body_organ_analyzer.compute.util import ADDITIONAL_MODELS_OUTPUT_NAME, create_mask
+from body_organ_analysis.compute.util import ADDITIONAL_MODELS_OUTPUT_NAME, create_mask
 
 logger = logging.getLogger(__name__)
 

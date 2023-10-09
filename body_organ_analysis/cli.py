@@ -6,7 +6,7 @@ import time
 
 from totalsegmentator.statistics import get_radiomics_features_for_entire_dir
 
-from body_organ_analyzer.commands import analyze_ct
+from body_organ_analysis.commands import analyze_ct
 
 logger = logging.getLogger(__name__)
 

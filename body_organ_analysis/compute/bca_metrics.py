@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 
 import pandas as pd
 
-from body_organ_analyzer.compute.util import convert_name
+from body_organ_analysis.compute.util import convert_name
 
 BODY_REGIONS = [
     "Whole Scan",
