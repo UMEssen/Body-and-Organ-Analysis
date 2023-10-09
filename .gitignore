@@ -131,4 +131,4 @@ dmypy.json
 .vscode/
 .idea/
 .DS_Store
-body_organ_analyzer/_version.py
+body_organ_analysis/_version.py
