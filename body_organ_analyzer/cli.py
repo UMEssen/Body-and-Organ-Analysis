@@ -109,6 +109,13 @@ def get_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "--nnunet-verbose",
+        default=False,
+        action="store_true",
+        help="Print all the output logs of nnunet",
+    )
+
+    parser.add_argument(
         "--bca-median-filtering",
         default=False,
         action="store_true",
@@ -179,6 +186,7 @@ def run() -> None:
         bca_compute_bmd=not args.bca_skip_bmd,
         recompute=args.force_recompute,
         keep_debug_information=args.keep_debug_segmentations,
+        nnunet_verbose=args.nnunet_verbose,
     )
 
     if args.radiomics:

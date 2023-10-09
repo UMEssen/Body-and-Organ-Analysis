@@ -1,8 +1,8 @@
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
-ADDITIONAL_MODELS_OUTPUT_NAME = {
+ADDITIONAL_MODELS_OUTPUT_NAME: Dict[str, str] = {
     "lung_vessels": "lung_vessels_airways",
     "cerebral_bleed": "cerebral_bleed",
     "hip_implant": "hip_implant",

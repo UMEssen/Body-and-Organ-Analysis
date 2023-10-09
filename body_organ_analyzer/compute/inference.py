@@ -1,7 +1,7 @@
 import json
 import logging
 import pathlib
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import nibabel as nib
 import numpy as np
@@ -54,23 +54,9 @@ def range_warning(ct_image_data: np.ndarray) -> None:
         )
 
 
-def compute_all_models(
+def print_and_collect_image_info(
     ct_path: pathlib.Path,
-    segmentation_folder: pathlib.Path,
-    models_to_compute: List[str],
-    force_split_threshold: int = 500,
-    totalsegmentator_params: Optional[Dict] = None,
-    bca_params: Optional[Dict] = None,
-    keep_debug_segmentations: bool = False,
-    recompute: bool = True,
-) -> None:
-    totalsegmentator_params = totalsegmentator_params or {}
-    totalsegmentator_params = totalsegmentator_params.copy()
-    bca_params = bca_params or {}
-    preview_param = totalsegmentator_params.get("preview", False)
-    if "preview" in totalsegmentator_params:
-        del totalsegmentator_params["preview"]
-
+) -> Tuple[np.ndarray, np.ndarray]:
     ct_orig = nib.load(ct_path)  # type: ignore
     assert (
         len(ct_orig.header.get_data_shape()) == 3  # type: ignore
@@ -83,13 +69,28 @@ def compute_all_models(
     ct_image_data = load_nibabel_image_with_axcodes(ct_orig, axcodes="LPS")
     range_warning(ct_image_data.get_fdata())
 
-    # We use the BCA as a reference to check if we should generate a body segmentation first
-    one_resampling = convert_resampling_slices(
-        slices=ct_image_data.shape[-1],
-        current_sampling=ct_image_data.header.get_zooms()[-1],
-        target_resampling=1.5,
-    )
-    tmp_total_data, tmp_body_seg = None, None
+    return ct_image_data.shape, ct_image_data.header.get_zooms()
+
+
+def compute_all_models(
+    ct_path: pathlib.Path,
+    segmentation_folder: pathlib.Path,
+    models_to_compute: List[str],
+    force_split_threshold: int = 400,
+    totalsegmentator_params: Optional[Dict] = None,
+    bca_params: Optional[Dict] = None,
+    keep_debug_segmentations: bool = False,
+    recompute: bool = True,
+) -> None:
+    totalsegmentator_params = totalsegmentator_params or {}
+    totalsegmentator_params = totalsegmentator_params.copy()
+    bca_params = bca_params or {}
+    preview_param = totalsegmentator_params.get("preview", False)
+    if "preview" in totalsegmentator_params:
+        del totalsegmentator_params["preview"]
+
+    shape, spacing = print_and_collect_image_info(ct_path)
+
     for chosen_task in [m for m in models_to_compute if m != "bca"]:
         logger.info(f"Computing segmentations for task {chosen_task}")
         task_specific_params = get_task_info(
@@ -123,10 +124,12 @@ def compute_all_models(
         else:
             download_pretrained_weights(task_specific_params["task_id"])
         if task_specific_params["crop"] is not None:
-            if tmp_total_data is None:
-                tmp_total_data = nib.load(  # type: ignore
-                    segmentation_folder / "total.nii.gz"
-                ).get_fdata()
+            assert (
+                segmentation_folder / "total.nii.gz"
+            ).exists(), "The total segmentation is required to compute the crop!"
+            tmp_total_data = nib.load(  # type: ignore
+                segmentation_folder / "total.nii.gz"
+            ).get_fdata()
             old_crop_name = task_specific_params["crop"]
             mask_ids = [
                 reverse_class_map_complete[f"total_{n}"]
@@ -136,30 +139,21 @@ def compute_all_models(
                 tmp_total_data,
                 mask_ids,
             ).astype(np.uint8)
-            if len(np.unique(task_specific_params["crop"])) == 1:
+            del tmp_total_data
+            if not task_specific_params["crop"].sum():
                 logger.info(
                     f"The segmentation for {chosen_task} could not be computed "
                     f"because the main crop region {old_crop_name} is not present."
                 )
                 continue
-        # If we should split it to reduce the memory, then we can also crop to the body regions
-        elif (
-            one_resampling > force_split_threshold
-            and chosen_task != "body"
-            and (segmentation_folder / "body.nii.gz").exists()
-        ):
-            if tmp_body_seg is None:
-                tmp_body_seg = nib.load(  # type: ignore
-                    segmentation_folder / "body.nii.gz"
-                ).get_fdata()
-            task_specific_params["crop"] = tmp_body_seg
-            logger.info("The image has been reduced by cropping the CT to the body.")
         resampled_slices = convert_resampling_slices(
-            slices=ct_image_data.shape[-1],
-            current_sampling=ct_image_data.header.get_zooms()[-1],
+            slices=shape[-1],
+            current_sampling=spacing[-1],
             target_resampling=task_specific_params["resample"],
         )
-        if resampled_slices > force_split_threshold:
+        split = False
+        if chosen_task == "total" and resampled_slices > force_split_threshold:
+            split = True
             logger.info(
                 f"Splitting the image into parts as the number of slices "
                 f"{resampled_slices} is more than {force_split_threshold}"
@@ -168,7 +162,7 @@ def compute_all_models(
             file_in=ct_path,
             file_out=seg_output,
             task_name=chosen_task,
-            force_split=resampled_slices > force_split_threshold,
+            force_split=split,
             preview=preview_param and chosen_task == "total",
             **task_specific_params,
             **totalsegmentator_params,
@@ -176,18 +170,21 @@ def compute_all_models(
         if chosen_task == "lung_vessels":
             postprocess_lung_vessels(segmentation_output=seg_output)
 
-    json_data = compute_measurements(
-        ct_path=ct_path,
-        segmentation_folder=segmentation_folder,
-        models=[m for m in models_to_compute if m not in {"bca", "body"}],
-    )
-    with (segmentation_folder / "total-measurements.json").open("w") as ofile:
-        json.dump(json_data, ofile, indent=2)
+    measurement_models = [m for m in models_to_compute if m not in {"bca", "body"}]
+    if len(measurement_models) > 0:
+        json_data = compute_measurements(
+            ct_path=ct_path,
+            segmentation_folder=segmentation_folder,
+            models=measurement_models,
+        )
+        with (segmentation_folder / "total-measurements.json").open("w") as ofile:
+            json.dump(json_data, ofile, indent=2)
+        del json_data
 
     if "bca" in models_to_compute:
         resampling_bca = convert_resampling_slices(
-            slices=ct_image_data.shape[-1],
-            current_sampling=ct_image_data.header.get_zooms()[-1],
+            slices=shape[-1],
+            current_sampling=spacing[-1],
             target_resampling=5.0,
         )
         if resampling_bca > force_split_threshold:
@@ -199,7 +196,7 @@ def compute_all_models(
             input_image=ct_path,
             output_dir=segmentation_folder,
             force_split=resampling_bca > force_split_threshold,
-            crop_body=True,
+            crop_body=False,
             recompute=recompute,
             totalsegmentator_params=totalsegmentator_params,
             **bca_params,

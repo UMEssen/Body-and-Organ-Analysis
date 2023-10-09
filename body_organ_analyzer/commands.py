@@ -34,13 +34,14 @@ def analyze_ct(
     compute_contrast_information: bool = True,
     total_preview: bool = True,
     nr_thr_resamp: int = 1,
-    nr_thr_saving: int = 1,
+    nr_thr_saving: int = 6,
     bca_median_filtering: bool = False,
     bca_examined_body_region: str = None,
     bca_pdf: bool = True,
     bca_compute_bmd: bool = True,
     keep_debug_information: bool = False,
     recompute: bool = False,
+    nnunet_verbose: bool = False,
 ) -> Path:
     start_total = time()
     ct_info: List[Dict] = []
@@ -57,16 +58,8 @@ def analyze_ct(
     ] + ct_info
     logger.info(f"Image loaded and retrieved: DONE in {time() - start_total:0.5f}s")
 
-    if "bca" in models:
-        logger.warning(
-            "The body composition analysis weights have not been released yet, "
-            "but they are coming soon! The body composition analysis computation will be skipped."
-        )
-        models = [x for x in models if x != "bca"]
-
-    seg_output = processed_output_folder
-    seg_output.mkdir(parents=True, exist_ok=True)
-
+    seg_output = processed_output_folder  # / "segmentations"
+    # seg_output.mkdir(parents=True, exist_ok=True)
     start = time()
     totalsegmentator_params = dict(
         tta=False,
@@ -76,7 +69,7 @@ def analyze_ct(
         nora_tag="None",
         roi_subset=None,
         quiet=False,
-        verbose=False,
+        verbose=nnunet_verbose,
         test=0,
         crop_path=None,
     )
@@ -84,7 +77,7 @@ def analyze_ct(
         ct_path=ct_path,
         segmentation_folder=seg_output,
         models_to_compute=models,
-        force_split_threshold=500,
+        force_split_threshold=400,
         totalsegmentator_params=totalsegmentator_params,
         bca_params=dict(
             median_filtering=bca_median_filtering,
@@ -145,7 +138,7 @@ def analyze_ct(
     excel_path = excel_output_folder / "output.xlsx"
 
     start = time()
-    with pd.ExcelWriter(excel_path) as writer:
+    with pd.ExcelWriter(excel_path, engine="xlsxwriter") as writer:
         info_df.to_excel(writer, sheet_name="info", header=False)
         if regions_df is not None:
             regions_df.to_excel(writer, sheet_name="regions-statistics", index=False)
