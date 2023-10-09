@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/UMEssen/Body-and-Organ-Analyzer"
 keywords = ["python", "segmentation", "nnunet", "boa", "body composition analysis"]
 packages = [
-    { include = "body_organ_analyzer" }
+    { include = "body_organ_analysis" }
 ]
 
 [tool.poetry.scripts]
