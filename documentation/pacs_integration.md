@@ -59,3 +59,24 @@ RabbitMQ always checks whether the tasks have been received by the consumer, and
 ```
 
 If you are using your own RabbitMQ instance, please also use this setting, or contact us if you have a better idea!
+
+## Outputs
+
+The outputs of BOA are listed below, all of them will appear in the `SEGMENTATION_DIR` folder, some of them will be uploaded to SMB and some will be uploaded with DicomWeb, if they are configured.
+Currently, the produced DICOM-segs have placeholders for the anatomical names of the tissues.
+- Segmentations (BCA and TotalSegmentator), present in `SEGMENTATION_DIR` and uploaded to DicomWeb (optional).
+  - Total Body Segmentation (`total.nii.gz`): Segmentation of 104 body regions ([TotalSegmentator](https://arxiv.org/abs/2208.05868)).
+  - Intracerebral Hemorrhage Segmentation (`cerebral_bleed.nii.gz`).
+  - Lung Vessels and Airways Segmentation (`lung_vessels_airways.nii.gz`): Segmentation of trachea/bronchia/airways ([paper](https://www.sciencedirect.com/science/article/pii/S0720048X22001097)).
+  - Liver Vessels and Tumor Segmentation (`liver_vessels.nii.gz`).
+  - Hip Implant Segmentation (`hip_implant.nii.gz`).
+  - Coronary Arteries Segmentation (`coronary_arteries.nii.gz`): Segmentation of the coronary arteries.
+  - Pleural Pericardial Effusion Segmentation (`pleural_pericard_effusion.nii.gz`): pleural effusion ([paper](https://journals.lww.com/investigativeradiology/Fulltext/2022/08000/Automated_Detection,_Segmentation,_and.8.aspx)), pericardial effusion (cite [paper](https://www.mdpi.com/2075-4418/12/5/1045)).
+  - Body Regions Segmentation (`body-regions.nii.gz`): Segmentation of the body regions ([BCA](https://pubmed.ncbi.nlm.nih.gov/32945971/)).
+  - Body Parts Segmentation (`body-parts.nii.gz`): Segmentation of body and extremities.
+  - Tissue Segmentation (`tissues.nii.gz`): Segmentation of the tissues ([BCA](https://pubmed.ncbi.nlm.nih.gov/32945971/)).
+- Measurements/Reports, present in `SEGMENTATION_DIR` and uploaded to SMB (optional).
+  - `AccessionNumber_SeriesNumber_SeriesDescription.xlsx`: Excel file with all the measurements from the BCA and the TotalSegmentator. The `info` sheet contains general information about the patient, such as IDs, dates, DICOM tags, contrast phase, the BOA version. The `region_statistics` sheet has information about the segmentations that were computed together with their volume and some other statistical information. `bca-aggregated-measurements` contains all the measurements for the aggregated regions of the BCA, which are also visible in the report. `bca-slice-measurements` contains information about the volume of each tissue for each slice of the CT scan. `bca-slice-measurements-no-limbs` contains the same information, but the extremities are removed from the computation.
+  - `report.pdf`: Report of the BCA findings.
+  - `preview_total.png`: Preview of the TotalSegmentator segmentation.
+- Other files containing measurements are also stored in the output directory (in `.json` format), and are not uploaded anywhere else. These measurements all appear in the resulting Excel report.
