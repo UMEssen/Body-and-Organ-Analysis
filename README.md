@@ -7,18 +7,6 @@
 
 # BOA: Body and Organ Analysis
 
-- [BOA: Body and Organ Analysis](#boa--body-and-organ-analysis)
-  * [What is it?](#what-is-it-)
-  * [How does it work?](#how-does-it-work-)
-  * [How to run?](#how-to-run-)
-    + [Environment Variables](#environment-variables)
-    + [Notes on RabbitMQ](#notes-on-rabbitmq)
-    + [Run](#run)
-    + [Send a study to the BOA](#send-a-study-to-the-boa)
-    + [Notes on Performance](#notes-on-performance)
-  * [Outputs](#outputs)
-  * [Command Line Tool](#command-line-tool)
-
 ## What is it?
 BOA is a tool for segmentation of CT scans developed by the [SHIP-AI group at the Institute for Artificial Intelligence in Medicine](https://ship-ai.ikim.nrw/). Combining the [TotalSegmentator](https://arxiv.org/abs/2208.05868) and the [Body Composition Analysis](https://pubmed.ncbi.nlm.nih.gov/32945971/), this tool is capable of analyzing medical images and identifying the different structures within the human body, including bones, muscles, organs, and blood vessels.
 
