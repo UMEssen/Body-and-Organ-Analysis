@@ -10,6 +10,23 @@
 ## What is it?
 BOA is a tool for segmentation of CT scans developed by the [SHIP-AI group at the Institute for Artificial Intelligence in Medicine](https://ship-ai.ikim.nrw/). Combining the [TotalSegmentator](https://arxiv.org/abs/2208.05868) and the [Body Composition Analysis](https://pubmed.ncbi.nlm.nih.gov/32945971/), this tool is capable of analyzing medical images and identifying the different structures within the human body, including bones, muscles, organs, and blood vessels.
 
+<div align="center">
+    <img src="images/boa.png" alt="BOA">
+</div>
+
+The BOA tool can be used to generate full body segmentations of CT scans:
+
+<div align="center">
+    <img src="images/segmentation.png" alt="Segmentation of a human body">
+</div>
+
+Additionally, the generated segmentations can be used as input to generate realistic images using [Siemens' Cinematic Rendering](https://www.siemens-healthineers.com/digital-health-solutions/cinematic-rendering).
+
+<div align="center">
+    <img src="images/cinematic.svg" alt="Cinematic rendering">
+</div>
+
+## Citation
 
 If you use this tool, please cite the following papers:
 
@@ -30,6 +47,6 @@ Isensee F, Jaeger PF, Kohl SAA, et al. nnU-Net: a self-configuring method for de
 * Set up the [environment variables](./documentation/environment_variables.md).
 * Either use the [PACS integration](./documentation/pacs_integration.md) or the [command line tool](./documentation/command_line_tool.md).
 
-### Notes on Performance
+## Notes on Performance
 
 To make an estimate on how much power and time is needed to process a study, we used the [following table](https://github.com/wasserth/TotalSegmentator/blob/master/resources/imgs/runtime_table.png) provided by the TotalSegmentator. However, for very large series (e.g. 1600 slices 1mm), the performance may be worse and more CPU power may be needed. According to our tests, 16GB of GPU should be sufficient.
