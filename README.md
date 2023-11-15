@@ -45,7 +45,7 @@ Isensee F, Jaeger PF, Kohl SAA, et al. nnU-Net: a self-configuring method for de
 ## How to run?
 
 * Set up the [environment variables](./documentation/environment_variables.md).
-* Either use the [PACS integration](./documentation/pacs_integration.md) or the [command line tool](./documentation/command_line_tool.md).
+* Either use the [PACS integration](./documentation/pacs_integration.md) or the [command line tool](./documentation/command_line.md).
 
 ## Notes on Performance
 
