@@ -8,7 +8,6 @@ TT=$(basename $(dirname $(dirname $INPUT_FILE)))
 # other option: The study ID is the same as the name of the file
 # STUDY_ID=$(basename $INPUT_FILE .nii.gz)
 OUTPUT_DIR=$2/$TT/$STUDY_ID
-VERSION=$(basename $2)
 
 # TODO: Change this to anything you like
 CHECK_NAME="output.xlsx"
