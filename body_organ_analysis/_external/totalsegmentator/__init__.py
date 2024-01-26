@@ -20,6 +20,7 @@ https://github.com/wasserth/TotalSegmentator/tree/af44342d7b5a7f6331b33b26434b58
 * Changed nibabel image to numpy array for the crop_to_mask function in totalsegmentator/cropping.py.
 * Returned the weights_path in totalsegmentator/libs.py.
 * Added the get_parts_for_regions function to return the correct masks in combine_masks in totalsegmentator/libs.py.
+* Updated the WEIGHTS_URL from Zenodo to GitHub for download_pretrained_weights in totalsegmentator/libs.py.
 * In totalsegmentator/map_to_binary.py:
   * Uncommented the lung_pleural label for pleural_pericard_effusion in line 326.
   * Added the BCA labels in line 2.
