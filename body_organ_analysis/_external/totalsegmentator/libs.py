@@ -6,7 +6,7 @@ import time
 import shutil
 import zipfile
 from pathlib import Path
-
+from tqdm import tqdm
 import requests
 import numpy as np
 import nibabel as nib
@@ -47,32 +47,28 @@ def nostdout(verbose=False):
 
 
 def download_url_and_unpack(url, config_dir):
-    import http.client
-
-    # helps to solve incomplete read erros
-    # https://stackoverflow.com/questions/37816596/restrict-request-to-only-ask-for-http-1-0-to-prevent-chunking-error
-    http.client.HTTPConnection._http_vsn = 10
-    http.client.HTTPConnection._http_vsn_str = "HTTP/1.0"
-
     tempfile = config_dir / "tmp_download_file.zip"
 
     try:
-        st = time.time()
         with open(tempfile, "wb") as f:
             # session = requests.Session()  # making it slower
+
             with requests.get(url, stream=True) as r:
                 r.raise_for_status()
+
+                # With progress bar
+                total_size = int(r.headers.get("content-length", 0))
+                progress_bar = tqdm(
+                    total=total_size, unit="B", unit_scale=True, desc="Downloading"
+                )
                 for chunk in r.iter_content(chunk_size=8192 * 16):
-                    # If you have chunk encoded response uncomment if
-                    # and set chunk_size parameter to None.
-                    # if chunk:
+                    progress_bar.update(len(chunk))
                     f.write(chunk)
+                progress_bar.close()
 
         logger.info("Download finished. Extracting...")
-        # call(['unzip', '-o', '-d', network_training_output_dir, tempfile])
         with zipfile.ZipFile(config_dir / "tmp_download_file.zip", "r") as zip_f:
             zip_f.extractall(config_dir)
-        logger.info(f"  downloaded in {time.time()-st:.2f}s")
     except Exception as e:
         raise e
     finally:
@@ -81,7 +77,6 @@ def download_url_and_unpack(url, config_dir):
 
 
 def download_pretrained_weights(task_id):
-
     if "TOTALSEG_WEIGHTS_PATH" in os.environ:
         config_dir = Path(os.environ["TOTALSEG_WEIGHTS_PATH"]) / "nnUNet"
     else:
@@ -92,35 +87,47 @@ def download_pretrained_weights(task_id):
     (config_dir / "2d").mkdir(exist_ok=True, parents=True)
 
     old_weights = ["Task223_my_test"]
+    url = "https://github.com/wasserth/TotalSegmentator/releases/download"
 
     if task_id == 251:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task251_TotalSegmentator_part1_organs_1139subj"
-        WEIGHTS_URL = "https://zenodo.org/record/6802342/files/Task251_TotalSegmentator_part1_organs_1139subj.zip?download=1"
+        WEIGHTS_URL = (
+            url + "/v1.5.6-weights/Task251_TotalSegmentator_part1_organs_1139subj.zip"
+        )
     elif task_id == 252:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task252_TotalSegmentator_part2_vertebrae_1139subj"
-        WEIGHTS_URL = "https://zenodo.org/record/6802358/files/Task252_TotalSegmentator_part2_vertebrae_1139subj.zip?download=1"
+        WEIGHTS_URL = (
+            url
+            + "/v1.5.6-weights/Task252_TotalSegmentator_part2_vertebrae_1139subj.zip"
+        )
     elif task_id == 253:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task253_TotalSegmentator_part3_cardiac_1139subj"
-        WEIGHTS_URL = "https://zenodo.org/record/6802360/files/Task253_TotalSegmentator_part3_cardiac_1139subj.zip?download=1"
+        WEIGHTS_URL = (
+            url + "/v1.5.6-weights/Task253_TotalSegmentator_part3_cardiac_1139subj.zip"
+        )
     elif task_id == 254:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task254_TotalSegmentator_part4_muscles_1139subj"
-        WEIGHTS_URL = "https://zenodo.org/record/6802366/files/Task254_TotalSegmentator_part4_muscles_1139subj.zip?download=1"
+        WEIGHTS_URL = (
+            url + "/v1.5.6-weights/Task254_TotalSegmentator_part4_muscles_1139subj.zip"
+        )
     elif task_id == 255:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task255_TotalSegmentator_part5_ribs_1139subj"
-        WEIGHTS_URL = "https://zenodo.org/record/6802452/files/Task255_TotalSegmentator_part5_ribs_1139subj.zip?download=1"
+        WEIGHTS_URL = (
+            url + "/v1.5.6-weights/Task255_TotalSegmentator_part5_ribs_1139subj.zip"
+        )
     elif task_id == 256:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task256_TotalSegmentator_3mm_1139subj"
-        WEIGHTS_URL = "https://zenodo.org/record/6802052/files/Task256_TotalSegmentator_3mm_1139subj.zip?download=1"
+        WEIGHTS_URL = url + "/v1.5.6-weights/Task256_TotalSegmentator_3mm_1139subj.zip"
     elif task_id == 258:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task258_lung_vessels_248subj"
-        WEIGHTS_URL = "https://zenodo.org/record/7064718/files/Task258_lung_vessels_248subj.zip?download=1"
+        WEIGHTS_URL = url + "/v1.5.6-weights/Task258_lung_vessels_248subj.zip"
     elif task_id == 200:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task200_covid_challenge"
@@ -136,39 +143,35 @@ def download_pretrained_weights(task_id):
     elif task_id == 150:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task150_icb_v0"
-        WEIGHTS_URL = (
-            "https://zenodo.org/record/7079161/files/Task150_icb_v0.zip?download=1"
-        )
+        WEIGHTS_URL = url + "/v1.5.6-weights/Task150_icb_v0.zip"
     elif task_id == 260:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task260_hip_implant_71subj"
-        WEIGHTS_URL = "https://zenodo.org/record/7234263/files/Task260_hip_implant_71subj.zip?download=1"
+        WEIGHTS_URL = url + "/v1.5.6-weights/Task260_hip_implant_71subj.zip"
     elif task_id == 269:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task269_Body_extrem_6mm_1200subj"
-        WEIGHTS_URL = "https://zenodo.org/record/7334272/files/Task269_Body_extrem_6mm_1200subj.zip?download=1"
+        WEIGHTS_URL = url + "/v1.5.6-weights/Task269_Body_extrem_6mm_1200subj.zip"
     elif task_id == 503:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task503_cardiac_motion"
-        WEIGHTS_URL = "https://zenodo.org/record/7271576/files/Task503_cardiac_motion.zip?download=1"
+        WEIGHTS_URL = url + "/v1.5.6-weights/Task503_cardiac_motion.zip"
     elif task_id == 273:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task273_Body_extrem_1259subj"
-        WEIGHTS_URL = "https://zenodo.org/record/7510286/files/Task273_Body_extrem_1259subj.zip?download=1"
+        WEIGHTS_URL = url + "/v1.5.6-weights/Task273_Body_extrem_1259subj.zip"
     elif task_id == 315:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task315_thoraxCT"
-        WEIGHTS_URL = (
-            "https://zenodo.org/record/7510288/files/Task315_thoraxCT.zip?download=1"
-        )
+        WEIGHTS_URL = url + "/v1.5.6-weights/Task315_thoraxCT.zip"
     elif task_id == 8:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task008_HepaticVessel"
-        WEIGHTS_URL = "https://zenodo.org/record/7573746/files/Task008_HepaticVessel.zip?download=1"
+        WEIGHTS_URL = url + "/v1.5.6-weights/Task008_HepaticVessel.zip"
     elif task_id == 542:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task542_BCA_inference"
-        WEIGHTS_URL = "https://zenodo.org/record/7918824/files/Task542_BCA_inference.zip?download=1"
+        WEIGHTS_URL = "https://github.com/UMEssen/Body-and-Organ-Analysis/releases/download/BCA-BodyRegionsWeights-v0.1.0/Task542_BCA_inference.zip"
 
     for old_weight in old_weights:
         if (config_dir / old_weight).exists():
@@ -324,7 +327,6 @@ def compress_nifti(file_in, file_out, dtype=np.int32, force_3d=True):
 
 
 def check_if_shape_and_affine_identical(img_1, img_2):
-
     if not np.array_equal(img_1.affine, img_2.affine):
         logger.info("Affine in:")
         logger.info(img_1.affine)

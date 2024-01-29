@@ -30,7 +30,7 @@ docker run \
     --user $(id -u):$(id -g) \
     --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
     --entrypoint /bin/sh \
-    ship-ai/boa-cli \
+    shipai/boa-cli \
     -c \
     "python body_organ_analysis --input-image /image.nii.gz --output-dir /workspace/ --models total+bca --verbose"
 
