@@ -38,6 +38,6 @@ jobs:
           build-args: |
             GIT_VERSION=${GIT_VERSION}
             PACKAGE_VERSION=${PACKAGE_VERSION}
-          tags:
-            - ${{ matrix.image }}:latest
-            - ${{ matrix.image }}:${PACKAGE_VERSION}
+          tags: |
+            ${{ matrix.image }}:${PACKAGE_VERSION}
+            ${{ matrix.image }}:latest
