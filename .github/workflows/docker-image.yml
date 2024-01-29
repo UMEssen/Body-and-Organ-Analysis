@@ -30,12 +30,11 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          content: .
+          context: .
           file: ${{ matrix.dockerfile }}
           push: true
           build-args: |
             GIT_VERSION=${GIT_VERSION}
             PACKAGE_VERSION=${PACKAGE_VERSION}
           tags: |
-            ${{ matrix.image }}:${PACKAGE_VERSION}
             ${{ matrix.image }}:latest
