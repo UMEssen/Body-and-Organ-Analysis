@@ -1,7 +1,7 @@
 version: "3.3"
 services:
   rabbitmq:
-    image: ship-ai/rabbitmq
+    image: shipai/rabbitmq
     build:
       dockerfile: scripts/rabbitmq.dockerfile
       context: .
@@ -12,7 +12,7 @@ services:
       - "15672:15672"
 
   worker-gpu:
-    image: ship-ai/boa-task-gpu
+    image: shipai/boa-task-gpu
     runtime: nvidia
     build:
       dockerfile: scripts/task_gpu.dockerfile
@@ -55,7 +55,7 @@ services:
       - rabbitmq
 
   worker:
-    image: ship-ai/boa-task
+    image: shipai/boa-task
     build:
       dockerfile: scripts/task.dockerfile
       context: .
@@ -93,7 +93,7 @@ services:
       - rabbitmq
 
   orthanc:
-    image: ship-ai/boa-orthanc
+    image: shipai/boa-orthanc
     build:
       dockerfile: scripts/orthanc.dockerfile
       context: .

@@ -10,7 +10,7 @@ docker pull # Published images coming soon!
 or clone the repository and build the image
 ```bash
 source scripts/generate_version.sh
-docker build -t ship-ai/boa-cli --file scripts/cli.dockerfile .
+docker build -t shipai/boa-cli --file scripts/cli.dockerfile .
 ```
 
 then you can run your image!
@@ -27,7 +27,7 @@ docker run \
     --user $(id -u):$(id -g) \ # This sets your user ID
     --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
     --entrypoint /bin/sh \
-    ship-ai/boa-cli \
+    shipai/boa-cli \
     -c \
     "python body_organ_analysis --input-image /image.nii.gz --output-dir /workspace/ --models all --verbose"
 ```
@@ -43,7 +43,7 @@ docker run \
     --network host \
     --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
     --entrypoint /bin/sh \
-    ship-ai/boa-cli \
+    shipai/boa-cli \
     -c \
     "python body_organ_analysis --input-image /image.nii.gz --output-dir /workspace/ --models all --verbose"
 ```
