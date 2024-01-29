@@ -6,7 +6,7 @@ import time
 import shutil
 import zipfile
 from pathlib import Path
-
+from tqdm import tqdm
 import requests
 import numpy as np
 import nibabel as nib
@@ -47,32 +47,36 @@ def nostdout(verbose=False):
 
 
 def download_url_and_unpack(url, config_dir):
-    import http.client
+    if "zenodo" in url:
+        import http.client
 
-    # helps to solve incomplete read erros
-    # https://stackoverflow.com/questions/37816596/restrict-request-to-only-ask-for-http-1-0-to-prevent-chunking-error
-    http.client.HTTPConnection._http_vsn = 10
-    http.client.HTTPConnection._http_vsn_str = "HTTP/1.0"
+        # helps to solve incomplete read errors
+        # https://stackoverflow.com/questions/37816596/restrict-request-to-only-ask-for-http-1-0-to-prevent-chunking-error
+        http.client.HTTPConnection._http_vsn = 10
+        http.client.HTTPConnection._http_vsn_str = "HTTP/1.0"
 
     tempfile = config_dir / "tmp_download_file.zip"
 
     try:
-        st = time.time()
         with open(tempfile, "wb") as f:
             # session = requests.Session()  # making it slower
+
             with requests.get(url, stream=True) as r:
                 r.raise_for_status()
+
+                # With progress bar
+                total_size = int(r.headers.get("content-length", 0))
+                progress_bar = tqdm(
+                    total=total_size, unit="B", unit_scale=True, desc="Downloading"
+                )
                 for chunk in r.iter_content(chunk_size=8192 * 16):
-                    # If you have chunk encoded response uncomment if
-                    # and set chunk_size parameter to None.
-                    # if chunk:
+                    progress_bar.update(len(chunk))
                     f.write(chunk)
+                progress_bar.close()
 
         logger.info("Download finished. Extracting...")
-        # call(['unzip', '-o', '-d', network_training_output_dir, tempfile])
         with zipfile.ZipFile(config_dir / "tmp_download_file.zip", "r") as zip_f:
             zip_f.extractall(config_dir)
-        logger.info(f"  downloaded in {time.time()-st:.2f}s")
     except Exception as e:
         raise e
     finally:
@@ -81,7 +85,6 @@ def download_url_and_unpack(url, config_dir):
 
 
 def download_pretrained_weights(task_id):
-
     if "TOTALSEG_WEIGHTS_PATH" in os.environ:
         config_dir = Path(os.environ["TOTALSEG_WEIGHTS_PATH"]) / "nnUNet"
     else:
@@ -332,7 +335,6 @@ def compress_nifti(file_in, file_out, dtype=np.int32, force_3d=True):
 
 
 def check_if_shape_and_affine_identical(img_1, img_2):
-
     if not np.array_equal(img_1.affine, img_2.affine):
         logger.info("Affine in:")
         logger.info(img_1.affine)
