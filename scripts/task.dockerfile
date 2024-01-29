@@ -35,4 +35,5 @@ RUN chmod a+rwx -R /app && \
     rm /tmp/Requirements.txt && \
     pip install .
 
-RUN pip install torch
+# Fix version even if it isn't relevant
+RUN pip install torch==1.14.0
