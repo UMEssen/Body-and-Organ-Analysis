@@ -16,7 +16,7 @@ jobs:
           - dockerfile: scripts/cli.dockerfile
             image: shipai/boa-cli
           - dockerfile: scripts/rabbitmq.dockerfile
-            image: shipai/rabbitmq
+            image: shipai/boa-rabbitmq
           - dockerfile: scripts/task_gpu.dockerfile
             image:  shipai/boa-task-gpu
           - dockerfile: scripts/task.dockerfile

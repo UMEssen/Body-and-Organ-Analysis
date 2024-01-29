@@ -1,7 +1,7 @@
 version: "3.3"
 services:
   rabbitmq:
-    image: shipai/rabbitmq
+    image: shipai/boa-rabbitmq
     build:
       dockerfile: scripts/rabbitmq.dockerfile
       context: .
