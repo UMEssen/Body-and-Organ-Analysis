@@ -39,7 +39,7 @@ jobs:
       # Install poetry
       - name: Install poetry
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
+          curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.6.1 python3 -
           poetry run pip install -U pip
           poetry install --with dev
       - name: Run MyPy
