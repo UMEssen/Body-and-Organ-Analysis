@@ -25,8 +25,8 @@ jobs:
       run: ./scripts/generate_version.sh
     - name: Build the Docker image
       run: |
-        docker build -t ship-ai/boa-task-gpu:latest ship-ai/boa-task-gpu:{PACKAGE_VERSION} --file scripts/task_gpu.dockerfile .
-        docker build -t ship-ai/boa-task:latest ship-ai/boa-task:{PACKAGE_VERSION} --file scripts/task.dockerfile .
-        docker build -t ship-ai/boa-orthanc:latest ship-ai/boa-orthanc:{PACKAGE_VERSION} --file scripts/orthanc.dockerfile .
-        docker build -t ship-ai/boa-rabbitmq:latest ship-ai/boa-rabbitmq:{PACKAGE_VERSION} --file scripts/rabbitmq.dockerfile .
-        docker build -t ship-ai/boa-cli:latest ship-ai/boa-cli:{PACKAGE_VERSION} --file scripts/cli.dockerfile .
+        docker build -t shipai/boa-task-gpu:latest shipai/boa-task-gpu:{PACKAGE_VERSION} --file scripts/task_gpu.dockerfile .
+        docker build -t shipai/boa-task:latest shipai/boa-task:{PACKAGE_VERSION} --file scripts/task.dockerfile .
+        docker build -t shipai/boa-orthanc:latest shipai/boa-orthanc:{PACKAGE_VERSION} --file scripts/orthanc.dockerfile .
+        docker build -t shipai/boa-rabbitmq:latest shipai/boa-rabbitmq:{PACKAGE_VERSION} --file scripts/rabbitmq.dockerfile .
+        docker build -t shipai/boa-cli:latest shipai/boa-cli:{PACKAGE_VERSION} --file scripts/cli.dockerfile .
