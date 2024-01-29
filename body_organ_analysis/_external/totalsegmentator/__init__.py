@@ -18,9 +18,12 @@ https://github.com/wasserth/TotalSegmentator/tree/af44342d7b5a7f6331b33b26434b58
     * Commented unused imports
 * In totalsegmentator/alignment.py, the functions load_nibabel_image_with_axcodes and convert_nibabel_to_orginal_with_axcodes were added.
 * Changed nibabel image to numpy array for the crop_to_mask function in totalsegmentator/cropping.py.
-* Returned the weights_path in totalsegmentator/libs.py.
-* Added the get_parts_for_regions function to return the correct masks in combine_masks in totalsegmentator/libs.py.
-* Updated the WEIGHTS_URL from Zenodo to GitHub for download_pretrained_weights in totalsegmentator/libs.py.
+* In totalsegmentator/libs.py:
+  * Returned the weights_path in download_pretrained_weights.
+  * Added the get_parts_for_regions function to return the correct masks in combine_masks.
+  * Updated the WEIGHTS_URL from Zenodo to GitHub for download_pretrained_weights.
+  * Add the BCA weights.
+  * Fix the download_url_and_unpack function to be able to download from GitHub and Zenodo with the most current changes: https://github.com/wasserth/TotalSegmentator/blob/96335b6e7d60383a2b4710e74e4b08b8c33f3ab9/totalsegmentator/libs.py#L40
 * In totalsegmentator/map_to_binary.py:
   * Uncommented the lung_pleural label for pleural_pericard_effusion in line 326.
   * Added the BCA labels in line 2.
