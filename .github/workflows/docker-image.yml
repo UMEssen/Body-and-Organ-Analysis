@@ -31,13 +31,13 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v5
+        env:
+          GIT_VERSION: $GIT_VERSION
+          PACKAGE_VERSION: $PACKAGE_VERSION
         with:
           context: .
           file: ${{ matrix.dockerfile }}
           push: false
-          env:
-            GIT_VERSION: $GIT_VERSION
-            PACKAGE_VERSION: $PACKAGE_VERSION
           build-args: |
             GIT_VERSION=${GIT_VERSION}
             PACKAGE_VERSION=${PACKAGE_VERSION}
