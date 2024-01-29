@@ -4,7 +4,7 @@ Additionally, the BOA can also be run from the command line to compute all the s
 
 First, get the image.
 ```bash
-docker pull # Published images coming soon!
+docker pull shipai/boa-cli
 ```
 
 or clone the repository and build the image
