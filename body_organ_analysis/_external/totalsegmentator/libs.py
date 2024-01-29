@@ -47,14 +47,6 @@ def nostdout(verbose=False):
 
 
 def download_url_and_unpack(url, config_dir):
-    if "zenodo" in url:
-        import http.client
-
-        # helps to solve incomplete read errors
-        # https://stackoverflow.com/questions/37816596/restrict-request-to-only-ask-for-http-1-0-to-prevent-chunking-error
-        http.client.HTTPConnection._http_vsn = 10
-        http.client.HTTPConnection._http_vsn_str = "HTTP/1.0"
-
     tempfile = config_dir / "tmp_download_file.zip"
 
     try:
