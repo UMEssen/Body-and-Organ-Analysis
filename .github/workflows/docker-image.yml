@@ -18,10 +18,8 @@ jobs:
           - dockerfile: scripts/task_gpu.dockerfile
             image:  shipai/boa-task-gpu
     steps:
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Check out the repo
+        uses: actions/checkout@v4
       - name: Setup env vars
         run: source ./scripts/generate_version.sh
       - name: Login to Docker Hub
