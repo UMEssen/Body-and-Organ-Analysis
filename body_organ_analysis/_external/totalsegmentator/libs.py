@@ -171,7 +171,7 @@ def download_pretrained_weights(task_id):
     elif task_id == 542:
         config_dir = config_dir / "3d_fullres"
         weights_path = config_dir / "Task542_BCA_inference"
-        WEIGHTS_URL = "https://zenodo.org/record/7918824/files/Task542_BCA_inference.zip?download=1"
+        WEIGHTS_URL = "https://github.com/UMEssen/Body-and-Organ-Analysis/releases/download/BCA-BodyRegionsWeights-v0.1.0/Task542_BCA_inference.zip"
 
     for old_weight in old_weights:
         if (config_dir / old_weight).exists():
