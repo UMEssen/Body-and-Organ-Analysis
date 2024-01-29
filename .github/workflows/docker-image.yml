@@ -42,7 +42,7 @@ jobs:
         with:
           context: .
           file: ${{ matrix.dockerfile }}
-          push: false
+          push: true
           build-args: |
             GIT_VERSION=${{ env.GIT_VERSION }}
             PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}
