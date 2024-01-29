@@ -11,19 +11,19 @@
 BOA is a tool for segmentation of CT scans developed by the [SHIP-AI group at the Institute for Artificial Intelligence in Medicine](https://ship-ai.ikim.nrw/). Combining the [TotalSegmentator](https://arxiv.org/abs/2208.05868) and the [Body Composition Analysis](https://pubmed.ncbi.nlm.nih.gov/32945971/), this tool is capable of analyzing medical images and identifying the different structures within the human body, including bones, muscles, organs, and blood vessels.
 
 <div align="center">
-    <img src="images/boa.png" alt="BOA">
+    <img src="https://raw.githubusercontent.com/UMEssen/Body-and-Organ-Analysis/main/images/boa.png" alt="BOA">
 </div>
 
 The BOA tool can be used to generate full body segmentations of CT scans:
 
 <div align="center">
-    <img src="images/segmentation.png" alt="Segmentation of a human body">
+    <img src="https://raw.githubusercontent.com/UMEssen/Body-and-Organ-Analysis/main/images/segmentation.png" alt="Segmentation of a human body">
 </div>
 
 Additionally, the generated segmentations can be used as input to generate realistic images using [Siemens' Cinematic Rendering](https://www.siemens-healthineers.com/digital-health-solutions/cinematic-rendering).
 
 <div align="center">
-    <img src="images/cinematic.svg" alt="Cinematic rendering">
+    <img src="https://raw.githubusercontent.com/UMEssen/Body-and-Organ-Analysis/main/images/cinematic.svg" alt="Cinematic rendering">
 </div>
 
 ## Citation
