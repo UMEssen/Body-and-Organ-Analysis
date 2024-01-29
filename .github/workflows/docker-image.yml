@@ -15,8 +15,14 @@ jobs:
         include:
           - dockerfile: scripts/cli.dockerfile
             image: shipai/boa-cli
+          - dockerfile: scripts/rabbitmq.dockerfile
+            image: shipai/rabbitmq
           - dockerfile: scripts/task_gpu.dockerfile
             image:  shipai/boa-task-gpu
+          - dockerfile: scripts/task.dockerfile
+            image: shipai/boa-task
+          - dockerfile: scripts/orthanc.dockerfile
+            image: shipai/boa-orthanc
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
