@@ -7,26 +7,38 @@ on:
   workflow_dispatch:
 
 jobs:
-
-  build:
-
+  docker:
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dockerfile: scripts/cli.dockerfile
+            image: shipai/boa-cli
+          - dockerfile: scripts/task_gpu.dockerfile
+            image:  shipai/boa-task-gpu
     steps:
-    - uses: actions/checkout@v3
-    - name: Install poetry
-      run: |
-        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
-        export PATH="/root/.local/bin:$PATH"
-        poetry run pip install -U pip
-        poetry install
-        export PACKAGE_VERSION=$(poetry version -s)
-    - name: Generate version
-      run: ./scripts/generate_version.sh
-    - name: Build the Docker image
-      run: |
-        docker build -t shipai/boa-task-gpu:latest shipai/boa-task-gpu:{PACKAGE_VERSION} --file scripts/task_gpu.dockerfile .
-        docker build -t shipai/boa-task:latest shipai/boa-task:{PACKAGE_VERSION} --file scripts/task.dockerfile .
-        docker build -t shipai/boa-orthanc:latest shipai/boa-orthanc:{PACKAGE_VERSION} --file scripts/orthanc.dockerfile .
-        docker build -t shipai/boa-rabbitmq:latest shipai/boa-rabbitmq:{PACKAGE_VERSION} --file scripts/rabbitmq.dockerfile .
-        docker build -t shipai/boa-cli:latest shipai/boa-cli:{PACKAGE_VERSION} --file scripts/cli.dockerfile .
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Setup env vars
+        uses: actions/checkout@v3
+        run: source scripts/generate_version.sh
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          content: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          build-args: |
+            GIT_VERSION=${GIT_VERSION}
+            PACKAGE_VERSION=${PACKAGE_VERSION}
+          tags:
+            - ${{ matrix.image }}:latest
+            - ${{ matrix.image }}:${PACKAGE_VERSION}
