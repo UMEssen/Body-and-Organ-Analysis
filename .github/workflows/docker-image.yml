@@ -43,4 +43,4 @@ jobs:
             PACKAGE_VERSION=${PACKAGE_VERSION}
           tags: |
             ${{ matrix.image }}:latest
-            ${{ matrix.image }}:${{ PACKAGE_VERSION }}
+            ${{ matrix.image }}:$PACKAGE_VERSION
