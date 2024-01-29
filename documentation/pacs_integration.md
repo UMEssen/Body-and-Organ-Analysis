@@ -12,7 +12,10 @@
 
 Load the docker images:
 ```bash
-docker pull # Published images coming soon!
+docker pull shipai/boa-orthanc
+docker pull shipai/boa-rabbitmq
+docker pull shipai/boa-task-gpu
+docker pull shipai/boa-task # Only needed if you are using a triton instance for the models
 ```
 or clone the repository and build the images. If you are doing this, please set up the environment variables as described above first.
 ```bash
