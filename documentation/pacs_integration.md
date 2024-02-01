@@ -33,11 +33,6 @@ docker compose up orthanc rabbitmq worker-gpu -d
 ```
 with `worker-gpu` if you want to use a local GPU and `worker` if you have Triton instance running.  Remove `rabbitmq` in case you already have an instance running.
 
-You can also just
-```bash
-docker compose up -d
-```
-
 !!!**IMPORTANT**!!!: if you are using windows, substitute the `docker-compose` with `docker -f docker-compose-win.yml`. `docker-compose-win.yml` has not been tested extensively so if you have any problems please contact us!
 
 ### Send a study to the BOA
