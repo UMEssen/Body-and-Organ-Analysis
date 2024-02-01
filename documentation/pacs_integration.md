@@ -10,6 +10,11 @@
 - The user can then download the Excel file from the SMB share and look at the segmentations on the DicomWeb instance. The segmentations and the Excel file are also available in the specified local folder.
 - If no local output folder was specified, the folder where the computations were originally performed is deleted.
 
+Set the `GIT_VERSION` and `PACKAGE_VERSION` variables (used for debugging in case there are problems):
+```
+source scripts/generate_version.sh
+```
+
 Load the docker images:
 ```bash
 docker pull shipai/boa-orthanc
@@ -19,7 +24,6 @@ docker pull shipai/boa-task # Only needed if you are using a triton instance for
 ```
 or clone the repository and build the images. If you are doing this, please set up the environment variables as described above first.
 ```bash
-source scripts/generate_version.sh
 docker compose build orthanc rabbitmq worker-gpu
 ```
 
