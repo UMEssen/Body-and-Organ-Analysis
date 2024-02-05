@@ -46,7 +46,7 @@ You can then add the instance to your PACS of choice by adding `{YOUR_IP}` and t
   Example in Horos:
   <br>
   <a href="https://horosproject.org/">
-    <img src="images/horos.png" alt="Screenshot Horos">
+    <img src="../images/horos.png" alt="Screenshot Horos">
   </a>
 </div>
 
