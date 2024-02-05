@@ -95,12 +95,13 @@ def OnChange(change_type: int, level: int, resource_id: str) -> None:
             )
             orthanc.LogWarning(f"The task {task_id} was created for {resource_id}.")
         else:
-            relevant_infos["task_id"] = f"none-{get_max_id(db_conn)}"
-            relevant_infos["computed"] = False
-            write_to_postgres(
-                db_conn,
-                data=relevant_infos,
-            )
+            if db_conn is not None:
+                relevant_infos["task_id"] = f"none-{get_max_id(db_conn)}"
+                relevant_infos["computed"] = False
+                write_to_postgres(
+                    db_conn,
+                    data=relevant_infos,
+                )
             orthanc.LogWarning(
                 f"The series {resource_id} was not computed because it did not pass the filtering."
             )
