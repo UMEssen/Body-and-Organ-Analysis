@@ -208,6 +208,34 @@ def get_dataset_attr(dcm: pydicom.Dataset, name: str) -> Any:
     return getattr(dcm, name) if hasattr(dcm, name) else None
 
 
+def compute_boa(
+    dcm: pydicom.Dataset, num_dicoms: int, minimum_images: int = 10
+) -> Tuple[bool, str]:
+    if (
+        get_dataset_attr(dcm, "Modality") is not None
+        and get_dataset_attr(dcm, "Modality") != "CT"
+    ):
+        message = f"The modality is not CT: {get_dataset_attr(dcm, 'Modality')}."
+        logger.warning(f"The modality is not CT: {get_dataset_attr(dcm, 'Modality')}.")
+        return False, message
+
+    if get_dataset_attr(dcm, "ImageType") is not None and not all(
+        typ in get_dataset_attr(dcm, "ImageType")
+        for typ in ["AXIAL", "PRIMARY", "ORIGINAL"]
+    ):
+        message = (
+            f"The image type is not 'ORIGINAL', 'PRIMARY', 'AXIAL': "
+            f"{get_dataset_attr(dcm, 'ImageType')}."
+        )
+        return False, message
+
+    if num_dicoms < minimum_images:
+        message = f"The series has less than {minimum_images} instances: {num_dicoms}."
+        return False, message
+
+    return True, ""
+
+
 def get_image_info(
     input_folder: Path, output_folder: Path
 ) -> Tuple[Path, List[Dict[str, Any]]]:
@@ -215,11 +243,9 @@ def get_image_info(
     image, dicom_files = _load_series_from_disk(input_folder)
     # Get the DICOM tags
     dcm = pydicom.dcmread(dicom_files[0], stop_before_pixels=True)
-    if (
-        get_dataset_attr(dcm, "Modality") is not None
-        and get_dataset_attr(dcm, "Modality") != "CT"
-    ):
-        raise ValueError("Only CT images are supported.")
+    compute, message = compute_boa(dcm, len(dicom_files))
+    if not compute:
+        raise ValueError(message)
 
     nifti_path = output_folder / "image.nii.gz"
     # Convert the file to nifti
