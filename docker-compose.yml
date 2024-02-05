@@ -112,6 +112,11 @@ services:
         - PACKAGE_VERSION=${PACKAGE_VERSION}
     environment:
       - CELERY_BROKER
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DATABASE
       - |
         ORTHANC__REGISTERED_USERS=
           {"${ORTHANC_USERNAME}": "${ORTHANC_PASSWORD}"}
