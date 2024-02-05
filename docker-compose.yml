@@ -135,7 +135,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DATABASE}
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "5433:5432"
     volumes:
       - ${POSTGRES_DATA}:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
