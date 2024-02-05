@@ -219,13 +219,15 @@ def compute_boa(
         logger.warning(f"The modality is not CT: {get_dataset_attr(dcm, 'Modality')}.")
         return False, message
 
+    # TODO: Found open source CTs that are SECONDARY, DERIVED, so I have removed the constraints.
     if get_dataset_attr(dcm, "ImageType") is not None and not all(
         typ in get_dataset_attr(dcm, "ImageType")
-        for typ in ["AXIAL", "PRIMARY", "ORIGINAL"]
+        for typ in [
+            "AXIAL",  # "PRIMARY", "ORIGINAL"
+        ]
     ):
         message = (
-            f"The image type is not 'ORIGINAL', 'PRIMARY', 'AXIAL': "
-            f"{get_dataset_attr(dcm, 'ImageType')}."
+            f"The image type is not 'AXIAL': " f"{get_dataset_attr(dcm, 'ImageType')}."
         )
         return False, message
 

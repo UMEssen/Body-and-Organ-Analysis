@@ -37,12 +37,14 @@ def generate_task(
         orthanc.LogWarning(f"The modality is not CT: {dicom_tags['Modality']}")
         return False
 
+    # TODO: Found open source CTs that are SECONDARY, DERIVED, so I have removed the constraints.
     if "ImageType" in dicom_tags and not all(
-        typ in dicom_tags["ImageType"] for typ in ["AXIAL", "PRIMARY", "ORIGINAL"]
+        typ in dicom_tags["ImageType"]
+        for typ in [
+            "AXIAL",  # "PRIMARY", "ORIGINAL"
+        ]
     ):
-        orthanc.LogWarning(
-            f"The image type is not 'ORIGINAL', 'PRIMARY', 'AXIAL': {dicom_tags['ImageType']}"
-        )
+        orthanc.LogWarning(f"The image type is not 'AXIAL': {dicom_tags['ImageType']}")
         return False
 
     return True
