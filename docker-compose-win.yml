@@ -25,6 +25,11 @@ services:
       - ORTHANC_PORT
       - ORTHANC_USERNAME
       - ORTHANC_PASSWORD
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DATABASE
       # Output vars
       - PATIENT_INFO_IN_OUTPUT
       - SMB_DIR_OUTPUT
@@ -67,6 +72,19 @@ services:
     ports:
       - "4242:4242"
       - "${ORTHANC_PORT}:8042"
+
+  monitoring:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - ${POSTGRES_DATA}:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
 networks:
   default:

@@ -33,6 +33,11 @@ docker compose up orthanc rabbitmq worker-gpu -d
 ```
 with `worker-gpu` if you want to use a local GPU and `worker` if you have Triton instance running.  Remove `rabbitmq` in case you already have an instance running.
 
+If you additionally want the monitoring functionality, you should run
+```bash
+docker compose up orthanc rabbitmq worker-gpu monitoring -d
+```
+
 ### !!!IMPORTANT!!! for Windows users:
 if you are using Windows, substitute the `docker-compose` with `docker -f docker-compose-win.yml` (or rename `docker-compose-win.yml` to `docker-compose.yml`). There seems to be a problem with using the environment variables in the paths (as in these [two rows](https://github.com/UMEssen/Body-and-Organ-Analysis/blob/main/docker-compose-win.yml#L45)). If that does not work, please substitute the variables with the strings that you have defined in the `.env` files.
 Also, the package seems to be broken if built using Windows, so **please use the images from DockerHub**!
