@@ -30,6 +30,6 @@ CREATE TABLE boa_entries (
    UNIQUE (task_id)
 );
 
-GRANT SELECT ON boa_entries to ship_ai_boa_public_reader;
-GRANT INSERT,UPDATE ON boa_entries to ship_ai_boa_public_writer_user;
-GRANT USAGE,SELECT ON SEQUENCE boa_entries_id_seq to ship_ai_boa_public_writer_user;
+GRANT SELECT ON boa_entries to boa_user;
+GRANT INSERT,UPDATE ON boa_entries to boa_user;
+GRANT USAGE,SELECT ON SEQUENCE boa_entries_id_seq to boa_user;
