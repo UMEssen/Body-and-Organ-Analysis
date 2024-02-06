@@ -62,9 +62,12 @@ services:
         - GIT_VERSION=${GIT_VERSION}
         - PACKAGE_VERSION=${PACKAGE_VERSION}
     environment:
-      - VERBOSE_ENABLED=true
-      - VERBOSE_STARTUP=true
       - CELERY_BROKER
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DATABASE
       - |
         ORTHANC__REGISTERED_USERS=
           {"${ORTHANC_USERNAME}": "${ORTHANC_PASSWORD}"}
@@ -81,11 +84,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DATABASE}
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "5433:5432"
     volumes:
       - ${POSTGRES_DATA}:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-
-networks:
-  default:
-    name: boa

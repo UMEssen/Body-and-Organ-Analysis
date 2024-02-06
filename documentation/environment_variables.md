@@ -49,12 +49,12 @@ Set up the environment variables by changing the corresponding line in `.env`, i
    - The output folders will not be anonymized and will contain the patient name and birthdate.
 
 ## Monitoring Variables
-The monitoring functionality pushes everything to a database, such that a grafana can be built using this information. For this to work, the following environment variables have to be set:
-- `POSTGRES_HOST`: The URL of the database to use, in our case we just use the "postgres" container, which we created.
+The monitoring functionality pushes everything to a database, such that a [Grafana dashboard](https://grafana.com/grafana/dashboards/) can be built using this information. For this to work, the following environment variables have to be set:
+- `POSTGRES_HOST`: The URL of the database to use, by default just a postgres container that you can find in the [docker-compose.yml](../docker-compose.yml) file, and is reachable by writing `monitoring` here.
 - `POSTGRES_PORT`: The port of the database, the default is 5432.
-- `POSTGRES_USER`: The username of the database, the default is "boa_user".
-- `POSTGRES_PASSWORD`: The password of the database, which you have to set yourself.
-- `POSTGRES_DATABASE`: The name of the database, the default is "ship_ai_boa".
+- `POSTGRES_USER`: The username for the database, the default is `boa_user`.
+- `POSTGRES_PASSWORD`: The password for the database, which you have to set yourself.
+- `POSTGRES_DATABASE`: The name of the database, the default is `ship_ai_boa`.
 - `POSTGRES_DATA`: The local directory where the database should be stored.
 
 You can also use an already existing database and set the variables accordingly, you will just need to perform the same commands that are stored in [init.sql](./init.sql) on the database.
