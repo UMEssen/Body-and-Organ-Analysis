@@ -9,9 +9,11 @@ on:
       - main
     paths:
       - "body_organ_analysis/**"
+      - "poetry.lock"
   pull_request:
     paths:
       - "body_organ_analysis/**"
+      - "poetry.lock"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
