@@ -150,14 +150,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boa-contrast"
-version = "0.1.3"
+version = "0.1.4"
 description = ""
 category = "main"
 optional = false
 python-versions = ">=3.8,<3.11"
 files = [
-    {file = "boa_contrast-0.1.3-py3-none-any.whl", hash = "sha256:82f8973dfd64ac49dc0fd752d27d4f88ab85e13f5b11fa272fc8abe92deb9fb5"},
-    {file = "boa_contrast-0.1.3.tar.gz", hash = "sha256:77010a8f2ee2319a13bb7e317890ec49875301ceb2ef0fb809859627da423326"},
+    {file = "boa_contrast-0.1.4-py3-none-any.whl", hash = "sha256:4c3cb0ebb16b13ac3189aa09d8ad4849af5ba8d480d954a80d5a86e2178f12c8"},
+    {file = "boa_contrast-0.1.4.tar.gz", hash = "sha256:5c2081482c804afd89d9f6f75674f2453d2a8d7ab69adbb134034f019e1e8415"},
 ]
 
 [package.dependencies]
@@ -2985,4 +2985,8 @@ triton = ["tritonclient"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8,<3.11"
+<<<<<<< Updated upstream
 content-hash = "7dd61d7dc10dfac18dd7f0a11f4d0aed8bd759de4e9a731aa9777191576753a6"
+=======
+content-hash = "b32947a728ee1027c5921b769912504db35a17403e1964524f5c31269ac9879e"
+>>>>>>> Stashed changes
