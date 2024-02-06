@@ -47,3 +47,23 @@ Set up the environment variables by changing the corresponding line in `.env`, i
    The `PATIENT_INFO_IN_OUTPUT="true"` option has the drawback that:
    - The folder structure is not unique if your DICOMs are anonymized, i.e. if you have two patients with the same anonymized name and birthdate (e.g. John Doe, 1970), then you will have clashes.
    - The output folders will not be anonymized and will contain the patient name and birthdate.
+
+## Monitoring Variables
+The monitoring functionality pushes everything to a database, such that a [Grafana dashboard](https://grafana.com/grafana/dashboards/) can be built using this information. For this to work, the following environment variables have to be set:
+- `POSTGRES_HOST`: The URL of the database to use, by default just a postgres container that you can find in the [docker-compose.yml](../docker-compose.yml) file, and is reachable by writing `monitoring` here.
+- `POSTGRES_PORT`: The port of the database, the default is 5432.
+- `POSTGRES_USER`: The username for the database, the default is `boa_user`.
+- `POSTGRES_PASSWORD`: The password for the database, which you have to set yourself.
+- `POSTGRES_DATABASE`: The name of the database, the default is `ship_ai_boa`.
+- `POSTGRES_DATA`: The local directory where the database should be stored.
+
+You can also use an already existing database and set the variables accordingly, you will just need to perform the same commands that are stored in [init.sql](./init.sql) on the database.
+
+Regardless of whether you are using the monitoring or not, `POSTGRES_DATA` should always be set, otherwise docker will not be happy.
+For the other variables, if you do not set them, you might get a warning:
+```
+WARN[0000] The "POSTGRES_USER" variable is not set. Defaulting to a blank string.
+WARN[0000] The "POSTGRES_PASSWORD" variable is not set. Defaulting to a blank string.
+WARN[0000] The "POSTGRES_DATABASE" variable is not set. Defaulting to a blank string.
+```
+But you can just ignore that!
