@@ -250,6 +250,7 @@ def get_image_info(
         raise ValueError(message)
 
     nifti_path = output_folder / "image.nii.gz"
+    output_folder.mkdir(parents=True, exist_ok=True)
     # Convert the file to nifti
     sitk.WriteImage(image, str(nifti_path), True)
     ct_info = []
