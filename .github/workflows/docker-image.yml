@@ -24,6 +24,8 @@ jobs:
           - dockerfile: scripts/orthanc.dockerfile
             image: shipai/boa-orthanc
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
       - name: Check out the repo
         uses: actions/checkout@v4
       - name: Setup env vars
