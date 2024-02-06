@@ -58,3 +58,12 @@ The monitoring functionality pushes everything to a database, such that a [Grafa
 - `POSTGRES_DATA`: The local directory where the database should be stored.
 
 You can also use an already existing database and set the variables accordingly, you will just need to perform the same commands that are stored in [init.sql](./init.sql) on the database.
+
+Regardless of whether you are using the monitoring or not, `POSTGRES_DATA` should always be set, otherwise docker will not be happy.
+For the other variables, if you do not set them, you might get a warning:
+```
+WARN[0000] The "POSTGRES_USER" variable is not set. Defaulting to a blank string.
+WARN[0000] The "POSTGRES_PASSWORD" variable is not set. Defaulting to a blank string.
+WARN[0000] The "POSTGRES_DATABASE" variable is not set. Defaulting to a blank string.
+```
+But you can just ignore that!
