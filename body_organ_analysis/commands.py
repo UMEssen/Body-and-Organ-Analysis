@@ -2,10 +2,12 @@ import logging
 import warnings
 from pathlib import Path
 from time import time
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pandas as pd
+import SimpleITK as sitk
 from boa_contrast import predict
+from body_composition_analysis.body_regions.definition import BodyRegion
 
 from body_organ_analysis._version import __githash__, __version__
 from body_organ_analysis.compute.bca_metrics import compute_bca_metrics
@@ -42,7 +44,7 @@ def analyze_ct(
     keep_debug_information: bool = False,
     recompute: bool = False,
     nnunet_verbose: bool = False,
-) -> Path:
+) -> Tuple[Path, Dict]:
     start_total = time()
     ct_info: List[Dict] = []
     if input_folder.is_file() and ".nii" in input_folder.name:
@@ -58,6 +60,10 @@ def analyze_ct(
     ] + ct_info
     logger.info(f"Image loaded and retrieved: DONE in {time() - start_total:0.5f}s")
 
+    stats: Dict[str, Any] = {
+        "git_hash": __githash__,
+        "version": __version__,
+    }
     seg_output = processed_output_folder  # / "segmentations"
     # seg_output.mkdir(parents=True, exist_ok=True)
     start = time()
@@ -73,7 +79,7 @@ def analyze_ct(
         test=0,
         crop_path=None,
     )
-    compute_all_models(
+    ct_stats = compute_all_models(
         ct_path=ct_path,
         segmentation_folder=seg_output,
         models_to_compute=models,
@@ -90,6 +96,9 @@ def analyze_ct(
     )
     logger.info(f"All models computed: DONE in {time() - start:0.5f}s")
 
+    stats["inference_time"] = time() - start
+    stats.update(ct_stats)
+
     aggr_df, slices_df, slices_no_limbs_df, bmd_df = None, None, None, None
     if "bca" in models:
         start = time()
@@ -97,6 +106,22 @@ def analyze_ct(
             output_path=seg_output,
         )
         logger.info(f"Metrics from BCA: DONE in {time() - start:0.5f}s")
+        stats["bca_metrics_time"] = time() - start
+        regions_path = seg_output / "body-regions.nii.gz"
+        if regions_path.exists():
+            regions = sitk.GetArrayFromImage(sitk.ReadImage(str(regions_path)))
+            # We store the found regions as a binary integer
+            # the first index is the brain
+            # the second index is the thorax
+            # the third index is the abdomen
+            regions_flag = 0
+            if BodyRegion.ABDOMINAL_CAVITY in regions:
+                regions_flag = regions_flag | 1
+            if BodyRegion.THORACIC_CAVITY in regions:
+                regions_flag = regions_flag | 2
+            if BodyRegion.BRAIN in regions:
+                regions_flag = regions_flag | 4
+            stats["bca_regions"] = regions_flag
 
     regions_df = None
     if any(a in models for a in list(ADDITIONAL_MODELS_OUTPUT_NAME.keys()) + ["total"]):
@@ -107,6 +132,7 @@ def analyze_ct(
             store_axes=False,
         )
         logger.info(f"Metrics from TotalSegmentator: DONE in {time() - start:0.5f}s")
+        stats["totalsegmentator_metrics_time"] = time() - start
         ct_info += region_information
 
     if compute_contrast_information:
@@ -130,6 +156,10 @@ def analyze_ct(
                     "value": contrast_information["git_ensemble_predicted_class"],
                 }
             )
+            stats["iv_contrast_phase"] = contrast_information[
+                "phase_ensemble_prediction"
+            ]
+            stats["git_contrast"] = contrast_information["git_ensemble_prediction"]
         except AssertionError:
             logger.warning("Contrast phase prediction failed")
 
@@ -155,6 +185,8 @@ def analyze_ct(
         if bmd_df is not None:
             bmd_df.to_excel(writer, sheet_name="bmd", index=False)
     logger.info(f"Excel stored: DONE in {time() - start:0.5f}s")
+    stats["excel_time"] = time() - start
     logger.info(f"Complete CT analysis: DONE in {time() - start_total:0.5f}s")
+    stats["total_time"] = time() - start_total
 
-    return excel_path
+    return excel_path, stats

@@ -33,11 +33,24 @@ docker compose up orthanc rabbitmq worker-gpu -d
 ```
 with `worker-gpu` if you want to use a local GPU and `worker` if you have Triton instance running.  Remove `rabbitmq` in case you already have an instance running.
 
-### !!!IMPORTANT!!! for Windows users:
+#### !!!IMPORTANT!!! for Windows users:
 if you are using Windows, substitute the `docker-compose` with `docker -f docker-compose-win.yml` (or rename `docker-compose-win.yml` to `docker-compose.yml`). There seems to be a problem with using the environment variables in the paths (as in these [two rows](https://github.com/UMEssen/Body-and-Organ-Analysis/blob/main/docker-compose-win.yml#L45)). If that does not work, please substitute the variables with the strings that you have defined in the `.env` files.
 Also, the package seems to be broken if built using Windows, so **please use the images from DockerHub**!
 
 `docker-compose-win.yml` has not been tested extensively so if you have any problems please contact us!
+
+#### Monitoring
+
+If you additionally want the monitoring functionality, you should run
+```bash
+docker compose up orthanc rabbitmq worker-gpu monitoring -d
+```
+
+By default, the database will run on the external port 5433, if you already have a database running on this port, please change the port in the `docker-compose.yml` file. This port does not influence the functionality of the tool, as the database will be accessed from within the docker network.
+
+Once the database is set up, a [Grafana dashboard](https://grafana.com/grafana/dashboards/) can be built using this information. We will add more information on how set up a dashboard soon, but if you have any questions, please contact us.
+
+**Windows**: If there are any problems with the `POSTGRES_DATA` environment variable, please substitute the strings directly in the docker compose.
 
 ### Send a study to the BOA
 You can then add the instance to your PACS of choice by adding `{YOUR_IP}` and the port `4242` to the location manager to your PACS. Below there is a screenshot of how this looks in Horos.

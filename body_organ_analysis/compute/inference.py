@@ -81,7 +81,7 @@ def compute_all_models(
     bca_params: Optional[Dict] = None,
     keep_debug_segmentations: bool = False,
     recompute: bool = True,
-) -> None:
+) -> Dict[str, int]:
     totalsegmentator_params = totalsegmentator_params or {}
     totalsegmentator_params = totalsegmentator_params.copy()
     bca_params = bca_params or {}
@@ -90,6 +90,16 @@ def compute_all_models(
         del totalsegmentator_params["preview"]
 
     shape, spacing = print_and_collect_image_info(ct_path)
+
+    stats = {
+        "num_voxels": shape[0] * shape[1] * shape[2],
+        "num_slices": shape[2],
+        "num_slices_resampled": convert_resampling_slices(
+            slices=shape[-1],
+            current_sampling=spacing[-1],
+            target_resampling=1.5,
+        ),
+    }
 
     for chosen_task in [m for m in models_to_compute if m != "bca"]:
         logger.info(f"Computing segmentations for task {chosen_task}")
@@ -206,3 +216,5 @@ def compute_all_models(
             segmentation_folder=segmentation_folder,
             models_to_compute=models_to_compute,
         )
+
+    return stats
