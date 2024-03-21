@@ -5,8 +5,6 @@ name: QA
 # Controls when the workflow will run
 on:
   push:
-    branches:
-      - main
     paths:
       - "body_organ_analysis/**"
       - "poetry.lock"
