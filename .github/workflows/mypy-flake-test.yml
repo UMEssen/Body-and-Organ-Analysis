@@ -49,3 +49,6 @@ jobs:
       - name: Run Flake8
         run: |
           poetry run flake8 body_organ_analysis/
+      - name: Run Tests
+        run: | 
+          poetry run python -m unittest discover scripts
