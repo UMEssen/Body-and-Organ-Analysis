@@ -8,6 +8,7 @@ from time import time
 from typing import Any, Dict, List, Optional
 
 import requests
+import shutil
 from celery import Celery, bootsteps
 from celery.signals import worker_ready, worker_shutdown
 from requests.exceptions import HTTPError
@@ -228,6 +229,7 @@ def analyze_stable_series(resource_id: str) -> Dict[str, Optional[str]]:
         )
         stats["download_time"] = download_time
         stats["save_persistent_time"] = time() - start_store
+    shutil.rmtree(input_data_folder)
     logger.info(f"Entire pipeline: DONE in {time() - start_init:0.5f}s")
 
     stats["task_id"] = analyze_stable_series.request.id
