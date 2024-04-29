@@ -44,6 +44,7 @@ def analyze_ct(
     keep_debug_information: bool = False,
     recompute: bool = False,
     nnunet_verbose: bool = False,
+    fast: bool = False,
 ) -> Tuple[Path, Dict]:
     start_total = time()
     ct_info: List[Dict] = []
@@ -93,6 +94,7 @@ def analyze_ct(
         ),
         keep_debug_segmentations=keep_debug_information,
         recompute=recompute,
+        fast=fast,
     )
     logger.info(f"All models computed: DONE in {time() - start:0.5f}s")
 

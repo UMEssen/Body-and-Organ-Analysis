@@ -185,7 +185,11 @@ def download_dicoms_from_orthanc(
 
 
 def build_excel(
-    input_data_folder: Path, output_folder: Path, dicom_tags: Dict[str, Any]
+    input_data_folder: Path,
+    output_folder: Path,
+    dicom_tags: Dict[str, Any],
+    fast: bool = False,
+
 ) -> Tuple[Path, Dict]:
     # Setup before calling
     start = time()
@@ -195,6 +199,7 @@ def build_excel(
         processed_output_folder=output_folder,
         excel_output_folder=output_folder,
         models=models,
+        fast=fast,
     )
     new_excel_path = excel_path.parent / (
         _process_info_element(

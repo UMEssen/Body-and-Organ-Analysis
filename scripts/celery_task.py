@@ -207,10 +207,18 @@ def analyze_stable_series(resource_id: str) -> Dict[str, Optional[str]]:
             output_information += "No DICOMs could be downloaded for this series.\n\n"
         new_excel_path: Optional[Path] = None
         try:
+            fast = False
+            if "PREDICT_FAST" in os.environ and os.environ["PREDICT_FAST"].lower() in {
+                "true",
+                "1",
+            }:
+                fast = True
+
             new_excel_path, stats = build_excel(
                 input_data_folder=input_data_folder,
                 output_folder=output_folder,
                 dicom_tags=dicom_tags,
+                fast=fast,
             )
             computed = True
         except Exception:

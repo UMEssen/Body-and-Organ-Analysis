@@ -81,6 +81,7 @@ def compute_all_models(
     bca_params: Optional[Dict] = None,
     keep_debug_segmentations: bool = False,
     recompute: bool = True,
+    fast: bool = True,
 ) -> Dict[str, int]:
     totalsegmentator_params = totalsegmentator_params or {}
     totalsegmentator_params = totalsegmentator_params.copy()
@@ -105,7 +106,7 @@ def compute_all_models(
         logger.info(f"Computing segmentations for task {chosen_task}")
         task_specific_params = get_task_info(
             chosen_task,
-            fast=False,
+            fast=fast,
             multilabel_image=chosen_task not in {"lung_vessels", "body"},
             quiet=True,
         )

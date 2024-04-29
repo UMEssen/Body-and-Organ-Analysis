@@ -32,6 +32,7 @@ services:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - POSTGRES_DATABASE
+      - PREDICT_FAST
       # Output vars
       - PATIENT_INFO_IN_OUTPUT
       - SMB_DIR_OUTPUT
@@ -79,6 +80,7 @@ services:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - POSTGRES_DATABASE
+      - PREDICT_FAST
       # Output vars
       - PATIENT_INFO_IN_OUTPUT
       - SEGMENTATION_UPLOAD_URL
