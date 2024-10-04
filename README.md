@@ -1,18 +1,20 @@
-<br />
-<div align="center">
-  <a href="https://ship-ai.ikim.nrw/">
-    <img src="images/boa-logo.svg" alt="Logo">
-  </a>
-</div>
+
+![BOA](images/BOA-banner.png)
 
 # BOA: Body and Organ Analysis
 
-## What is it?
-BOA is a tool for segmentation of CT scans developed by the [SHIP-AI group at the Institute for Artificial Intelligence in Medicine](https://ship-ai.ikim.nrw/). Combining the [TotalSegmentator](https://arxiv.org/abs/2208.05868) and the [Body Composition Analysis](https://pubmed.ncbi.nlm.nih.gov/32945971/), this tool is capable of analyzing medical images and identifying the different structures within the human body, including bones, muscles, organs, and blood vessels.
+BOA is a tool for segmentation of CT scans developed by the [SHIP.AI group at the Institute for Artificial Intelligence in Medicine (IKIM)](https://ship-ai.ikim.nrw/). Combining the [TotalSegmentator](https://arxiv.org/abs/2208.05868) and the [Body Composition Analysis](https://pubmed.ncbi.nlm.nih.gov/32945971/), this tool is capable of analyzing medical images and identifying the different structures within the human body, including bones, muscles, organs, and blood vessels.The tool also includes functionalities for the following tasks:
 
-<div align="center">
-    <img src="https://raw.githubusercontent.com/UMEssen/Body-and-Organ-Analysis/main/images/boa.png" alt="BOA">
-</div>
+- Skeleton
+- Organs
+- Bone Mineral Density
+- Contrast Media Recognition
+- Cardiovascular System
+- Body Parts
+- Body Tissue Composition
+- Body Region Detection
+
+## Example Segmentations
 
 The BOA tool can be used to generate full body segmentations of CT scans:
 
