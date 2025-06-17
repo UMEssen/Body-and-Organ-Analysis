@@ -1,6 +1,6 @@
 # Environment Variables
 First, create a `.env` file in the same folder as your `docker-compose.yml` file. 
-You can find an example environment file in [.env_sample](./.env_sample).
+You can find an example environment file in [.env_sample](../.env_sample).
 Then, set up the environment variables by changing the corresponding line in `.env`, if you do not need a specific environment variable, please delete it from `.env`. 
 
 - `LOCAL_WEIGHTS_PATH`: The local paths where the TotalSegmentator (and BCA) weights should be stored after downloading. It is also possible to remove this variable, and the weights will be stored in the container. However, this means that the weights will be downloaded every time the container is newly created. **Note**: Please create the local directory before if you are not using the root user, this avoids having to change the permissions later. If you want the weights to be stored within the container, you can just remove lines 47 and 80 from [docker-compose.yml](./docker-compose.yml).
