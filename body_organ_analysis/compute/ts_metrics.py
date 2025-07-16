@@ -25,7 +25,7 @@ def major_minor_axis(
     l3_mask: np.ndarray,
     body_mask: np.ndarray,
     img_spacing: np.ndarray,
-    plot_axes: Path = None,
+    plot_axes: Optional[Path] = None,
 ) -> Tuple[Optional[float], Optional[float]]:
     if np.sum(l3_mask) == 0 or np.sum(body_mask) == 0:
         return None, None
@@ -63,12 +63,12 @@ def compute_segmentator_metrics(
     ct_path: Path,
     segmentation_folder: Path,
     store_axes: bool = False,
-) -> Tuple[List[Dict[str, Any]], pd.DataFrame]:
+) -> Tuple[List[Dict[str, Any]], pd.DataFrame, pd.DataFrame]:
     measurements_path = segmentation_folder / "total-measurements.json"
     with measurements_path.open("r") as of:
         json_measurements = json.load(of)
 
-    autochton_std = json_measurements["info"]["autochton_std"]
+    autochthon_std = json_measurements["info"]["autochthon_std"]
 
     cnr_aorta = get_cnr_for_region(json_measurements, "aorta")
     cnr_vci = get_cnr_for_region(json_measurements, "inferior_vena_cava")
@@ -113,6 +113,17 @@ def compute_segmentator_metrics(
                     new_key = "CNR"
                 base_dict[new_key] = val
             records.append(base_dict)
+    cnr_records = []
+
+    for region in json_measurements["cnr_adjusted"]:
+        base_dict = {
+            "BodyRegion": convert_name(region),
+        }
+        for key, val in json_measurements["cnr_adjusted"][region].items():
+            new_key = convert_name(key)
+            base_dict[new_key] = val
+        cnr_records.append(base_dict)
+
 
     for model_name, filename in ADDITIONAL_MODELS_OUTPUT_NAME.items():
         model_path = segmentation_folder / f"{filename}.nii.gz"
@@ -121,7 +132,7 @@ def compute_segmentator_metrics(
             continue
     additional_info = []
     for name, value in [
-        ("Noise", autochton_std),
+        ("Noise", autochthon_std),
         ("CNRAorta", cnr_aorta),
         ("CNRVCI", cnr_vci),
         ("CNRPortalSplenicVein", crn_pv),
@@ -134,4 +145,5 @@ def compute_segmentator_metrics(
     return (
         additional_info,
         pd.DataFrame(records).sort_values(by=["ModelName", "BodyRegion"]),
+        pd.DataFrame(cnr_records).sort_values(by="BodyRegion")
     )

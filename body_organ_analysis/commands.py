@@ -2,7 +2,7 @@ import logging
 import warnings
 from pathlib import Path
 from time import time
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import SimpleITK as sitk
@@ -38,7 +38,7 @@ def analyze_ct(
     nr_thr_resamp: int = 1,
     nr_thr_saving: int = 6,
     bca_median_filtering: bool = False,
-    bca_examined_body_region: str = None,
+    bca_examined_body_region: Optional[str] = None,
     bca_pdf: bool = True,
     bca_compute_bmd: bool = False,
     keep_debug_information: bool = False,
@@ -126,9 +126,10 @@ def analyze_ct(
             stats["bca_regions"] = regions_flag
 
     regions_df = None
+    cnr_df = None
     if any(a in models for a in list(ADDITIONAL_MODELS_OUTPUT_NAME.keys()) + ["total"]):
         start = time()
-        region_information, regions_df = compute_segmentator_metrics(
+        region_information, regions_df, cnr_df = compute_segmentator_metrics(
             ct_path=ct_path,
             segmentation_folder=seg_output,
             store_axes=False,
@@ -174,6 +175,8 @@ def analyze_ct(
         info_df.to_excel(writer, sheet_name="info", header=False)
         if regions_df is not None:
             regions_df.to_excel(writer, sheet_name="regions-statistics", index=False)
+        if cnr_df is not None:
+            cnr_df.to_excel(writer, sheet_name="cnr_adjusted", index=False)
         if aggr_df is not None:
             aggr_df.to_excel(
                 writer, sheet_name="bca-aggregated_measurements", index=False
