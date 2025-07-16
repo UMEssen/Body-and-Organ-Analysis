@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "body-organ-analysis"
-version = "0.1.3"
+version = "0.1.4"
 license = "Apache-2.0"
 description = "BOA is a tool for segmentation of CT scans developed by the SHIP-AI group at the Institute for Artificial Intelligence in Medicine (https://ship-ai.ikim.nrw/). Combining the TotalSegmentator and the Body Composition Analysis, this tool is capable of analyzing medical images and identifying the different structures within the human body, including bones, muscles, organs, and blood vessels."
 authors = ["Giulia Baldini <Giulia.Baldini@uk-essen.de>"]
