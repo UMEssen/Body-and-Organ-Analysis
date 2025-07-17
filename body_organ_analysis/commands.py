@@ -176,7 +176,23 @@ def analyze_ct(
         if regions_df is not None:
             regions_df.to_excel(writer, sheet_name="regions-statistics", index=False)
         if cnr_df is not None:
-            cnr_df.to_excel(writer, sheet_name="cnr_adjusted", index=False)
+            cnr_df.to_excel(writer, sheet_name="cnr_adjusted", startrow=1, index=False)
+            workbook  = writer.book
+            worksheet = writer.sheets["cnr_adjusted"]
+            warning = (
+                "These results were yielded by a modified version of BOA, "
+                "adjusted for image quality assessment."
+            )
+            fmt = workbook.add_format(
+                {
+                    "bold": True,
+                    "bg_color": "#FFF2CC",
+                    "align": "center",
+                    "text_wrap": True
+                }
+            )
+            last_col = len(cnr_df.columns) - 1
+            worksheet.merge_range(0, 0, 0, last_col, warning, fmt)
         if aggr_df is not None:
             aggr_df.to_excel(
                 writer, sheet_name="bca-aggregated_measurements", index=False

@@ -121,6 +121,10 @@ def compute_segmentator_metrics(
         }
         for key, val in json_measurements["cnr_adjusted"][region].items():
             new_key = convert_name(key)
+            if "Hu" in new_key:
+                new_key = new_key.replace("Hu", "HU")
+            elif "Cnr" == new_key:
+                new_key = "CNR"
             base_dict[new_key] = val
         cnr_records.append(base_dict)
 

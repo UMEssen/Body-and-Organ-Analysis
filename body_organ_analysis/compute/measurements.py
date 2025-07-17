@@ -98,7 +98,10 @@ def metrics_for_region(
     for p in [25, 75]:
         measurements[f"{p}th_percentile_hu"] = float(np.percentile(hu_region, p))
     if autochthon_mean is not None and autochthon_std is not None:
-        measurements["cnr"] = (np.mean(hu_region) - autochthon_mean) / autochthon_std
+        if cnr_adjustment and region_name.partition("_")[0] == "autochthon":
+            measurements["cnr"] = None
+        else:
+            measurements["cnr"] = (np.mean(hu_region) - autochthon_mean) / autochthon_std
     else:
         measurements["cnr"] = None
 
@@ -297,7 +300,6 @@ def compute_measurements(
                     if region
                     in {
                         "aorta",
-                        "inferior_vena_cava",
                         "pulmonary_artery",
                         "autochthon_left",
                         "autochthon_right",
