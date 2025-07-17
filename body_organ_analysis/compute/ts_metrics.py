@@ -157,5 +157,5 @@ def compute_segmentator_metrics(
     return (
         additional_info,
         pd.DataFrame(records).sort_values(by=["ModelName", "BodyRegion"]),
-        pd.DataFrame(cnr_records).sort_values(by="BodyRegion")
+        pd.DataFrame(cnr_records),
     )
