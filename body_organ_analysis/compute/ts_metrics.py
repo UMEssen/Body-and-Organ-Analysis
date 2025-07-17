@@ -115,7 +115,15 @@ def compute_segmentator_metrics(
             records.append(base_dict)
     cnr_records = []
 
-    for region in json_measurements["cnr_adjusted"]:
+    for region in (
+        "aorta",
+        "pulmonary_artery",
+        "autochthon",
+        "autochthon_left",
+        "autochthon_right",
+    ):
+        if region not in json_measurements["cnr_adjusted"]:
+            continue
         base_dict = {
             "BodyRegion": convert_name(region),
         }
