@@ -92,16 +92,16 @@ def metrics_for_region(
     for func in [np.mean, np.std, np.min, np.median, np.max]:
         measurements[
             f"{func.__name__.replace('amin', 'min').replace('amax', 'max')}_hu"
-        ] = float(
-            func(hu_region)  # type: ignore
-        )
+        ] = float(func(hu_region))
     for p in [25, 75]:
         measurements[f"{p}th_percentile_hu"] = float(np.percentile(hu_region, p))
     if autochthon_mean is not None and autochthon_std is not None:
         if cnr_adjustment and region_name.partition("_")[0] == "autochthon":
             measurements["cnr"] = None
         else:
-            measurements["cnr"] = (np.mean(hu_region) - autochthon_mean) / autochthon_std
+            measurements["cnr"] = (
+                np.mean(hu_region) - autochthon_mean
+            ) / autochthon_std
     else:
         measurements["cnr"] = None
 
@@ -157,7 +157,7 @@ def pulmonary_fat(
             ids=[label_map[region_name]],
             autochthon_mean=autochthon_mean,
             autochthon_std=autochthon_std,
-            img_spacing=region_image.GetSpacing(),  # type: ignore
+            img_spacing=region_image.GetSpacing(),
         )
     for side in ["left", "right"]:
         parts = [ll for ll in lung_masks if ll.endswith(side)]
@@ -167,7 +167,7 @@ def pulmonary_fat(
             ids=[label_map[ll] for ll in parts],
             autochthon_mean=autochthon_mean,
             autochthon_std=autochthon_std,
-            img_spacing=region_image.GetSpacing(),  # type: ignore
+            img_spacing=region_image.GetSpacing(),
         )
 
     fat_mask, measurements["pulmonary_fat_lungs"] = compute_lung_measurement(
@@ -176,10 +176,10 @@ def pulmonary_fat(
         ids=[label_map[ll] for ll in lung_masks],
         autochthon_mean=autochthon_mean,
         autochthon_std=autochthon_std,
-        img_spacing=region_image.GetSpacing(),  # type: ignore
+        img_spacing=region_image.GetSpacing(),
     )
     mask_img = sitk.GetImageFromArray(fat_mask.astype(np.uint8))
-    mask_img.CopyInformation(region_image)  # type: ignore
+    mask_img.CopyInformation(region_image)
     sitk.WriteImage(mask_img, str(segmentation_folder / "pulmonary_fat.nii.gz"), True)
 
     return measurements
@@ -195,16 +195,16 @@ def metrics_for_each_region(
     cnr_adjustment: bool = False,
 ) -> Dict[str, Any]:
     measurements = {}
-    for region_name in label_map:
-        mask = create_mask(region_data, label_map[region_name])
-        measurements[region_name] = metrics_for_region(
+    for region, label in label_map.items():
+        mask = create_mask(region_data, label)
+        measurements[region] = metrics_for_region(
             ct_data=ct_data,
             mask=mask,
             autochthon_mean=autochthon_mean,
             autochthon_std=autochthon_std,
             img_spacing=img_spacing,
             cnr_adjustment=cnr_adjustment,
-            region_name=region_name,
+            region_name=region,
         )
     if "autochthon_left" in label_map and "autochthon_right" in label_map:
         mask = create_mask(
@@ -253,7 +253,8 @@ def compute_measurements(
             continue
         model_image = sitk.ReadImage(str(model_path))
         assert np.isclose(
-            ct_image.GetSpacing(), model_image.GetSpacing()  # type: ignore
+            ct_image.GetSpacing(),
+            model_image.GetSpacing(),
         ).all(), "The spacing of the image and of the segmentation should be the same"
         model_data = sitk.GetArrayViewFromImage(model_image)
         if model_name == "total":
@@ -277,7 +278,7 @@ def compute_measurements(
             label_map=label_map,
             autochthon_mean=autochthon_mean,
             autochthon_std=autochthon_std,
-            img_spacing=ct_image.GetSpacing(),  # type: ignore
+            img_spacing=ct_image.GetSpacing(),
         )
         if model_name == "total":
             measurements["segmentations"][model_name] = {
@@ -307,7 +308,7 @@ def compute_measurements(
                 },
                 autochthon_mean=autochthon_mean,
                 autochthon_std=autochthon_std,
-                img_spacing=ct_image.GetSpacing(),  # type: ignore
+                img_spacing=ct_image.GetSpacing(),
                 cnr_adjustment=True,
             )
 

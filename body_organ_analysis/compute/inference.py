@@ -1,7 +1,7 @@
 import json
 import logging
 import pathlib
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import nibabel as nib
 import numpy as np
@@ -57,15 +57,13 @@ def range_warning(ct_image_data: np.ndarray) -> None:
 def print_and_collect_image_info(
     ct_path: pathlib.Path,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    ct_orig = nib.load(ct_path)  # type: ignore
-    assert (
-        len(ct_orig.header.get_data_shape()) == 3  # type: ignore
-    ), "Only 3D CT scans are supported."
+    ct_orig = nib.load(ct_path)
+    assert len(ct_orig.header.get_data_shape()) == 3, "Only 3D CT scans are supported."
     logger.info(f"Input image:   {ct_path}")
-    logger.info(f"Image size:    {ct_orig.header.get_data_shape()}")  # type: ignore
-    logger.info(f"Image dtype:   {ct_orig.header.get_data_dtype()}")  # type: ignore
-    logger.info(f"Voxel spacing: {ct_orig.header.get_zooms()}")  # type: ignore
-    logger.info(f"Input Axcodes:    {nib.aff2axcodes(ct_orig.affine)}")  # type: ignore
+    logger.info(f"Image size:    {ct_orig.header.get_data_shape()}")
+    logger.info(f"Image dtype:   {ct_orig.header.get_data_dtype()}")
+    logger.info(f"Voxel spacing: {ct_orig.header.get_zooms()}")
+    logger.info(f"Input Axcodes:    {nib.aff2axcodes(ct_orig.affine)}")
     ct_image_data = load_nibabel_image_with_axcodes(ct_orig, axcodes="LPS")
     range_warning(ct_image_data.get_fdata())
 
@@ -77,8 +75,8 @@ def compute_all_models(
     segmentation_folder: pathlib.Path,
     models_to_compute: List[str],
     force_split_threshold: int = 400,
-    totalsegmentator_params: Optional[Dict] = None,
-    bca_params: Optional[Dict] = None,
+    totalsegmentator_params: Optional[Dict[str, Any]] = None,
+    bca_params: Optional[Dict[str, Any]] = None,
     keep_debug_segmentations: bool = False,
     recompute: bool = True,
     fast: bool = True,
@@ -135,12 +133,10 @@ def compute_all_models(
         else:
             download_pretrained_weights(task_specific_params["task_id"])
         if task_specific_params["crop"] is not None:
-            assert (
-                segmentation_folder / "total.nii.gz"
-            ).exists(), "The total segmentation is required to compute the crop!"
-            tmp_total_data = nib.load(  # type: ignore
-                segmentation_folder / "total.nii.gz"
-            ).get_fdata()
+            assert (segmentation_folder / "total.nii.gz").exists(), (
+                "The total segmentation is required to compute the crop!"
+            )
+            tmp_total_data = nib.load(segmentation_folder / "total.nii.gz").get_fdata()
             old_crop_name = task_specific_params["crop"]
             mask_ids = [
                 reverse_class_map_complete[f"total_{n}"]

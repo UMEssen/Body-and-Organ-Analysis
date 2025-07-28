@@ -1,14 +1,14 @@
 import logging
 import os
+import shutil
 import tempfile
 import traceback
 from datetime import datetime
 from pathlib import Path
 from time import time
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
 import requests
-import shutil
 from celery import Celery, bootsteps
 from celery.signals import worker_ready, worker_shutdown
 from requests.exceptions import HTTPError
@@ -30,13 +30,13 @@ HEARTBEAT_FILE = Path("/tmp/worker_heartbeat")
 READINESS_FILE = Path("/tmp/worker_ready")
 
 
-class LivenessProbe(bootsteps.StartStopStep):
-    requires = {"celery.worker.components:Timer"}
+class LivenessProbe(bootsteps.StartStopStep):  # type: ignore[misc]
+    requires: ClassVar[Set[str]] = {"celery.worker.components:Timer"}
 
     def __init__(self, parent: Any, **kwargs: Any) -> None:
         super().__init__(parent, **kwargs)
-        self.requests: List = []
-        self.tref = None
+        self.requests: List[Any] = []
+        self.tref: Optional[Any] = None
 
     def start(self, worker: Any) -> None:
         self.tref = worker.timer.call_repeatedly(
@@ -55,13 +55,13 @@ class LivenessProbe(bootsteps.StartStopStep):
         HEARTBEAT_FILE.touch()
 
 
-@worker_ready.connect
+@worker_ready.connect  # type: ignore[misc]
 def worker_ready_handler(**_: Any) -> None:
     # logger.debug("Creating readiness file.")
     READINESS_FILE.touch()
 
 
-@worker_shutdown.connect
+@worker_shutdown.connect  # type: ignore[misc]
 def worker_shutdown_handler(**_: Any) -> None:
     # logger.debug("Removing readiness file.")
     READINESS_FILE.unlink(missing_ok=True)
@@ -91,7 +91,7 @@ app.conf.update(
 app.steps["worker"].add(LivenessProbe)
 
 
-@app.task()
+@app.task()  # type: ignore[misc]
 def analyze_stable_series(resource_id: str) -> Dict[str, Optional[str]]:
     patient_info = False
     if "PATIENT_INFO_IN_OUTPUT" in os.environ and os.environ[

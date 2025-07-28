@@ -46,7 +46,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '5'
+          cpus: "5"
     shm_size: 1g
     ulimits:
       memlock: -1
@@ -56,7 +56,19 @@ services:
       - /etc/group:/etc/group:ro
       - ${SEGMENTATION_DIR}:/storage_directory
       - ${LOCAL_WEIGHTS_PATH}:/app/weights
-    command: ["python", "-m", "celery", "--app", "celery_task", "worker", "--concurrency=1", "--loglevel=INFO", "-P", "threads"]
+    command:
+      [
+        "python",
+        "-m",
+        "celery",
+        "--app",
+        "celery_task",
+        "worker",
+        "--concurrency=1",
+        "--loglevel=INFO",
+        "-P",
+        "threads",
+      ]
     depends_on:
       - rabbitmq
 
@@ -94,13 +106,25 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '5'
+          cpus: "5"
     volumes:
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
       - ${SEGMENTATION_DIR}:/storage_directory
       - ${LOCAL_WEIGHTS_PATH}:/app/weights
-    command: [ "python", "-m", "celery", "--app", "celery_task", "worker", "--concurrency=1", "--loglevel=INFO", "-P", "threads" ]
+    command:
+      [
+        "python",
+        "-m",
+        "celery",
+        "--app",
+        "celery_task",
+        "worker",
+        "--concurrency=1",
+        "--loglevel=INFO",
+        "-P",
+        "threads",
+      ]
     depends_on:
       - rabbitmq
 

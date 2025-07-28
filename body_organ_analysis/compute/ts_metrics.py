@@ -42,7 +42,7 @@ def major_minor_axis(
         ax.plot((minor_p1.x, minor_p2.x), (minor_p1.y, minor_p2.y), "-b", linewidth=2.5)
         plt.axis("off")
         plt.savefig(plot_axes / "major_minor_axis.png", dpi=200, bbox_inches="tight")
-    avg_spacing = np.mean(img_spacing)  # type: ignore
+    avg_spacing = np.mean(img_spacing)
     # Compute the mean axis,
     # multiply by the spacing between the pixels (mm)
     return (
@@ -88,7 +88,7 @@ def compute_segmentator_metrics(
                 region_data, reverse_class_map_complete["total_vertebrae_L3"]
             ),
             body_mask=create_mask(body_data, 1),
-            img_spacing=image_info.GetSpacing()[:2],  # type: ignore
+            img_spacing=image_info.GetSpacing()[:2],
             plot_axes=segmentation_folder if store_axes else None,
         )
     if major_axis is not None and minor_axis is not None:
@@ -135,7 +135,6 @@ def compute_segmentator_metrics(
                 new_key = "CNR"
             base_dict[new_key] = val
         cnr_records.append(base_dict)
-
 
     for model_name, filename in ADDITIONAL_MODELS_OUTPUT_NAME.items():
         model_path = segmentation_folder / f"{filename}.nii.gz"
