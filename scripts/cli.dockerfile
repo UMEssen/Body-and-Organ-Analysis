@@ -1,7 +1,7 @@
 FROM python:3.9 as poetry2requirements
 COPY pyproject.toml poetry.lock README.md /
 ENV POETRY_HOME=/etc/poetry
-RUN pip3 install poetry==1.3.2
+RUN pip3 install poetry==1.6.1
 RUN python3 -m poetry export -E "triton pacs" --without-hashes -f requirements.txt > /Requirements.txt
 
 FROM nvcr.io/nvidia/pytorch:22.12-py3
