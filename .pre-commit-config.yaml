@@ -12,7 +12,7 @@ repos:
     rev: v1.15.0
     hooks:
       - id: mypy
-        language_version: python3.9
+        language_version: python3
         additional_dependencies: ["types-pytz", "types-requests"]
         exclude: _external
 
