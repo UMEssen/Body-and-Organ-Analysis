@@ -1,0 +1,82 @@
+name: QA
+
+# Controls when the workflow will run
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "body_organ_analysis/**"
+      - "scripts/**"
+      - "pyproject.toml"
+      - "poetry.lock"
+      - ".pre-commit-config.yaml"
+  pull_request:
+    paths:
+      - "body_organ_analysis/**"
+      - "scripts/**"
+      - "pyproject.toml"
+      - "poetry.lock"
+      - ".pre-commit-config.yaml"
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Cancel previous workflow runs on the same ref (keeps CI snappy)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    env:
+      # Keep installs quiet and put the venv inside the repo for easy caching
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      POETRY_VIRTUALENVS_CREATE: "true"
+      POETRY_VIRTUALENVS_IN_PROJECT: "true"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Cache the .venv created by Poetry (per Python version + lockfile)
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            venv-${{ runner.os }}-${{ matrix.python-version }}-
+
+      # Cache pre-commit hook environments (black/mypy/isort, etc.)
+      - name: Cache pre-commit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: precommit-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            precommit-${{ runner.os }}-${{ matrix.python-version }}-
+
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+
+      - name: Install dependencies
+        run: poetry install --with dev --no-interaction --no-ansi
+
+      - name: Run pre-commit
+        run: poetry run pre-commit run -a
