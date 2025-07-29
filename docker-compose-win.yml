@@ -50,7 +50,19 @@ services:
     volumes:
       - ${SEGMENTATION_DIR}:/storage_directory
       - ${LOCAL_WEIGHTS_PATH}:/app/weights
-    command: ["python", "-m", "celery", "--app", "celery_task", "worker", "--concurrency=1", "--loglevel=INFO", "-P", "threads"]
+    command:
+      [
+        "python",
+        "-m",
+        "celery",
+        "--app",
+        "celery_task",
+        "worker",
+        "--concurrency=1",
+        "--loglevel=INFO",
+        "-P",
+        "threads",
+      ]
     depends_on:
       - rabbitmq
 

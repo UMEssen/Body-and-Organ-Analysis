@@ -1,10 +1,10 @@
 FROM python:3.9 as poetry2requirements
 COPY pyproject.toml poetry.lock README.md /
 ENV POETRY_HOME=/etc/poetry
-RUN pip3 install poetry==1.3.2
+RUN pip3 install poetry==1.6.1
 RUN python3 -m poetry export -E pacs --without-hashes -f requirements.txt > /Requirements.txt
 
-FROM nvcr.io/nvidia/pytorch:22.12-py3
+FROM nvcr.io/nvidia/pytorch:24.10-py3
 
 # Install app dependencies
 COPY --from=poetry2requirements /Requirements.txt /tmp

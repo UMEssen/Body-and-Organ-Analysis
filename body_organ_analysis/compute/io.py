@@ -63,8 +63,8 @@ def set_dcm_params(
     out_dcm.SeriesNumber = 42000 * img_dcm.SeriesNumber + series_id
     out_dcm.SeriesInstanceUID = pydicom.uid.generate_uid(
         entropy_srcs=[
-            img_dcm.StudyInstanceUID,  # type: ignore
-            img_dcm.SeriesInstanceUID,  # type: ignore
+            img_dcm.StudyInstanceUID,
+            img_dcm.SeriesInstanceUID,
             output_name,
             __githash__,
             __version__,
@@ -73,7 +73,7 @@ def set_dcm_params(
     out_dcm.SOPInstanceUID = pydicom.uid.generate_uid(
         entropy_srcs=[
             img_dcm.StudyInstanceUID,
-            out_dcm.SeriesInstanceUID,  # type: ignore
+            out_dcm.SeriesInstanceUID,
         ]
     )
     out_dcm.BodyPartExamined = get_dataset_attr(img_dcm, "BodyPartExamined")
@@ -113,15 +113,15 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> List[Dict[str
         if not seg_file.exists():
             logger.warning(f"The segmentation {output_kind} does not exist.")
             continue
-        nifti_seg = sitk.ReadImage(str(seg_file))  # type: ignore
-        seg_array = sitk.GetArrayFromImage(nifti_seg)  # type: ignore
-        assert np.isclose(nifti_seg.GetSize(), image.GetSize()).all(), (  # type: ignore
-            f"Image and segmentation {output_kind} do not have the same size: "  # type: ignore
-            f"{image.GetSize()} vs. {nifti_seg.GetSize()}"  # type: ignore
+        nifti_seg = sitk.ReadImage(str(seg_file))
+        seg_array = sitk.GetArrayFromImage(nifti_seg)
+        assert np.isclose(nifti_seg.GetSize(), image.GetSize()).all(), (
+            f"Image and segmentation {output_kind} do not have the same size: "
+            f"{image.GetSize()} vs. {nifti_seg.GetSize()}"
         )
-        assert np.isclose(nifti_seg.GetSpacing(), image.GetSpacing()).all(), (  # type: ignore
-            f"Image and segmentation {output_kind} do not have the same spacing: "  # type: ignore
-            f"{image.GetSpacing()} vs. {nifti_seg.GetSpacing()}"  # type: ignore
+        assert np.isclose(nifti_seg.GetSpacing(), image.GetSpacing()).all(), (
+            f"Image and segmentation {output_kind} do not have the same spacing: "
+            f"{image.GetSpacing()} vs. {nifti_seg.GetSpacing()}"
         )
         if not seg_array.sum():
             logger.warning(f"The segmentation {output_kind} does not have any values.")
@@ -130,7 +130,7 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> List[Dict[str
             # Remove everything with ignore labels
             seg_array[seg_array == 255] = 0
             nifti_seg_new = sitk.GetImageFromArray(seg_array)
-            nifti_seg_new.CopyInformation(nifti_seg)  # type: ignore
+            nifti_seg_new.CopyInformation(nifti_seg)
             nifti_seg = nifti_seg_new
         # Write DICOM-SEG from ITK image
         with template_name.open("r") as fp:
@@ -152,7 +152,7 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> List[Dict[str
         output_dcm_info.append(
             {
                 "name": output_kind,
-                "study_instance_uid": img_dcm.StudyInstanceUID,  # type: ignore
+                "study_instance_uid": img_dcm.StudyInstanceUID,
                 "series_instance_uid": out_dcm.SeriesInstanceUID,
                 "sop_instance_uid": out_dcm.SOPInstanceUID,
             }
@@ -189,10 +189,10 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> List[Dict[str
 
 
 def _load_series_from_disk(working_dir: Path) -> Tuple[sitk.Image, List[str]]:
-    reader = sitk.ImageSeriesReader()  # type: ignore
-    files = reader.GetGDCMSeriesFileNames(str(working_dir))  # type: ignore
-    reader.SetFileNames(files)  # type: ignore
-    image = reader.Execute()  # type: ignore
+    reader = sitk.ImageSeriesReader()
+    files = reader.GetGDCMSeriesFileNames(str(working_dir))
+    reader.SetFileNames(files)
+    image = reader.Execute()
     return image, files
 
 
@@ -227,7 +227,7 @@ def compute_boa(
         ]
     ):
         message = (
-            f"The image type is not 'AXIAL': " f"{get_dataset_attr(dcm, 'ImageType')}."
+            f"The image type is not 'AXIAL': {get_dataset_attr(dcm, 'ImageType')}."
         )
         return False, message
 

@@ -4,8 +4,8 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "_external"))
 
-from body_organ_analysis.commands import analyze_ct  # noqa: E402
-from body_organ_analysis.compute.io import store_dicoms, store_excel  # noqa: E402
+from body_organ_analysis.commands import analyze_ct
+from body_organ_analysis.compute.io import store_dicoms, store_excel
 
 try:
     from body_organ_analysis._version import __githash__, __version__
@@ -28,6 +28,6 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     "analyze_ct",
-    "store_excel",
     "store_dicoms",
+    "store_excel",
 ]

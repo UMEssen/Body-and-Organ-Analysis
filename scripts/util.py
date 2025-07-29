@@ -148,11 +148,17 @@ def write_to_postgres(
         assert "task_id" in keys, "The task_id field must be given to update the row."
         query = f"""
         INSERT INTO boa_entries ({", ".join(keys)})
-        VALUES ({", ".join(["'" + str(val) + "'" if isinstance(val, str) else str(val) for val in values])})
-        ON CONFLICT (task_id) DO UPDATE
-        SET {", ".join(
-                [f"{key} = EXCLUDED.{key}" for key in keys if key != "task_id"]
+        VALUES ({
+            ", ".join(
+                [
+                    "'" + str(val) + "'" if isinstance(val, str) else str(val)
+                    for val in values
+                ]
             )
+        })
+        ON CONFLICT (task_id) DO UPDATE
+        SET {
+            ", ".join([f"{key} = EXCLUDED.{key}" for key in keys if key != "task_id"])
         };
         """
         logger.info(f"Query: {query}")
@@ -189,11 +195,10 @@ def build_excel(
     output_folder: Path,
     dicom_tags: Dict[str, Any],
     fast: bool = False,
-
-) -> Tuple[Path, Dict]:
+) -> Tuple[Path, Dict[str, Any]]:
     # Setup before calling
     start = time()
-    models = BASE_MODELS + ["bca"]
+    models = [*BASE_MODELS, "bca"]
     excel_path, stats = analyze_ct(
         input_folder=input_data_folder,
         processed_output_folder=output_folder,

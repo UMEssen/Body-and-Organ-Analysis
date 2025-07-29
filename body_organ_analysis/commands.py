@@ -2,7 +2,7 @@ import logging
 import warnings
 from pathlib import Path
 from time import time
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import SimpleITK as sitk
@@ -38,16 +38,16 @@ def analyze_ct(
     nr_thr_resamp: int = 1,
     nr_thr_saving: int = 6,
     bca_median_filtering: bool = False,
-    bca_examined_body_region: str = None,
+    bca_examined_body_region: Optional[str] = None,
     bca_pdf: bool = True,
     bca_compute_bmd: bool = False,
     keep_debug_information: bool = False,
     recompute: bool = False,
     nnunet_verbose: bool = False,
     fast: bool = False,
-) -> Tuple[Path, Dict]:
+) -> Tuple[Path, Dict[str, Any]]:
     start_total = time()
-    ct_info: List[Dict] = []
+    ct_info: List[Dict[str, Any]] = []
     if input_folder.is_file() and ".nii" in input_folder.name:
         ct_path = input_folder
     else:
@@ -58,7 +58,8 @@ def analyze_ct(
     ct_info = [
         {"name": "BOAVersion", "value": __version__},
         {"name": "BOAGitHash", "value": __githash__},
-    ] + ct_info
+        *ct_info,
+    ]
     logger.info(f"Image loaded and retrieved: DONE in {time() - start_total:0.5f}s")
 
     stats: Dict[str, Any] = {
@@ -68,30 +69,30 @@ def analyze_ct(
     seg_output = processed_output_folder  # / "segmentations"
     # seg_output.mkdir(parents=True, exist_ok=True)
     start = time()
-    totalsegmentator_params = dict(
-        tta=False,
-        preview=total_preview,
-        nr_threads_resampling=nr_thr_resamp,
-        nr_threads_saving=nr_thr_saving,
-        nora_tag="None",
-        roi_subset=None,
-        quiet=False,
-        verbose=nnunet_verbose,
-        test=0,
-        crop_path=None,
-    )
+    totalsegmentator_params = {
+        "tta": False,
+        "preview": total_preview,
+        "nr_threads_resampling": nr_thr_resamp,
+        "nr_threads_saving": nr_thr_saving,
+        "nora_tag": "None",
+        "roi_subset": None,
+        "quiet": False,
+        "verbose": nnunet_verbose,
+        "test": 0,
+        "crop_path": None,
+    }
     ct_stats = compute_all_models(
         ct_path=ct_path,
         segmentation_folder=seg_output,
         models_to_compute=models,
         force_split_threshold=400,
         totalsegmentator_params=totalsegmentator_params,
-        bca_params=dict(
-            median_filtering=bca_median_filtering,
-            examined_body_region=bca_examined_body_region,
-            save_pdf=bca_pdf,
-            compute_bmd=bca_compute_bmd,
-        ),
+        bca_params={
+            "median_filtering": bca_median_filtering,
+            "examined_body_region": bca_examined_body_region,
+            "save_pdf": bca_pdf,
+            "compute_bmd": bca_compute_bmd,
+        },
         keep_debug_segmentations=keep_debug_information,
         recompute=recompute,
         fast=fast,
@@ -126,9 +127,10 @@ def analyze_ct(
             stats["bca_regions"] = regions_flag
 
     regions_df = None
-    if any(a in models for a in list(ADDITIONAL_MODELS_OUTPUT_NAME.keys()) + ["total"]):
+    cnr_df = None
+    if any(a in models for a in (*ADDITIONAL_MODELS_OUTPUT_NAME, "total")):
         start = time()
-        region_information, regions_df = compute_segmentator_metrics(
+        region_information, regions_df, cnr_df = compute_segmentator_metrics(
             ct_path=ct_path,
             segmentation_folder=seg_output,
             store_axes=False,
@@ -174,6 +176,24 @@ def analyze_ct(
         info_df.to_excel(writer, sheet_name="info", header=False)
         if regions_df is not None:
             regions_df.to_excel(writer, sheet_name="regions-statistics", index=False)
+        if cnr_df is not None:
+            cnr_df.to_excel(writer, sheet_name="cnr_adjusted", startrow=1, index=False)
+            workbook = writer.book
+            worksheet = writer.sheets["cnr_adjusted"]
+            warning = (
+                "These results were yielded by a modified version of BOA, "
+                "adjusted for image quality assessment."
+            )
+            fmt = workbook.add_format(
+                {
+                    "bold": True,
+                    "bg_color": "#FFF2CC",
+                    "align": "center",
+                    "text_wrap": True,
+                }
+            )
+            last_col = len(cnr_df.columns) - 1
+            worksheet.merge_range(0, 0, 0, last_col, warning, fmt)
         if aggr_df is not None:
             aggr_df.to_excel(
                 writer, sheet_name="bca-aggregated_measurements", index=False

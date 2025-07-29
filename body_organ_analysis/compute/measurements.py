@@ -4,67 +4,104 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import SimpleITK as sitk
+from skimage.morphology import binary_erosion
 from totalsegmentator.map_to_binary import reverse_class_map_complete
 
 from body_organ_analysis.compute.util import ADDITIONAL_MODELS_OUTPUT_NAME, create_mask
 
 logger = logging.getLogger(__name__)
 
+ADIPOSE_TISSUE = (-200, -40)
 
-def autochton_reference(
+
+def get_region_minus_fat(
+    ct_data: np.ndarray,
+    region_mask: np.ndarray,
+) -> np.ndarray:
+    return np.logical_and(
+        region_mask,
+        np.logical_or(
+            np.less(ct_data, ADIPOSE_TISSUE[0]),
+            np.greater(ct_data, ADIPOSE_TISSUE[1]),
+        ),
+    )
+
+
+def autochthon_reference(
     ct_data: np.ndarray,
     autochthon_right_mask: np.ndarray,
     autochthon_left_mask: np.ndarray,
 ) -> Tuple[Optional[float], Optional[float]]:
-    if np.sum(autochthon_right_mask) == 0 and np.sum(autochthon_left_mask) == 0:
+    autochthon_minus_fat_mask = get_region_minus_fat(
+        ct_data=ct_data,
+        region_mask=np.logical_or(autochthon_right_mask, autochthon_left_mask),
+    )
+    autochthon_minus_fat_mask = erode_region(
+        autochthon_minus_fat_mask,
+    )
+    if np.sum(autochthon_minus_fat_mask) == 0:
         return None, None
-    # TODO: Does it make sense to consider one if the other one is not there?
-    # If only the right one is none
-    if np.sum(autochthon_right_mask) == 0 and np.sum(autochthon_left_mask) > 0:
-        return float(np.mean(ct_data[autochthon_left_mask])), float(
-            np.std(ct_data[autochthon_left_mask])
-        )
-    # If only the left one is none
-    if np.sum(autochthon_left_mask) == 0 and np.sum(autochthon_right_mask) > 0:
-        return float(np.mean(ct_data[autochthon_right_mask])), float(
-            np.std(ct_data[autochthon_right_mask])
-        )
+    return float(np.mean(ct_data[autochthon_minus_fat_mask])), float(
+        np.std(ct_data[autochthon_minus_fat_mask])
+    )
 
-    autochton_mean = (
-        np.mean(ct_data[autochthon_left_mask]) + np.mean(ct_data[autochthon_right_mask])
-    ) / 2
-    autochton_std = (
-        np.std(ct_data[autochthon_left_mask]) + np.std(ct_data[autochthon_right_mask])
-    ) / 2
-    return float(autochton_mean), float(autochton_std)
+
+def erode_region(
+    mask: np.ndarray,
+    kernel_value: int = 6,
+) -> np.ndarray:
+    kernel = np.ones([kernel_value] * 3, dtype=np.uint8)
+    shrunken_volume = binary_erosion(mask, kernel)
+
+    return shrunken_volume
 
 
 def metrics_for_region(
     ct_data: np.ndarray,
     mask: np.ndarray,
-    autochton_mean: Optional[float],
-    autochton_std: Optional[float],
+    autochthon_mean: Optional[float],
+    autochthon_std: Optional[float],
     img_spacing: np.ndarray,
+    cnr_adjustment: bool = False,
+    region_name: str = "",
 ) -> Dict[str, Any]:
     measurements: Dict[str, Any] = {}
     if np.sum(mask) == 0:
         measurements["present"] = False
         return measurements
+    # TODO: If the other values work better, make the "cnr_adjustment" be the default
+    #  in the default sheet for autochthon, ivc, pulmonary artery and aorta.
+    #  In such case, we should ideally also add a comment column saying that these
+    #  measurements are different from the others.
+    if cnr_adjustment:
+        if "autochthon" in region_name:
+            mask = get_region_minus_fat(
+                ct_data=ct_data,
+                region_mask=mask,
+            )
+        mask = erode_region(
+            mask,
+        )
+    if np.sum(mask) == 0:
+        measurements["present"] = False
+        return measurements
     ml_per_voxel = np.prod(img_spacing) / 1000.0
     measurements["present"] = True
-    measurements["volume_ml"] = np.sum(mask) * ml_per_voxel
-
     hu_region = ct_data[mask]
+    measurements["volume_ml"] = np.sum(mask) * ml_per_voxel
     for func in [np.mean, np.std, np.min, np.median, np.max]:
         measurements[
             f"{func.__name__.replace('amin', 'min').replace('amax', 'max')}_hu"
-        ] = float(
-            func(hu_region)  # type: ignore
-        )
+        ] = float(func(hu_region))
     for p in [25, 75]:
         measurements[f"{p}th_percentile_hu"] = float(np.percentile(hu_region, p))
-    if autochton_mean is not None and autochton_std is not None:
-        measurements["cnr"] = (np.mean(hu_region) - autochton_mean) / autochton_std
+    if autochthon_mean is not None and autochthon_std is not None:
+        if cnr_adjustment and region_name.partition("_")[0] == "autochthon":
+            measurements["cnr"] = None
+        else:
+            measurements["cnr"] = (
+                np.mean(hu_region) - autochthon_mean
+            ) / autochthon_std
     else:
         measurements["cnr"] = None
 
@@ -75,23 +112,23 @@ def compute_lung_measurement(
     ct_data: np.ndarray,
     region_data: np.ndarray,
     ids: List[int],
-    autochton_mean: Optional[float],
-    autochton_std: Optional[float],
+    autochthon_mean: Optional[float],
+    autochthon_std: Optional[float],
     img_spacing: np.ndarray,
 ) -> Tuple[np.ndarray, Dict[str, Any]]:
     mask = create_mask(region_data, ids)
     fat_mask = np.logical_and(
         mask,
         np.logical_and(
-            np.greater_equal(ct_data, -200),
-            np.less_equal(ct_data, -40),
+            np.greater_equal(ct_data, ADIPOSE_TISSUE[0]),
+            np.less_equal(ct_data, ADIPOSE_TISSUE[1]),
         ),
     )
     return fat_mask, metrics_for_region(
         ct_data=ct_data,
         mask=fat_mask,
-        autochton_mean=autochton_mean,
-        autochton_std=autochton_std,
+        autochthon_mean=autochthon_mean,
+        autochthon_std=autochthon_std,
         img_spacing=img_spacing,
     )
 
@@ -100,8 +137,8 @@ def pulmonary_fat(
     ct_data: np.ndarray,
     region_image: sitk.Image,
     label_map: Dict[str, int],
-    autochton_mean: Optional[float],
-    autochton_std: Optional[float],
+    autochthon_mean: Optional[float],
+    autochthon_std: Optional[float],
     segmentation_folder: Path,
 ) -> Dict[str, Any]:
     measurements = {}
@@ -118,9 +155,9 @@ def pulmonary_fat(
             ct_data=ct_data,
             region_data=region_data,
             ids=[label_map[region_name]],
-            autochton_mean=autochton_mean,
-            autochton_std=autochton_std,
-            img_spacing=region_image.GetSpacing(),  # type: ignore
+            autochthon_mean=autochthon_mean,
+            autochthon_std=autochthon_std,
+            img_spacing=region_image.GetSpacing(),
         )
     for side in ["left", "right"]:
         parts = [ll for ll in lung_masks if ll.endswith(side)]
@@ -128,21 +165,21 @@ def pulmonary_fat(
             ct_data=ct_data,
             region_data=region_data,
             ids=[label_map[ll] for ll in parts],
-            autochton_mean=autochton_mean,
-            autochton_std=autochton_std,
-            img_spacing=region_image.GetSpacing(),  # type: ignore
+            autochthon_mean=autochthon_mean,
+            autochthon_std=autochthon_std,
+            img_spacing=region_image.GetSpacing(),
         )
 
     fat_mask, measurements["pulmonary_fat_lungs"] = compute_lung_measurement(
         ct_data=ct_data,
         region_data=region_data,
         ids=[label_map[ll] for ll in lung_masks],
-        autochton_mean=autochton_mean,
-        autochton_std=autochton_std,
-        img_spacing=region_image.GetSpacing(),  # type: ignore
+        autochthon_mean=autochthon_mean,
+        autochthon_std=autochthon_std,
+        img_spacing=region_image.GetSpacing(),
     )
     mask_img = sitk.GetImageFromArray(fat_mask.astype(np.uint8))
-    mask_img.CopyInformation(region_image)  # type: ignore
+    mask_img.CopyInformation(region_image)
     sitk.WriteImage(mask_img, str(segmentation_folder / "pulmonary_fat.nii.gz"), True)
 
     return measurements
@@ -152,19 +189,39 @@ def metrics_for_each_region(
     ct_data: np.ndarray,
     region_data: np.ndarray,
     label_map: Dict[str, int],
-    autochton_mean: Optional[float],
-    autochton_std: Optional[float],
+    autochthon_mean: Optional[float],
+    autochthon_std: Optional[float],
     img_spacing: np.ndarray,
+    cnr_adjustment: bool = False,
 ) -> Dict[str, Any]:
     measurements = {}
-    for region_name in label_map:
-        mask = create_mask(region_data, label_map[region_name])
-        measurements[region_name] = metrics_for_region(
+    for region, label in label_map.items():
+        mask = create_mask(region_data, label)
+        measurements[region] = metrics_for_region(
             ct_data=ct_data,
             mask=mask,
-            autochton_mean=autochton_mean,
-            autochton_std=autochton_std,
+            autochthon_mean=autochthon_mean,
+            autochthon_std=autochthon_std,
             img_spacing=img_spacing,
+            cnr_adjustment=cnr_adjustment,
+            region_name=region,
+        )
+    if "autochthon_left" in label_map and "autochthon_right" in label_map:
+        mask = create_mask(
+            region_data,
+            [
+                label_map["autochthon_left"],
+                label_map["autochthon_right"],
+            ],
+        )
+        measurements["autochthon"] = metrics_for_region(
+            ct_data=ct_data,
+            mask=mask,
+            autochthon_mean=autochthon_mean,
+            autochthon_std=autochthon_std,
+            img_spacing=img_spacing,
+            cnr_adjustment=cnr_adjustment,
+            region_name="autochthon",
         )
     return measurements
 
@@ -183,7 +240,7 @@ def compute_measurements(
     logger.info(f"Computing measurements for the computed segmentations: {models}")
     ct_image = sitk.ReadImage(str(ct_path))
     ct_data = sitk.GetArrayViewFromImage(ct_image)
-    autochton_mean, autochton_std = None, None
+    autochthon_mean, autochthon_std = None, None
     for model_name in models:
         if model_name == "total":
             model_path = segmentation_folder / "total.nii.gz"
@@ -196,11 +253,12 @@ def compute_measurements(
             continue
         model_image = sitk.ReadImage(str(model_path))
         assert np.isclose(
-            ct_image.GetSpacing(), model_image.GetSpacing()  # type: ignore
+            ct_image.GetSpacing(),
+            model_image.GetSpacing(),
         ).all(), "The spacing of the image and of the segmentation should be the same"
         model_data = sitk.GetArrayViewFromImage(model_image)
         if model_name == "total":
-            autochton_mean, autochton_std = autochton_reference(
+            autochthon_mean, autochthon_std = autochthon_reference(
                 ct_data=ct_data,
                 autochthon_right_mask=create_mask(
                     model_data, reverse_class_map_complete["total_autochthon_right"]
@@ -218,9 +276,9 @@ def compute_measurements(
             ct_data=ct_data,
             region_data=model_data,
             label_map=label_map,
-            autochton_mean=autochton_mean,
-            autochton_std=autochton_std,
-            img_spacing=ct_image.GetSpacing(),  # type: ignore
+            autochthon_mean=autochthon_mean,
+            autochthon_std=autochthon_std,
+            img_spacing=ct_image.GetSpacing(),
         )
         if model_name == "total":
             measurements["segmentations"][model_name] = {
@@ -229,13 +287,32 @@ def compute_measurements(
                     ct_data=ct_data,
                     region_image=model_image,
                     label_map=label_map,
-                    autochton_mean=autochton_mean,
-                    autochton_std=autochton_std,
+                    autochthon_mean=autochthon_mean,
+                    autochthon_std=autochthon_std,
                     segmentation_folder=segmentation_folder,
                 ),
             }
+            measurements["cnr_adjusted"] = metrics_for_each_region(
+                ct_data=ct_data,
+                region_data=model_data,
+                label_map={
+                    region: value
+                    for region, value in label_map.items()
+                    if region
+                    in {
+                        "aorta",
+                        "pulmonary_artery",
+                        "autochthon_left",
+                        "autochthon_right",
+                    }
+                },
+                autochthon_mean=autochthon_mean,
+                autochthon_std=autochthon_std,
+                img_spacing=ct_image.GetSpacing(),
+                cnr_adjustment=True,
+            )
 
-    measurements["info"]["autochton_mean"] = autochton_mean
-    measurements["info"]["autochton_std"] = autochton_std
+    measurements["info"]["autochthon_mean"] = autochthon_mean
+    measurements["info"]["autochthon_std"] = autochthon_std
 
     return measurements
