@@ -59,7 +59,7 @@ mode and that the outputs can be easily accessed. You can get it with
 then the outputs will be owned by root and it may be needed to change the
 ownership.
 - `PATIENT_INFO_IN_OUTPUT`: This option changes how the output folder structure
-looks like. If this variable is `True`, then the folder structure will look like
+looks like. If this variable is `true`, then the folder structure will look like
 the following:
   - AET (the name that you have given to this endpoint in your PACS, more on
   this later)
@@ -95,6 +95,14 @@ the following:
   Doe, 1970), then you will have clashes.
   - The output folders will not be anonymized and will contain the patient name
   and birthdate.
+- `PREDICT_FAST`: If set to `true`, TotalSegmentator will be executed in fast mode.
+- `PACS_MODEL`: Defines which models are executed during inference.  
+  Multiple models can be specified by separating them with a `+`
+(e.g. `body+total+bca`).  
+  Available models are:
+  - `total`: Runs the full-body TotalSegmentator model.
+  - `body`: Runs the body-parts model to segment head, torso and legs.
+  - `bca`: Runs the body composition analysis model.
 
 ## Monitoring Variables
 

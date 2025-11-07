@@ -5,7 +5,7 @@ requires = [ "poetry-core>=1" ]
 
 [tool.poetry]
 name = "body-organ-analysis"
-version = "0.1.4"
+version = "0.1.5"
 license = "Apache-2.0"
 description = "BOA is a tool for segmentation of CT scans developed by the SHIP-AI group at the Institute for Artificial Intelligence in Medicine (https://ship-ai.ikim.nrw/). Combining the TotalSegmentator and the Body Composition Analysis, this tool is capable of analyzing medical images and identifying the different structures within the human body, including bones, muscles, organs, and blood vessels."
 authors = [ "Jannis Straus <jannis.straus@uk-essen.de>" ]
