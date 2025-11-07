@@ -33,6 +33,7 @@ services:
       - POSTGRES_PASSWORD
       - POSTGRES_DATABASE
       - PREDICT_FAST
+      - PACS_MODEL
       # Output vars
       - PATIENT_INFO_IN_OUTPUT
       - SMB_DIR_OUTPUT

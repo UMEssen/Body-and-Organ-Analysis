@@ -198,7 +198,17 @@ def build_excel(
 ) -> Tuple[Path, Dict[str, Any]]:
     # Setup before calling
     start = time()
-    models = [*BASE_MODELS, "bca"]
+    all_models = [*BASE_MODELS, "bca"]
+    if "PACS_MODEL" in os.environ:
+        models = os.environ["PACS_MODEL"].split("+")
+        missing = set(models) - set(all_models)
+        if missing:
+            logger.error(
+                f"The following PACS_MODEL entries are invalid: {missing}. "
+                f"Available models are: {all_models}."
+            )
+    else:
+        models = all_models
     excel_path, stats = analyze_ct(
         input_folder=input_data_folder,
         processed_output_folder=output_folder,
