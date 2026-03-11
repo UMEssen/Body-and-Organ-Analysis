@@ -1,69 +1,75 @@
 [build-system]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling>=1.29.0"]
+build-backend = "hatchling.build"
 
-requires = [ "poetry-core>=1" ]
-
-[tool.poetry]
+[project]
 name = "body-organ-analysis"
-version = "0.1.5"
-license = "Apache-2.0"
+version = "0.2.0"
 description = "BOA is a tool for segmentation of CT scans developed by the SHIP-AI group at the Institute for Artificial Intelligence in Medicine (https://ship-ai.ikim.nrw/). Combining the TotalSegmentator and the Body Composition Analysis, this tool is capable of analyzing medical images and identifying the different structures within the human body, including bones, muscles, organs, and blood vessels."
-authors = [ "Jannis Straus <jannis.straus@uk-essen.de>" ]
 readme = "README.md"
-repository = "https://github.com/UMEssen/Body-and-Organ-Analyzer"
-keywords = [ "python", "segmentation", "nnunet", "boa", "body composition analysis" ]
-packages = [
-  { include = "body_organ_analysis" },
+license = "Apache-2.0"
+requires-python = ">=3.11,<3.14"
+authors = [
+  { name = "Jannis Straus", email = "jannis.straus@uk-essen.de" },
+]
+keywords = ["python", "segmentation", "nnunet", "boa", "body composition analysis"]
+dependencies = [
+  "requests>=2.28.2,<3",
+  "numpy>=1.24,<2",
+  "pandas>=2,<3",
+  "pydicom>=2.3.1,<3",
+  "unidecode>=1.3.6,<2",
+  "nibabel>=5.1.0,<6",
+  "tqdm>=4.45.0,<5",
+  "p-tqdm>=1.4.0,<2",
+  "xvfbwrapper>=0.2.9,<1",
+  "fury>=0.8.0,<1",
+  "medpy>=0.4.0,<1",
+  "matplotlib>=3.6.2,<4",
+  "batchgenerators==0.21",
+  "psutil>=5.9.4,<6",
+  "Jinja2>=3.0.3,<4",
+  "plotly>=5.3.1,<6",
+  "SimpleITK>=2.0.1,<3",
+  "WeasyPrint>=52.5,<53",
+  "kaleido==0.2.1",
+  "pywavelets>=1.1.1,<2",
+  "dataclasses-json>=0.5.7,<1",
+  "xlsxwriter>=3.1.2,<4",
+  "boa-contrast>=0.1.5,<0.2",
+  "scikit-learn==1.3.0",
 ]
 
-[tool.poetry.scripts]
+[project.urls]
+Repository = "https://github.com/UMEssen/Body-and-Organ-Analyzer"
+
+[project.scripts]
 body_organ_analyzer = "body_organ_analyzer.cli:run"
 
-[tool.poetry.dependencies]
-python = "^3.9,<3.11"
-requests = "^2.28.2"
-numpy = "^1.24.0"
-pydicom = "^2.3.1"
-unidecode = "^1.3.6"
-nibabel = "^5.1.0"
-tqdm = "^4.45.0"
-p-tqdm = "^1.4.0"
-xvfbwrapper = "^0.2.9"
-fury = "^0.8.0"
-medpy = "^0.4.0"
-matplotlib = "^3.6.2"
-batchgenerators = "0.21"
-psutil = "^5.9.4"
-Jinja2 = "^3.0.3"
-plotly = "^5.3.1"
-SimpleITK = "^2.0.1"
-WeasyPrint = "^52.5"
-kaleido = "0.2.1"
-pywavelets = "^1.1.1"
-dataclasses-json = "^0.5.7"
-xlsxwriter = "^3.1.2"
-# Fix version of scikitlearn for the models
-boa-contrast = "^0.1.4"
-scikit-learn = "1.3.0"
-# Only need this for the pacs
-celery = { version = "5.2.7", optional = true }
-dicomweb-client = { version = "^0.59.0", optional = true }
-smbprotocol = { version = "^1.10.1", optional = true }
-pydicom-seg = { version = "^0.4.1", optional = true }
-# Only need this if together with triton
-tritonclient = { extras = [ "grpc" ], version = "^2.5.0", optional = true }
-psycopg2-binary = { version = "^2.9.9", optional = true }
+[project.optional-dependencies]
+triton = [
+  "tritonclient[grpc]>=2.5.0,<3",
+]
+pacs = [
+  "celery==5.2.7",
+  "dicomweb-client>=0.59.0,<1",
+  "smbprotocol>=1.10.1,<2",
+  "pydicom-seg>=0.4.1,<0.5",
+  "psycopg2-binary>=2.9.9,<3",
+]
+storage = [
+  "dicomweb-client>=0.59.0,<1",
+  "smbprotocol>=1.10.1,<2",
+  "pydicom-seg>=0.4.1,<0.5",
+]
 
-[tool.poetry.extras]
-triton = [ "tritonclient" ]
-pacs = [ "celery", "dicomweb-client", "smbprotocol", "pydicom-seg", "psycopg2-binary" ]
-storage = [ "dicomweb-client", "smbprotocol", "pydicom-seg" ]
+[dependency-groups]
+dev = [
+  "pre-commit>=4.5.1,<5",
+]
 
-[tool.poetry.group.dev]
-optional = true
-
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^4.2.0"
+[tool.hatch.build.targets.wheel]
+packages = ["body_organ_analysis"]
 
 [tool.ruff]
 # Same as Black
