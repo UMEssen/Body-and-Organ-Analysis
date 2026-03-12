@@ -2,12 +2,12 @@ import logging
 import warnings
 from pathlib import Path
 from time import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Iterable
 
 import pandas as pd
 import SimpleITK as sitk
 from boa_contrast import predict
-from body_composition_analysis.body_regions.definition import BodyRegion
+from body_organ_analysis._external.body_composition_analysis.body_regions.definition import BodyRegion
 
 from body_organ_analysis._version import __githash__, __version__
 from body_organ_analysis.compute.bca_metrics import compute_bca_metrics
@@ -32,7 +32,7 @@ def analyze_ct(
     input_folder: Path,
     processed_output_folder: Path,
     excel_output_folder: Path,
-    models: List[str],
+    models: Iterable[str],
     compute_contrast_information: bool = True,
     total_preview: bool = True,
     nr_thr_resamp: int = 1,
@@ -41,13 +41,13 @@ def analyze_ct(
     bca_examined_body_region: Optional[str] = None,
     bca_pdf: bool = True,
     bca_compute_bmd: bool = False,
-    keep_debug_information: bool = False,
     recompute: bool = False,
     nnunet_verbose: bool = False,
     fast: bool = False,
-) -> Tuple[Path, Dict[str, Any]]:
+    cnr_adjustment: bool = False,
+) -> tuple[Path, dict[str, Any]]:
     start_total = time()
-    ct_info: List[Dict[str, Any]] = []
+    ct_info: list[dict[str, Any]] = []
     if input_folder.is_file() and ".nii" in input_folder.name:
         ct_path = input_folder
     else:
@@ -70,16 +70,14 @@ def analyze_ct(
     # seg_output.mkdir(parents=True, exist_ok=True)
     start = time()
     totalsegmentator_params = {
-        "tta": False,
+        "output": seg_output,
         "preview": total_preview,
-        "nr_threads_resampling": nr_thr_resamp,
-        "nr_threads_saving": nr_thr_saving,
-        "nora_tag": "None",
-        "roi_subset": None,
+        "fast": fast,
+        "ml": True,
+        "nr_thr_resamp": nr_thr_resamp,
+        "nr_thr_saving": nr_thr_saving,
         "quiet": False,
         "verbose": nnunet_verbose,
-        "test": 0,
-        "crop_path": None,
     }
     ct_stats = compute_all_models(
         ct_path=ct_path,
@@ -93,9 +91,9 @@ def analyze_ct(
             "save_pdf": bca_pdf,
             "compute_bmd": bca_compute_bmd,
         },
-        keep_debug_segmentations=keep_debug_information,
         recompute=recompute,
         fast=fast,
+        cnr_adjustment=cnr_adjustment,
     )
     logger.info(f"All models computed: DONE in {time() - start:0.5f}s")
 
@@ -110,9 +108,9 @@ def analyze_ct(
         )
         logger.info(f"Metrics from BCA: DONE in {time() - start:0.5f}s")
         stats["bca_metrics_time"] = time() - start
-        regions_path = seg_output / "body-regions.nii.gz"
-        if regions_path.exists():
-            regions = sitk.GetArrayFromImage(sitk.ReadImage(str(regions_path)))
+        regions_path = seg_output / "body_regions.nii.gz"
+        if regions_path.is_file():
+            regions = sitk.GetArrayFromImage(sitk.ReadImage(regions_path))
             # We store the found regions as a binary integer
             # the first index is the brain
             # the second index is the thorax

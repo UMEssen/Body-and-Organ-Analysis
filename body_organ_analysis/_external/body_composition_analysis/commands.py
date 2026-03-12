@@ -21,13 +21,13 @@ logger = logging.getLogger(__name__)
 
 
 def create_vertebrae_info(
-    vertebrae: sitk.Image, detected_body_part: AggregatableBodyPart
+    total: sitk.Image, detected_body_part: AggregatableBodyPart
 ):
-    vertebrae_data = sitk.GetArrayViewFromImage(vertebrae)
+    vertebrae_data = sitk.GetArrayViewFromImage(total)
     vertebrae_map = {
-        v.replace("vertebrae_", ""): k
+        v.removeprefix("vertebrae_"): k
         for k, v in class_map["total"].items()
-        if "vertebrae" in v
+        if v.startswith("vertebrae_")
     }
     vertebrae_info = {}
     for vid, label in vertebrae_map.items():
@@ -135,7 +135,7 @@ def run_pipeline(
     force_split: bool = False,
     recompute: bool = True,
     crop_body: bool = False,
-    totalsegmentator_params: Dict[str, Any] = None,
+    totalsegmentator_params: dict[str, Any] | None = None,
 ) -> None:
     if compute_bmd:
         logger.info("The BMD functionality will be soon part of the BOA, stay tuned!")
@@ -147,28 +147,16 @@ def run_pipeline(
     body_parts = inference(
         ct_path=input_image,
         output_dir=output_dir,
-        task_name="body",
+        task_name="body_parts",
         recompute=recompute,
         force_split=force_split,
-        postprocess=True,
         totalsegmentator_params=totalsegmentator_params,
     )
-    # Perform body region segmentation
+    # Body Regions Inference
     body_regions = inference(
         ct_path=input_image,
         output_dir=output_dir,
         task_name="bca",
-        recompute=recompute,
-        force_split=force_split,
-        crop=body_parts if crop_body else None,
-        postprocess=True,
-        totalsegmentator_params=totalsegmentator_params,
-    )
-    # Vertebrae Inference
-    vertebrae = inference(
-        ct_path=input_image,
-        output_dir=output_dir,
-        task_name="vertebrae",
         recompute=recompute,
         force_split=force_split,
         crop=body_parts if crop_body else None,
@@ -186,19 +174,9 @@ def run_pipeline(
     body_regions = process_image(body_regions)
     body_parts = process_image(body_parts)
     tissues = process_image(sitk_to_nib(tissues))
-    vertebrae = process_image(vertebrae)
-
-    total = None
-    if (output_dir / "total.nii.gz").exists():
-        if not (output_dir / "vertebrae.nii.zg").exists():
-            total = vertebrae
-        else:
-            total = load_image(output_dir / "total.nii.gz")
-
-    total_measurements = None
-    if (output_dir / "total-measurements.json").exists():
-        with open(output_dir / "total-measurements.json") as ifile:
-            total_measurements = json.load(ifile)
+    total = load_image(output_dir / "total.nii.gz")
+    with (output_dir / "total-measurements.json").open("r", encoding="utf-8") as f:
+        total_measurements = json.load(f)
 
     logger.info("All scans have been loaded and preprocessed.")
     # If appropriate perform a vertebrae localization
@@ -217,7 +195,7 @@ def run_pipeline(
             )
 
     vertebrae_info = create_vertebrae_info(
-        vertebrae=vertebrae, detected_body_part=body_part
+        total=total, detected_body_part=body_part
     )
     bmd = None
     # Build report
@@ -228,6 +206,8 @@ def run_pipeline(
     )
     if save_pdf:
         pdf_bytes = builder.create_pdf("report.html.jinja", **prepared_data)
+        with (output_dir / "report.pdf").open("wb") as obfile:
+            obfile.write(pdf_bytes)
     json_data = builder.create_json(**prepared_data)
 
     if vertebrae_info is not None and len(vertebrae_info) > 0:
@@ -236,8 +216,5 @@ def run_pipeline(
     if bmd is not None:
         with (output_dir / "bmd.json").open("w") as ofile:
             ofile.write(bmd.to_json(indent=2))
-    if save_pdf:
-        with (output_dir / "report.pdf").open("wb") as obfile:
-            obfile.write(pdf_bytes)
     with (output_dir / "bca-measurements.json").open("w") as ofile:
         json.dump(json_data, ofile, indent=2)

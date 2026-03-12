@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import SimpleITK as sitk
-from body_composition_analysis.io import load_image
+from body_organ_analysis._external.body_composition_analysis.io import load_image
 from scipy import spatial
-from totalsegmentator.map_to_binary import reverse_class_map_complete
+from totalsegmentator.map_to_binary import class_map
 
 from body_organ_analysis.compute.geometry import find_axes
 from body_organ_analysis.compute.util import (
@@ -19,6 +19,15 @@ from body_organ_analysis.compute.util import (
 )
 
 logger = logging.getLogger(__name__)
+
+# TODO
+reverse_class_map = {
+    val: {v: k for k, v in class_map[val].items()} for val in class_map
+}
+reverse_class_map_complete = {
+    f"{val}_{v}": k for val in class_map for k, v in class_map[val].items()
+}
+
 
 
 def major_minor_axis(
@@ -77,11 +86,11 @@ def compute_segmentator_metrics(
     image_info = load_image(ct_path)
     major_axis, minor_axis, mean_axis = None, None, None
     if (segmentation_folder / "total.nii.gz").exists() and (
-        segmentation_folder / "body-parts.nii.gz"
+        segmentation_folder / "body_parts.nii.gz"
     ).exists():
         region_image = load_image(segmentation_folder / "total.nii.gz")
         region_data = sitk.GetArrayViewFromImage(region_image)
-        body_image = load_image(segmentation_folder / "body-parts.nii.gz")
+        body_image = load_image(segmentation_folder / "body_parts.nii.gz")
         body_data = sitk.GetArrayViewFromImage(body_image)
         major_axis, minor_axis = major_minor_axis(
             l3_mask=create_mask(

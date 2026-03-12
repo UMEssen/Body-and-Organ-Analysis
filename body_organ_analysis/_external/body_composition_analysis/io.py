@@ -1,12 +1,19 @@
 import logging
-import pathlib
+from pathlib import Path
 
 import nibabel
 import numpy as np
 import SimpleITK as sitk
-from totalsegmentator.alignment import load_nibabel_image_with_axcodes
 
 logger = logging.getLogger(__name__)
+
+
+def compress(path: Path) -> Path:
+    new_path = path.with_suffix(".nii.gz")
+    img = sitk.ReadImage(path)
+    sitk.WriteImage(img, new_path, True)
+    path.unlink()
+    return new_path
 
 
 def nib_to_sitk(image: nibabel.spatialimages.SpatialImage) -> sitk.Image:
@@ -82,18 +89,27 @@ def process_image(
     if resample_thickness is not None and not np.isclose(
         slice_thickness, resample_thickness
     ):
-        # logger.warning(
-        #     f"Unexpected slice thickness found in input image: got "
-        #     f"{slice_thickness:.2f}mm, expected 5.00mm. Resampling to expected slice "
-        #     "thickness"
-        # )
         image = resample_to_thickness(image, resample_thickness)
-
     return image
 
 
-def load_image(path: pathlib.Path, resample_thickness: float = None) -> sitk.Image:
+def load_image(path: Path, resample_thickness: float = None) -> sitk.Image:
     return process_image(
         nibabel.load(path),
         resample_thickness=resample_thickness,
     )
+
+
+def load_nibabel_image_with_axcodes(image, axcodes="RAS"):
+    input_axcodes = "".join(nibabel.aff2axcodes(image.affine))
+    axcodes = "".join(axcodes)
+    if input_axcodes != axcodes:
+        logger.debug(
+            f"Input image does not match the required axcodes: got {input_axcodes}, "
+            f"expected {axcodes}. Automatically reorienting the image volume."
+        )
+        input_ornt = nibabel.orientations.axcodes2ornt(input_axcodes)
+        expected_ornt = nibabel.orientations.axcodes2ornt(axcodes)
+        transform = nibabel.orientations.ornt_transform(input_ornt, expected_ornt)
+        return image.as_reoriented(transform)
+    return image

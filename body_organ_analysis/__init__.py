@@ -15,13 +15,14 @@ except ImportError:
     __githash__ = "N/A"
     __version__ = "N/A"
 
+# TODO already in cli.py. Can be removed?
 logging.basicConfig()
 logging.captureWarnings(True)
 # warnings.warn() in library code if the issue is avoidable and the client application
 # should be modified to eliminate the warning
 
-# logging.warning() if there is nothing the client application can do about the situation,
-# but the event should still be noted
+# logging.warning() if there is nothing the client application can do about the
+# situation, but the event should still be noted
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,4 @@
-from totalsegmentator.libs import setup_nnunet
-
-setup_nnunet()
+from totalsegmentator.config import setup_nnunet
 
 import logging
 from pathlib import Path
@@ -16,14 +14,14 @@ from body_composition_analysis.body_regions.postprocess import (
 from body_composition_analysis.io import sitk_to_nib
 from totalsegmentator.libs import download_pretrained_weights
 from totalsegmentator.nnunet import nnUNet_predict_image
-from totalsegmentator.task_info import get_task_info
+from body_composition_analysis.tasks import get_task_info
 
+setup_nnunet()
 logger = logging.getLogger(__name__)
 
 TASK_TO_POST_NAME = {
-    "bca": "body-regions",
-    "body": "body-parts",
-    "vertebrae": "vertebrae",
+    "bca": "body_regions",
+    "body_parts": "body_parts",
 }
 
 
@@ -33,73 +31,43 @@ def inference(
     task_name: str,
     force_split: bool = False,
     recompute: bool = False,
-    postprocess: bool = False,
-    crop: nibabel.Nifti1Image = None,
-    totalsegmentator_params: dict = None,
+    crop: nibabel.Nifti1Image | None = None,
+    totalsegmentator_params: dict | None = None,
 ) -> nibabel.Nifti1Image:
     totalsegmentator_params = totalsegmentator_params or {}
-    if task_name not in TASK_TO_POST_NAME.keys():
+    if task_name not in TASK_TO_POST_NAME:
         raise ValueError(f"The task name {task_name} does not exist.")
-    task_specific_params = get_task_info(
-        task_name, fast=False, multilabel_image=task_name in {"bca", "vertebrae"}
+    task_specific_params = get_task_info(task_name)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / f"{TASK_TO_POST_NAME[task_name]}.nii.gz"
+    if not recompute and (output_file).is_file():
+        logger.info(f"Loading already computed {task_name}...")
+        return nibabel.load(output_file)
+
+    logger.info(
+        f"Computing model {task_name} with ID {task_specific_params['task_id']}..."
     )
-    if (
-        task_name == "vertebrae"
-        and not recompute
-        and (output_dir / "total.nii.gz").exists()
-    ):
-        logger.info("Loading total.nii.gz...")
-        return nibabel.load(output_dir / "total.nii.gz")
+    task_specific_params["crop"] = crop
 
-    if ".nii" not in output_dir.name:
-        no_post_path = output_dir / f"{task_name}.nii.gz"
-        post_path = output_dir / f"{TASK_TO_POST_NAME[task_name]}.nii.gz"
-    else:
-        no_post_path = output_dir
-        post_path = output_dir
+    _ = nnUNet_predict_image(
+        file_in=ct_path,
+        file_out=output_file,
+        task_name=task_name,
+        force_split=force_split,
+        multilabel_image=totalsegmentator_params["ml"],
+        # preview=totalsegmentator_params["preview"],  # TODO do i need this?
+        nr_threads_resampling=totalsegmentator_params["nr_thr_resamp"],
+        nr_threads_saving=totalsegmentator_params["nr_thr_saving"],
+        quiet=totalsegmentator_params["quiet"],
+        **task_specific_params,
+    )
 
-    if postprocess and post_path.exists() and not recompute:
-        logger.info(f"Loading already computed {post_path}...")
-        return nibabel.load(post_path)
-
-    if not no_post_path.exists() or recompute:
-        logger.info(
-            f"Computing model {task_name} with ID {task_specific_params['task_id']}..."
-        )
-        if isinstance(task_specific_params["task_id"], list):
-            for t_id in task_specific_params["task_id"]:
-                download_pretrained_weights(t_id)
-        else:
-            download_pretrained_weights(task_specific_params["task_id"])
-        task_specific_params["crop"] = crop
-        output = nnUNet_predict_image(
-            file_in=ct_path,
-            file_out=no_post_path
-            if task_specific_params["multilabel_image"]
-            else no_post_path.parent,
-            task_name=task_name if task_name not in {"vertebrae"} else "total",
-            force_split=force_split,
-            axcodes="LPS" if task_name == "bca" else "RAS",
-            **task_specific_params,
-            **totalsegmentator_params,
-        )
-        if not postprocess:
-            return output
-
-    if postprocess and task_name in {"body", "bca"}:
-        # SimpleITK is much faster at processing
-        if task_name == "body":
-            logger.info("Computing postprocessing for task body")
-            trunc_img = sitk.ReadImage(str(no_post_path.parent / "body_trunc.nii.gz"))
-            extr_img = sitk.ReadImage(
-                str(no_post_path.parent / "body_extremities.nii.gz")
-            )
-            sitk_output = postprocess_part_segmentation(trunc_img, extr_img)
-        else:
-            logger.info("Computing postprocessing for task bca")
-            bca_img = sitk.ReadImage(str(no_post_path))
-            sitk_output = postprocess_region_segmentation(bca_img)
-        sitk.WriteImage(sitk_output, str(post_path), True)
-        return sitk_to_nib(sitk_output)
-    logger.info(f"Loading already computed {post_path}...")
-    return nibabel.load(post_path)
+    # TODO use output instead of reloading
+    logger.info(f"Computing postprocessing for task {task_name}")
+    img = sitk.ReadImage(output_file)
+    if task_name == "body_parts":
+        sitk_output = postprocess_part_segmentation(img)
+    elif task_name == "bca":
+        sitk_output = postprocess_region_segmentation(img)
+    sitk.WriteImage(sitk_output, output_file, True)
+    return sitk_to_nib(sitk_output)

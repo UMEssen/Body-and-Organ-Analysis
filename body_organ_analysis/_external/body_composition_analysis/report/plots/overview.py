@@ -58,7 +58,7 @@ def create_totalsegmentator_summary(
 
     results = []
 
-    for axis in {1, 2}:
+    for axis in (1, 2):
         for sl in np.linspace(0, np.take(image.shape, axis), num=4)[1:-1]:
             overlay = _central_overlay_image(
                 image, total_segmentation, axis, TOTAL_COLOR_MAP, chosen_slice=int(sl)

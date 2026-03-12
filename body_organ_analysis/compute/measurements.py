@@ -5,9 +5,17 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import SimpleITK as sitk
 from skimage.morphology import binary_erosion
-from totalsegmentator.map_to_binary import reverse_class_map_complete
+from totalsegmentator.map_to_binary import class_map
 
 from body_organ_analysis.compute.util import ADDITIONAL_MODELS_OUTPUT_NAME, create_mask
+
+# TODO
+reverse_class_map = {
+    val: {v: k for k, v in class_map[val].items()} for val in class_map
+}
+reverse_class_map_complete = {
+    f"{val}_{v}": k for val in class_map for k, v in class_map[val].items()
+}
 
 logger = logging.getLogger(__name__)
 
@@ -230,6 +238,7 @@ def compute_measurements(
     ct_path: Path,
     segmentation_folder: Path,
     models: List[str],
+    cnr_adjustment: bool,
 ) -> Dict[str, Any]:
     measurements: Dict[str, Any] = {
         "segmentations": {},
@@ -292,25 +301,26 @@ def compute_measurements(
                     segmentation_folder=segmentation_folder,
                 ),
             }
-            measurements["cnr_adjusted"] = metrics_for_each_region(
-                ct_data=ct_data,
-                region_data=model_data,
-                label_map={
-                    region: value
-                    for region, value in label_map.items()
-                    if region
-                    in {
-                        "aorta",
-                        "pulmonary_artery",
-                        "autochthon_left",
-                        "autochthon_right",
-                    }
-                },
-                autochthon_mean=autochthon_mean,
-                autochthon_std=autochthon_std,
-                img_spacing=ct_image.GetSpacing(),
-                cnr_adjustment=True,
-            )
+            if cnr_adjustment:
+                measurements["cnr_adjusted"] = metrics_for_each_region(
+                    ct_data=ct_data,
+                    region_data=model_data,
+                    label_map={
+                        region: value
+                        for region, value in label_map.items()
+                        if region
+                        in {
+                            "aorta",
+                            "pulmonary_artery",
+                            "autochthon_left",
+                            "autochthon_right",
+                        }
+                    },
+                    autochthon_mean=autochthon_mean,
+                    autochthon_std=autochthon_std,
+                    img_spacing=ct_image.GetSpacing(),
+                    cnr_adjustment=True,
+                )
 
     measurements["info"]["autochthon_mean"] = autochthon_mean
     measurements["info"]["autochthon_std"] = autochthon_std

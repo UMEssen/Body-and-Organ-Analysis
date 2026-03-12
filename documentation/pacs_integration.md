@@ -151,9 +151,9 @@ uploaded to DicomWeb (optional).
   (`pleural_pericard_effusion.nii.gz`): pleural effusion
   ([paper](https://journals.lww.com/investigativeradiology/Fulltext/2022/08000/Automated_Detection,_Segmentation,_and.8.aspx)),
   pericardial effusion (cite [paper](https://www.mdpi.com/2075-4418/12/5/1045)).
-  - Body Regions Segmentation (`body-regions.nii.gz`): Segmentation of the body
+  - Body Regions Segmentation (`body_regions.nii.gz`): Segmentation of the body
   regions ([BCA](https://pubmed.ncbi.nlm.nih.gov/32945971/)).
-  - Body Parts Segmentation (`body-parts.nii.gz`): Segmentation of body and
+  - Body Parts Segmentation (`body_parts.nii.gz`): Segmentation of body and
   extremities.
   - Tissue Segmentation (`tissues.nii.gz`): Segmentation of the tissues
   ([BCA](https://pubmed.ncbi.nlm.nih.gov/32945971/)).

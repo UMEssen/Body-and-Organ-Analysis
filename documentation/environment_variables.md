@@ -72,7 +72,7 @@ the following:
             - ...
           - AccessionNumber_SeriesNumber_SeriesDescription.xlsx
           - total.nii.gz
-          - body-regions.nii.gz
+          - body_regions.nii.gz
           - ...
 
    otherwise, the folder structure will look like this
@@ -86,7 +86,7 @@ the following:
           - ...
         - AccessionNumber_SeriesNumber_SeriesDescription.xlsx
         - total.nii.gz
-        - body-regions.nii.gz
+        - body_regions.nii.gz
         - ...
 
    The `PATIENT_INFO_IN_OUTPUT="true"` option has the drawback that:
@@ -101,7 +101,7 @@ the following:
 (e.g. `body+total+bca`).  
   Available models are:
   - `total`: Runs the full-body TotalSegmentator model.
-  - `body`: Runs the body-parts model to segment head, torso and legs.
+  - `body_parts`: Runs the body_parts model to segment head, torso and legs.
   - `bca`: Runs the body composition analysis model.
 
 ## Monitoring Variables

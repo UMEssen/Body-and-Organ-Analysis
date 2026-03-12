@@ -238,7 +238,7 @@ class Builder:
         image_data = sitk.GetArrayViewFromImage(self._image)
         body_parts_data = sitk.GetArrayViewFromImage(self._body_parts)
         tissue_data = sitk.GetArrayViewFromImage(self._tissues)
-        no_extremity_mask = body_parts_data == BodyParts.TRUNC
+        no_extremity_mask = body_parts_data == BodyParts.TORSO
         for name, min_z, max_z in groups:
             image_region = image_data[min_z:max_z]
             tissue_region = tissue_data[min_z:max_z]
@@ -436,7 +436,7 @@ class Builder:
 
         # Create slice-wise measurements without extremeties
         part_data = sitk.GetArrayViewFromImage(self._body_parts)
-        no_extremity_mask = part_data == BodyParts.TRUNC
+        no_extremity_mask = part_data == BodyParts.TORSO
         data = {
             tissue.name.capitalize()
             if tissue in {Tissue.BONE, Tissue.MUSCLE}
@@ -499,7 +499,7 @@ class Builder:
             (self._body_regions, BODY_REGION_COLOR_MAP),
             (self._tissues, TISSUE_COLOR_MAP),
         ]
-        seg_names = ["body-regions", "tissues"]
+        seg_names = ["body_regions", "tissues"]
         if total is not None:
             equidistance_slices_segs.append((total, TOTAL_COLOR_MAP))
             seg_names.append("total")

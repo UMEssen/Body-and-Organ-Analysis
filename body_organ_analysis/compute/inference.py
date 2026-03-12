@@ -1,23 +1,17 @@
 import json
 import logging
 import pathlib
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Iterable
 
 import nibabel as nib
 import numpy as np
-from body_composition_analysis.commands import run_pipeline
-from body_composition_analysis.io import load_nibabel_image_with_axcodes
-from totalsegmentator.libs import (
-    download_pretrained_weights,
-    get_parts_for_regions,
-    setup_nnunet,
-)
-from totalsegmentator.map_to_binary import reverse_class_map_complete
-from totalsegmentator.postprocessing import postprocess_lung_vessels
-from totalsegmentator.task_info import get_task_info
-
+from body_organ_analysis._external.body_composition_analysis.commands import run_pipeline
+from body_organ_analysis._external.body_composition_analysis.io import load_nibabel_image_with_axcodes
+from totalsegmentator.config import setup_nnunet
+from totalsegmentator.python_api import totalsegmentator
 from body_organ_analysis.compute.measurements import compute_measurements
 from body_organ_analysis.compute.util import convert_resampling_slices, create_mask
+from body_organ_analysis._external.body_composition_analysis.io import compress
 
 setup_nnunet()
 from totalsegmentator.nnunet import nnUNet_predict_image  # noqa
@@ -63,7 +57,7 @@ def print_and_collect_image_info(
     logger.info(f"Image size:    {ct_orig.header.get_data_shape()}")
     logger.info(f"Image dtype:   {ct_orig.header.get_data_dtype()}")
     logger.info(f"Voxel spacing: {ct_orig.header.get_zooms()}")
-    logger.info(f"Input Axcodes:    {nib.aff2axcodes(ct_orig.affine)}")
+    logger.info(f"Input Axcodes: {nib.aff2axcodes(ct_orig.affine)}")
     ct_image_data = load_nibabel_image_with_axcodes(ct_orig, axcodes="LPS")
     range_warning(ct_image_data.get_fdata())
 
@@ -73,13 +67,13 @@ def print_and_collect_image_info(
 def compute_all_models(
     ct_path: pathlib.Path,
     segmentation_folder: pathlib.Path,
-    models_to_compute: List[str],
-    force_split_threshold: int = 400,
-    totalsegmentator_params: Optional[Dict[str, Any]] = None,
+    models_to_compute: Iterable[str] | str,
+    totalsegmentator_params: Dict[str, Any],
     bca_params: Optional[Dict[str, Any]] = None,
-    keep_debug_segmentations: bool = False,
+    force_split_threshold: int = 400,
     recompute: bool = True,
     fast: bool = True,
+    cnr_adjustment: bool = True,
 ) -> Dict[str, int]:
     totalsegmentator_params = totalsegmentator_params or {}
     totalsegmentator_params = totalsegmentator_params.copy()
@@ -89,7 +83,7 @@ def compute_all_models(
         del totalsegmentator_params["preview"]
 
     shape, spacing = print_and_collect_image_info(ct_path)
-
+    measurement_models = [m for m in models_to_compute if m not in {"bca", "body_parts"}]
     stats = {
         "num_voxels": shape[0] * shape[1] * shape[2],
         "num_slices": shape[2],
@@ -100,91 +94,26 @@ def compute_all_models(
         ),
     }
 
-    for chosen_task in [m for m in models_to_compute if m != "bca"]:
-        logger.info(f"Computing segmentations for task {chosen_task}")
-        task_specific_params = get_task_info(
-            chosen_task,
-            fast=fast,
-            multilabel_image=chosen_task not in {"lung_vessels", "body"},
-            quiet=True,
-        )
-        if task_specific_params["multilabel_image"]:
-            seg_output = segmentation_folder / f"{chosen_task}.nii.gz"
-            if seg_output.exists() and not recompute:
-                logger.info("The segmentation was already computed, skipping...")
-                continue
-        else:
-            seg_output = segmentation_folder
-            if not recompute and (
-                (
-                    chosen_task == "body"
-                    and (seg_output / f"{chosen_task}.nii.gz").exists()
-                )
-                or (
-                    chosen_task == "lung_vessels"
-                    and (seg_output / "lung_vessels_airways.nii.gz").exists()
-                )
-            ):
-                logger.info("The segmentation was already computed, skipping...")
-                continue
-        if type(task_specific_params["task_id"]) is list:
-            for tid in task_specific_params["task_id"]:
-                download_pretrained_weights(tid)
-        else:
-            download_pretrained_weights(task_specific_params["task_id"])
-        if task_specific_params["crop"] is not None:
-            assert (segmentation_folder / "total.nii.gz").exists(), (
-                "The total segmentation is required to compute the crop!"
-            )
-            tmp_total_data = nib.load(segmentation_folder / "total.nii.gz").get_fdata()
-            old_crop_name = task_specific_params["crop"]
-            mask_ids = [
-                reverse_class_map_complete[f"total_{n}"]
-                for n in get_parts_for_regions(task_specific_params["crop"])
-            ]
-            task_specific_params["crop"] = create_mask(
-                tmp_total_data,
-                mask_ids,
-            ).astype(np.uint8)
-            del tmp_total_data
-            if not task_specific_params["crop"].sum():
-                logger.info(
-                    f"The segmentation for {chosen_task} could not be computed "
-                    f"because the main crop region {old_crop_name} is not present."
-                )
-                continue
-        resampled_slices = convert_resampling_slices(
-            slices=shape[-1],
-            current_sampling=spacing[-1],
-            target_resampling=task_specific_params["resample"],
-        )
-        split = False
-        if chosen_task == "total" and resampled_slices > force_split_threshold:
-            split = True
-            logger.info(
-                f"Splitting the image into parts as the number of slices "
-                f"{resampled_slices} is more than {force_split_threshold}"
-            )
-        _ = nnUNet_predict_image(
-            file_in=ct_path,
-            file_out=seg_output,
-            task_name=chosen_task,
-            force_split=split,
-            preview=preview_param and chosen_task == "total",
-            **task_specific_params,
-            **totalsegmentator_params,
-        )
-        if chosen_task == "lung_vessels":
-            postprocess_lung_vessels(segmentation_output=seg_output)
+    for chosen_task in measurement_models:
+        logger.info(f"Computing model {chosen_task}...")
+        seg_file = segmentation_folder / f"{chosen_task}.nii.gz"
+        if not recompute and seg_file.is_file():
+            logger.info("The model was already computed, skipping...")
+            continue
+        totalsegmentator(input=ct_path, task=chosen_task, **totalsegmentator_params)
+        compress(seg_file.with_suffix(""))
 
-    measurement_models = [m for m in models_to_compute if m not in {"bca", "body"}]
-    if len(measurement_models) > 0:
+
+    # TODO move to the place where the file is read
+    measurement_file = segmentation_folder / "total-measurements.json"
+    if measurement_models and (recompute or not measurement_file.is_file()):
         json_data = compute_measurements(
             ct_path=ct_path,
             segmentation_folder=segmentation_folder,
             models=measurement_models,
+            cnr_adjustment=cnr_adjustment,
         )
-        with (segmentation_folder / "total-measurements.json").open("w") as ofile:
+        with measurement_file.open("w") as ofile:
             json.dump(json_data, ofile, indent=2)
         del json_data
 
@@ -208,10 +137,4 @@ def compute_all_models(
             totalsegmentator_params=totalsegmentator_params,
             **bca_params,
         )
-    if not keep_debug_segmentations:
-        remove_debug_segmentations(
-            segmentation_folder=segmentation_folder,
-            models_to_compute=models_to_compute,
-        )
-
     return stats

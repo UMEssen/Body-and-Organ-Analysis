@@ -126,7 +126,7 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> List[Dict[str
         if not seg_array.sum():
             logger.warning(f"The segmentation {output_kind} does not have any values.")
             continue
-        if output_kind in {"body-regions"}:
+        if output_kind in {"body_regions"}:
             # Remove everything with ignore labels
             seg_array[seg_array == 255] = 0
             nifti_seg_new = sitk.GetImageFromArray(seg_array)

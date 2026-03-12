@@ -1,6 +1,6 @@
 SERIES_DESCRIPTIONS = {
-    "body-parts": "Body Parts Segmentation",
-    "body-regions": "Body Regions Segmentation",
+    "body_parts": "Body Parts Segmentation",
+    "body_regions": "Body Regions Segmentation",
     "tissues": "Tissue Segmentation",
     "total": "Total Body Segmentation",
     "lung_vessels_airways": "Lung Vessels and Airways Segmentation",

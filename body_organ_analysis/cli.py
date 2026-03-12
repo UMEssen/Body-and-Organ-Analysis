@@ -1,7 +1,7 @@
 import argparse
 import logging
 import os
-import pathlib
+from pathlib import Path
 import time
 
 from totalsegmentator.statistics import get_radiomics_features_for_entire_dir
@@ -18,13 +18,13 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--input-image",
         required=True,
-        type=pathlib.Path,
+        type=Path,
         help="Path to the ITK image which contains the CT image",
     )
     parser.add_argument(
         "--output-dir",
         required=True,
-        type=pathlib.Path,
+        type=Path,
     )
 
     parser.add_argument(
@@ -89,10 +89,10 @@ def get_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
-        "--keep-debug-segmentations",
-        default=False,
+        "--cnr-adjustment",
         action="store_true",
-        help="Keep all the debug images generated during the segmentation process",
+        help="",  # TODO
+        default=False,
     )
 
     parser.add_argument(
@@ -131,12 +131,14 @@ def get_parser() -> argparse.ArgumentParser:
         help="Skip the PDF generation and only create a bca-measurements.json file.",
     )
 
+    # TODO add --fast
+
     return parser
 
 
-def run() -> None:
+def run(argv: list[str] | None = None) -> None:
     parser = get_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     logging.basicConfig()
     if args.verbose:
@@ -151,8 +153,8 @@ def run() -> None:
         os.environ["nnUNet_USE_TRITON"] = "0"
 
     if args.models == "all":
-        models_to_compute = [
-            "body",
+        models_to_compute = {
+            "body_parts",
             "total",
             "lung_vessels",
             "cerebral_bleed",
@@ -161,9 +163,11 @@ def run() -> None:
             "pleural_pericard_effusion",
             "liver_vessels",
             "bca",
-        ]
+        }
     else:
-        models_to_compute = args.models.split("+")
+        models_to_compute = set(args.models.split("+"))
+        if "bca" in models_to_compute:
+            models_to_compute.add("total")
 
     analyze_ct(
         input_folder=args.input_image,
@@ -179,8 +183,9 @@ def run() -> None:
         bca_pdf=not args.bca_no_pdf,
         bca_compute_bmd=False,
         recompute=args.force_recompute,
-        keep_debug_information=args.keep_debug_segmentations,
         nnunet_verbose=args.nnunet_verbose,
+        fast=False, # TODO
+        cnr_adjustment=args.cnr_adjustment,
     )
 
     if args.radiomics:
@@ -194,7 +199,7 @@ def run() -> None:
         logger.info(f"  calculated in {time.time() - st:.2f}s")
 
     if args.use_study_prefix:
-        study_name = args.input_image.name.replace(".nii.gz", "")
+        study_name = args.input_image.name.removesuffix(".nii.gz")
         for f in args.output_dir.glob("*"):
             f.rename(f.parent / f"{study_name}_{f.name}")
 

@@ -17,7 +17,7 @@ dependencies = [
   "requests>=2.28.2,<3",
   "numpy>=1.24,<2",
   "pandas>=2,<3",
-  "pydicom>=2.3.1,<3",
+  "pydicom>=3,<4",
   "unidecode>=1.3.6,<2",
   "nibabel>=5.1.0,<6",
   "tqdm>=4.45.0,<5",
@@ -26,7 +26,6 @@ dependencies = [
   "fury>=0.8.0,<1",
   "medpy>=0.4.0,<1",
   "matplotlib>=3.6.2,<4",
-  "batchgenerators==0.21",
   "psutil>=5.9.4,<6",
   "Jinja2>=3.0.3,<4",
   "plotly>=5.3.1,<6",
@@ -37,7 +36,11 @@ dependencies = [
   "dataclasses-json>=0.5.7,<1",
   "xlsxwriter>=3.1.2,<4",
   "boa-contrast>=0.1.5,<0.2",
-  "scikit-learn==1.3.0",
+  "scikit-learn==1.3.0",  # BOA-Contrast
+  "scikit-image<=0.28",  # binary_erosion -> erosion, with different results for kernel 6
+  # "totalsegmentator==2.12.0",
+  # "nnunetv2==2.6.4",
+  "batchgeneratorsv2>=0.3.0",
 ]
 
 [project.urls]
