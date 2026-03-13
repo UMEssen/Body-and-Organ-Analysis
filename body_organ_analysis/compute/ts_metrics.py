@@ -124,26 +124,28 @@ def compute_segmentator_metrics(
             records.append(base_dict)
     cnr_records = []
 
-    for region in (
-        "aorta",
-        "pulmonary_artery",
-        "autochthon",
-        "autochthon_left",
-        "autochthon_right",
-    ):
-        if region not in json_measurements["cnr_adjusted"]:
-            continue
-        base_dict = {
-            "BodyRegion": convert_name(region),
-        }
-        for key, val in json_measurements["cnr_adjusted"][region].items():
-            new_key = convert_name(key)
-            if "Hu" in new_key:
-                new_key = new_key.replace("Hu", "HU")
-            elif "Cnr" == new_key:
-                new_key = "CNR"
-            base_dict[new_key] = val
-        cnr_records.append(base_dict)
+    cnr_adjusted = json_measurements.get("cnr_adjusted")
+    if cnr_adjusted:
+        for region in (
+            "aorta",
+            "pulmonary_artery",
+            "autochthon",
+            "autochthon_left",
+            "autochthon_right",
+        ):
+            if region not in json_measurements["cnr_adjusted"]:
+                continue
+            base_dict = {
+                "BodyRegion": convert_name(region),
+            }
+            for key, val in json_measurements["cnr_adjusted"][region].items():
+                new_key = convert_name(key)
+                if "Hu" in new_key:
+                    new_key = new_key.replace("Hu", "HU")
+                elif "Cnr" == new_key:
+                    new_key = "CNR"
+                base_dict[new_key] = val
+            cnr_records.append(base_dict)
 
     for model_name, filename in ADDITIONAL_MODELS_OUTPUT_NAME.items():
         model_path = segmentation_folder / f"{filename}.nii.gz"

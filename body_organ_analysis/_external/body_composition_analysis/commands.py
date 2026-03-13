@@ -156,7 +156,7 @@ def run_pipeline(
     body_regions = inference(
         ct_path=input_image,
         output_dir=output_dir,
-        task_name="bca",
+        task_name="body_regions",
         recompute=recompute,
         force_split=force_split,
         crop=body_parts if crop_body else None,

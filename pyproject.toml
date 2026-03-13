@@ -41,6 +41,9 @@ dependencies = [
   # "totalsegmentator==2.12.0",
   # "nnunetv2==2.6.4",
   "batchgeneratorsv2>=0.3.0",
+  "acvl-utils>=0.2.5",
+  "dynamic-network-architectures>=0.4.3",
+  "seaborn>=0.13.2",
 ]
 
 [project.urls]

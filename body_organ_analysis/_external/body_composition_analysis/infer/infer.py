@@ -19,9 +19,9 @@ from body_composition_analysis.tasks import get_task_info
 setup_nnunet()
 logger = logging.getLogger(__name__)
 
-TASK_TO_POST_NAME = {
-    "bca": "body_regions",
-    "body_parts": "body_parts",
+BCA_TASKS = {
+    "body_regions",
+    "body_parts",
 }
 
 
@@ -35,11 +35,11 @@ def inference(
     totalsegmentator_params: dict | None = None,
 ) -> nibabel.Nifti1Image:
     totalsegmentator_params = totalsegmentator_params or {}
-    if task_name not in TASK_TO_POST_NAME:
+    if task_name not in BCA_TASKS:
         raise ValueError(f"The task name {task_name} does not exist.")
     task_specific_params = get_task_info(task_name)
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_file = output_dir / f"{TASK_TO_POST_NAME[task_name]}.nii.gz"
+    output_file = output_dir / f"{task_name}.nii.gz"
     if not recompute and (output_file).is_file():
         logger.info(f"Loading already computed {task_name}...")
         return nibabel.load(output_file)
@@ -67,7 +67,7 @@ def inference(
     img = sitk.ReadImage(output_file)
     if task_name == "body_parts":
         sitk_output = postprocess_part_segmentation(img)
-    elif task_name == "bca":
+    elif task_name == "body_regions":
         sitk_output = postprocess_region_segmentation(img)
     sitk.WriteImage(sitk_output, output_file, True)
     return sitk_to_nib(sitk_output)

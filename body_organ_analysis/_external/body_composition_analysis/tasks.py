@@ -7,12 +7,12 @@ task_vals = {
         "trainer": "nnUNetTrainer_1500epochs_NoMirroring",
         "crop": None,
     },
-    "bca": {
+    "body_regions": {
         "task_id": 542,
         "resample": 5.0,
         "folds": [0, 1, 2, 3, 4],
         "resample_only_thickness": True,
-        "trainer": "nnUNetTrainerV2",
+        "trainer": "nnUNetTrainerNoMirroring",
         "crop": None,
     },
 }

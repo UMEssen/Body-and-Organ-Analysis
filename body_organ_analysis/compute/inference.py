@@ -14,28 +14,8 @@ from body_organ_analysis.compute.util import convert_resampling_slices, create_m
 from body_organ_analysis._external.body_composition_analysis.io import compress
 
 setup_nnunet()
-from totalsegmentator.nnunet import nnUNet_predict_image  # noqa
 
 logger = logging.getLogger(__name__)
-
-
-def remove_debug_segmentations(
-    segmentation_folder: pathlib.Path,
-    models_to_compute: List[str],
-) -> None:
-    to_remove = [
-        "bca.nii.gz",
-        "body.nii.gz",
-        "lung_trachea_bronchia.nii.gz",
-        "lung_vessels.nii.gz",
-    ]
-    if "bca" in models_to_compute:
-        to_remove += [
-            "body_extremities.nii.gz",
-            "body_trunc.nii.gz",
-        ]
-    for r in to_remove:
-        (segmentation_folder / r).unlink(missing_ok=True)
 
 
 def range_warning(ct_image_data: np.ndarray) -> None:
@@ -116,6 +96,8 @@ def compute_all_models(
         with measurement_file.open("w") as ofile:
             json.dump(json_data, ofile, indent=2)
         del json_data
+    else:
+        logger.info("The measurements were already computed, skipping...")
 
     if "bca" in models_to_compute:
         resampling_bca = convert_resampling_slices(
