@@ -141,7 +141,7 @@ def compute_lung_measurement(
     )
 
 
-def pulmonary_fat(
+def ct_pfav(
     ct_data: np.ndarray,
     region_image: sitk.Image,
     label_map: Dict[str, int],
@@ -159,7 +159,7 @@ def pulmonary_fat(
     ]
     region_data = sitk.GetArrayFromImage(region_image)
     for region_name in lung_masks:
-        _, measurements["pulmonary_fat_" + region_name] = compute_lung_measurement(
+        _, measurements["ct_pfav_" + region_name] = compute_lung_measurement(
             ct_data=ct_data,
             region_data=region_data,
             ids=[label_map[region_name]],
@@ -169,7 +169,7 @@ def pulmonary_fat(
         )
     for side in ["left", "right"]:
         parts = [ll for ll in lung_masks if ll.endswith(side)]
-        _, measurements[f"pulmonary_fat_lobe_{side}"] = compute_lung_measurement(
+        _, measurements[f"ct_pfav_lobe_{side}"] = compute_lung_measurement(
             ct_data=ct_data,
             region_data=region_data,
             ids=[label_map[ll] for ll in parts],
@@ -178,7 +178,7 @@ def pulmonary_fat(
             img_spacing=region_image.GetSpacing(),
         )
 
-    fat_mask, measurements["pulmonary_fat_lungs"] = compute_lung_measurement(
+    fat_mask, measurements["ct_pfav_lungs"] = compute_lung_measurement(
         ct_data=ct_data,
         region_data=region_data,
         ids=[label_map[ll] for ll in lung_masks],
@@ -188,7 +188,7 @@ def pulmonary_fat(
     )
     mask_img = sitk.GetImageFromArray(fat_mask.astype(np.uint8))
     mask_img.CopyInformation(region_image)
-    sitk.WriteImage(mask_img, str(segmentation_folder / "pulmonary_fat.nii.gz"), True)
+    sitk.WriteImage(mask_img, str(segmentation_folder / "ct_pfav.nii.gz"), True)
 
     return measurements
 
@@ -292,7 +292,7 @@ def compute_measurements(
         if model_name == "total":
             measurements["segmentations"][model_name] = {
                 **measurements["segmentations"][model_name],
-                **pulmonary_fat(
+                **ct_pfav(
                     ct_data=ct_data,
                     region_image=model_image,
                     label_map=label_map,

@@ -11,7 +11,7 @@ SERIES_DESCRIPTIONS = {
     "pleural_pericard_effusion": "Pleural Pericardial Effusion Segmentation",
     "liver_vessels": "Liver Vessels and Tumor Segmentation",
     "report": "Body Composition Analysis Report",
-    "pulmonary_fat": "Pulmonary Fat Segmentation",
+    "ct_pfav": "Pulmonary Fat Segmentation",
 }
 
 BASE_MODELS = ["body", "total"]
