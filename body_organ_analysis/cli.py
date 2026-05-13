@@ -162,15 +162,15 @@ def run(argv: list[str] | None = None) -> None:
 
     if args.models == "all":
         models_to_compute = {
+            "bca",
             "body_parts",
-            "total",
-            "lung_vessels",
             "cerebral_bleed",
             "hip_implant",
-            "coronary_arteries",
-            "pleural_pericard_effusion",
+            "liver_segments",
             "liver_vessels",
-            "bca",
+            "lung_vessels",
+            "pleural_pericard_effusion",
+            "total",
         }
     else:
         models_to_compute = set(args.models.split("+"))
@@ -179,9 +179,16 @@ def run(argv: list[str] | None = None) -> None:
 
     device = args.device or os.getenv("DEVICE", "gpu")
     device, _, gpu_id = device.partition(":")
+    # TotalSegmentator's public API expects "gpu"; accept "cuda" as an alias.
+    if device == "cuda":
+        device = "gpu"
     gpu_id = gpu_id or os.getenv("NVIDIA_ID")
     if gpu_id:
         os.environ.setdefault("NVIDIA_VISIBLE_DEVICES", gpu_id)
+        # Preserve the GPU id in the device string so select_device picks
+        # cuda:<gpu_id> instead of defaulting to cuda:0.
+        if device == "gpu":
+            device = f"gpu:{gpu_id}"
 
     analyze_ct(
         input_folder=args.input_image,

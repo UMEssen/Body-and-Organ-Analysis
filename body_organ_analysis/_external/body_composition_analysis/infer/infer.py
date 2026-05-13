@@ -12,6 +12,7 @@ from body_composition_analysis.body_regions.postprocess import (
 from body_composition_analysis.io import sitk_to_nib
 from totalsegmentator.libs import download_pretrained_weights
 from totalsegmentator.nnunet import nnUNet_predict_image
+from totalsegmentator.python_api import select_device
 from body_composition_analysis.tasks import get_task_info
 
 logger = logging.getLogger(__name__)
@@ -56,7 +57,7 @@ def inference(
         nr_threads_resampling=totalsegmentator_params["nr_thr_resamp"],
         nr_threads_saving=totalsegmentator_params["nr_thr_saving"],
         quiet=totalsegmentator_params["quiet"],
-        device=totalsegmentator_params["device"],
+        device=select_device(totalsegmentator_params["device"]),
         **task_specific_params,
     )
 
