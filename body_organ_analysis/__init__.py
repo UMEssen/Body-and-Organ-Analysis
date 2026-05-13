@@ -4,6 +4,10 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "_external"))
 
+# Configures nnUNet_* env vars on import. MUST come before the body_organ_analysis.commands
+# import below, which transitively loads totalsegmentator.nnunet -> nnunetv2.paths.
+import totalsegmentator.nnunet_env  # noqa: F401
+
 from body_organ_analysis.commands import analyze_ct
 from body_organ_analysis.compute.io import store_dicoms, store_excel
 
@@ -25,7 +29,6 @@ logging.captureWarnings(True)
 # situation, but the event should still be noted
 
 logger = logging.getLogger(__name__)
-
 
 __all__ = [
     "analyze_ct",

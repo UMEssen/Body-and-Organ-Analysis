@@ -37,6 +37,7 @@ def analyze_ct(
     total_preview: bool = True,
     nr_thr_resamp: int = 1,
     nr_thr_saving: int = 6,
+    device: str = "gpu",
     bca_median_filtering: bool = False,
     bca_examined_body_region: Optional[str] = None,
     bca_pdf: bool = True,
@@ -70,7 +71,6 @@ def analyze_ct(
     # seg_output.mkdir(parents=True, exist_ok=True)
     start = time()
     totalsegmentator_params = {
-        "output": seg_output,
         "preview": total_preview,
         "fast": fast,
         "ml": True,
@@ -78,6 +78,7 @@ def analyze_ct(
         "nr_thr_saving": nr_thr_saving,
         "quiet": False,
         "verbose": nnunet_verbose,
+        "device": device,
     }
     ct_stats = compute_all_models(
         ct_path=ct_path,
@@ -93,6 +94,7 @@ def analyze_ct(
         },
         recompute=recompute,
         fast=fast,
+        device=device,
         cnr_adjustment=cnr_adjustment,
     )
     logger.info(f"All models computed: DONE in {time() - start:0.5f}s")

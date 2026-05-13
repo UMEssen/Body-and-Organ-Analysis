@@ -1,5 +1,3 @@
-from totalsegmentator.config import setup_nnunet
-
 import logging
 from pathlib import Path
 
@@ -16,7 +14,6 @@ from totalsegmentator.libs import download_pretrained_weights
 from totalsegmentator.nnunet import nnUNet_predict_image
 from body_composition_analysis.tasks import get_task_info
 
-setup_nnunet()
 logger = logging.getLogger(__name__)
 
 BCA_TASKS = {
@@ -38,15 +35,15 @@ def inference(
     if task_name not in BCA_TASKS:
         raise ValueError(f"The task name {task_name} does not exist.")
     task_specific_params = get_task_info(task_name)
+    logger.info(
+        f"Computing model {task_name} with ID {task_specific_params['task_id']}..."
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / f"{task_name}.nii.gz"
     if not recompute and (output_file).is_file():
         logger.info(f"Loading already computed {task_name}...")
         return nibabel.load(output_file)
 
-    logger.info(
-        f"Computing model {task_name} with ID {task_specific_params['task_id']}..."
-    )
     task_specific_params["crop"] = crop
 
     _ = nnUNet_predict_image(
@@ -59,6 +56,7 @@ def inference(
         nr_threads_resampling=totalsegmentator_params["nr_thr_resamp"],
         nr_threads_saving=totalsegmentator_params["nr_thr_saving"],
         quiet=totalsegmentator_params["quiet"],
+        device=totalsegmentator_params["device"],
         **task_specific_params,
     )
 

@@ -81,6 +81,14 @@ def get_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "-d",
+        "--device",
+        type=str,
+        help="",  # TODO
+        default=None,
+    )
+
+    parser.add_argument(
         "-r",
         "--radiomics",
         action="store_true",
@@ -169,6 +177,12 @@ def run(argv: list[str] | None = None) -> None:
         if "bca" in models_to_compute:
             models_to_compute.add("total")
 
+    device = args.device or os.getenv("DEVICE", "gpu")
+    device, _, gpu_id = device.partition(":")
+    gpu_id = gpu_id or os.getenv("NVIDIA_ID")
+    if gpu_id:
+        os.environ.setdefault("NVIDIA_VISIBLE_DEVICES", gpu_id)
+
     analyze_ct(
         input_folder=args.input_image,
         processed_output_folder=args.output_dir,
@@ -178,6 +192,7 @@ def run(argv: list[str] | None = None) -> None:
         total_preview=args.preview,
         nr_thr_resamp=args.nr_thr_resamp,
         nr_thr_saving=args.nr_thr_saving,
+        device=device,
         bca_median_filtering=args.bca_median_filtering,
         bca_examined_body_region=args.bca_examined_body_region,
         bca_pdf=not args.bca_no_pdf,

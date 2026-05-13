@@ -5,15 +5,12 @@ from typing import Any, Dict, List, Optional, Tuple, Iterable
 
 import nibabel as nib
 import numpy as np
-from body_organ_analysis._external.body_composition_analysis.commands import run_pipeline
-from body_organ_analysis._external.body_composition_analysis.io import load_nibabel_image_with_axcodes
-from totalsegmentator.config import setup_nnunet
+from body_composition_analysis.commands import run_pipeline
+from body_composition_analysis.io import load_nibabel_image_with_axcodes
 from totalsegmentator.python_api import totalsegmentator
 from body_organ_analysis.compute.measurements import compute_measurements
+from body_composition_analysis.infer.infer import inference
 from body_organ_analysis.compute.util import convert_resampling_slices, create_mask
-from body_organ_analysis._external.body_composition_analysis.io import compress
-
-setup_nnunet()
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +50,7 @@ def compute_all_models(
     force_split_threshold: int = 400,
     recompute: bool = True,
     fast: bool = True,
+    device: str = "gpu",
     cnr_adjustment: bool = True,
 ) -> Dict[str, int]:
     totalsegmentator_params = totalsegmentator_params or {}
@@ -80,8 +78,12 @@ def compute_all_models(
         if not recompute and seg_file.is_file():
             logger.info("The model was already computed, skipping...")
             continue
-        totalsegmentator(input=ct_path, task=chosen_task, **totalsegmentator_params)
-        compress(seg_file.with_suffix(""))
+        totalsegmentator(
+            input=ct_path,
+            task=chosen_task,
+            output=seg_file,
+            **totalsegmentator_params,
+        )
 
 
     # TODO move to the place where the file is read
@@ -97,7 +99,7 @@ def compute_all_models(
             json.dump(json_data, ofile, indent=2)
         del json_data
     else:
-        logger.info("The measurements were already computed, skipping...")
+        logger.info("The total measurements were already computed, skipping...")
 
     if "bca" in models_to_compute:
         resampling_bca = convert_resampling_slices(
@@ -118,5 +120,24 @@ def compute_all_models(
             recompute=recompute,
             totalsegmentator_params=totalsegmentator_params,
             **bca_params,
+        )
+    elif "body_parts" in models_to_compute:
+        resampling_bca = convert_resampling_slices(
+            slices=shape[-1],
+            current_sampling=spacing[-1],
+            target_resampling=5.0,
+        )
+        if resampling_bca > force_split_threshold:
+            logger.info(
+                f"Splitting the image into parts as the number of slices "
+                f"{resampling_bca} is more than {force_split_threshold}"
+            )
+        inference(
+            ct_path=ct_path,
+            output_dir=segmentation_folder,
+            task_name="body_parts",
+            recompute=recompute,
+            force_split=resampling_bca > force_split_threshold,
+            totalsegmentator_params=totalsegmentator_params,
         )
     return stats

@@ -8,14 +8,6 @@ import SimpleITK as sitk
 logger = logging.getLogger(__name__)
 
 
-def compress(path: Path) -> Path:
-    new_path = path.with_suffix(".nii.gz")
-    img = sitk.ReadImage(path)
-    sitk.WriteImage(img, new_path, True)
-    path.unlink()
-    return new_path
-
-
 def nib_to_sitk(image: nibabel.spatialimages.SpatialImage) -> sitk.Image:
     # From https://github.com/Kimerth/torchio/blob/19639037a530d31e8ba487e0945152ca765b8b8a/transforms/transform.py#L50-L62
     FLIP_XY = np.diag((-1, -1, 1))
