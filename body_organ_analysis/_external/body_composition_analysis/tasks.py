@@ -32,5 +32,5 @@ task_vals: dict[str, TaskConfig] = {
 }
 
 
-def get_task_info(task_name: str, fast: bool = False) -> TaskConfig:
+def get_task_info(task_name: str, _fast: bool = False) -> TaskConfig:
     return task_vals[task_name]

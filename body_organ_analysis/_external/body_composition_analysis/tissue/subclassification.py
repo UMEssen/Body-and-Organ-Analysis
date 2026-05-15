@@ -21,7 +21,8 @@ def subclassify_tissues(
     # should be better to only filter in-plane with a 2D kernel.
     if median_filtering:
         # TODO: Do this better, maybe with the body_regions.GetDirections()?
-        assert orientation is not None
+        if orientation is None:
+            raise ValueError("Orientation must be set")
         if "I" in orientation:
             slice_position = orientation[::-1].index("I")
         elif "S" in orientation:

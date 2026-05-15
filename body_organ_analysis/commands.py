@@ -1,16 +1,15 @@
 import logging
 import warnings
+from collections.abc import Iterable
 from pathlib import Path
 from time import time
-from typing import Any, Dict, Iterable, Optional
+from typing import Any
 
 import pandas as pd
 import SimpleITK as sitk
 from boa_contrast import predict
+from body_composition_analysis.body_regions.definition import BodyRegion
 
-from body_organ_analysis._external.body_composition_analysis.body_regions.definition import (
-    BodyRegion,
-)
 from body_organ_analysis._version import __githash__, __version__
 from body_organ_analysis.compute.bca_metrics import compute_bca_metrics
 from body_organ_analysis.compute.inference import compute_all_models
@@ -22,7 +21,9 @@ logger = logging.getLogger(__name__)
 # Suppress PyTorch warnings
 warnings.filterwarnings(
     "ignore",
-    message="torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.",
+    message=(
+        "torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling."
+    ),
 )
 warnings.filterwarnings(
     "ignore",
@@ -41,7 +42,7 @@ def analyze_ct(
     nr_thr_saving: int = 6,
     device: str = "gpu",
     bca_median_filtering: bool = False,
-    bca_examined_body_region: Optional[str] = None,
+    bca_examined_body_region: str | None = None,
     bca_pdf: bool = True,
     recompute: bool = False,
     nnunet_verbose: bool = False,
@@ -62,11 +63,11 @@ def analyze_ct(
         {"name": "BOAGitHash", "value": __githash__},
         *ct_info,
     ]
-    logger.info(f"Image loaded and retrieved: DONE in {time() - start_total:0.5f}s")
+    logger.info("Image loaded and retrieved: DONE in %0.5fs", time() - start_total)
 
-    stats: Dict[str, Any] = {
+    stats: dict[str, Any] = {
         "git_hash": __githash__,
-        "version": __version__,
+        "boa_version": __version__,
     }
     seg_output = processed_output_folder  # / "segmentations"
     # seg_output.mkdir(parents=True, exist_ok=True)
@@ -93,11 +94,9 @@ def analyze_ct(
             "save_pdf": bca_pdf,
         },
         recompute=recompute,
-        fast=fast,
-        device=device,
         cnr_adjustment=cnr_adjustment,
     )
-    logger.info(f"All models computed: DONE in {time() - start:0.5f}s")
+    logger.info("All models computed: DONE in %0.5fs", time() - start)
 
     stats["inference_time"] = time() - start
     stats.update(ct_stats)
@@ -108,7 +107,7 @@ def analyze_ct(
         aggr_df, slices_df, slices_no_limbs_df = compute_bca_metrics(
             output_path=seg_output,
         )
-        logger.info(f"Metrics from BCA: DONE in {time() - start:0.5f}s")
+        logger.info("Metrics from BCA: DONE in %0.5fs", time() - start)
         stats["bca_metrics_time"] = time() - start
         regions_path = seg_output / "body_regions.nii.gz"
         if regions_path.is_file():
@@ -135,7 +134,7 @@ def analyze_ct(
             segmentation_folder=seg_output,
             store_axes=False,
         )
-        logger.info(f"Metrics from TotalSegmentator: DONE in {time() - start:0.5f}s")
+        logger.info("Metrics from TotalSegmentator: DONE in %0.5fs", time() - start)
         stats["totalsegmentator_metrics_time"] = time() - start
         ct_info += region_information
 
@@ -147,7 +146,7 @@ def analyze_ct(
                 segmentation_folder=seg_output,
                 one_mask_per_file=False,
             )
-            logger.info(f"Contrast phase predicted: DONE in {time() - start:0.5f}s")
+            logger.info("Contrast phase predicted: DONE in %0.5fs", time() - start)
             ct_info.append(
                 {
                     "name": "PredictedContrastPhase",
@@ -204,9 +203,9 @@ def analyze_ct(
             slices_no_limbs_df.to_excel(
                 writer, sheet_name="bca-slice_measurements_no_ext", index=False
             )
-    logger.info(f"Excel stored: DONE in {time() - start:0.5f}s")
+    logger.info("Excel stored: DONE in %0.5fs", time() - start)
     stats["excel_time"] = time() - start
-    logger.info(f"Complete CT analysis: DONE in {time() - start_total:0.5f}s")
+    logger.info("Complete CT analysis: DONE in %0.5fs", time() - start_total)
     stats["total_time"] = time() - start_total
 
     return excel_path, stats

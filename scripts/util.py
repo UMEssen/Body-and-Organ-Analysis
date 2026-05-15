@@ -6,11 +6,12 @@ import shutil
 import traceback
 from pathlib import Path
 from time import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import imports
 import psycopg2
 import requests
+from psycopg2 import sql
 from unidecode import unidecode
 
 logger = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ def _replace_umlauts(text: str) -> str:
 
 
 def _process_info_element(
-    dicom_tags: Dict[str, Any], infos_to_include: List[str]
+    dicom_tags: dict[str, Any], infos_to_include: list[str]
 ) -> str:
     layer_info = ""
     for info in infos_to_include:
@@ -70,7 +71,7 @@ def _process_info_element(
     return re.sub(r"[^\w\.]", "_", _replace_umlauts(layer_info[:-1]))
 
 
-def get_naming_scheme(dicom_tags: Dict[str, str], patient_info: bool = False) -> str:
+def get_naming_scheme(dicom_tags: dict[str, str], patient_info: bool = False) -> str:
     p = f"/{dicom_tags['CalledAET']}"
     study_layer = _process_info_element(
         dicom_tags, ["StudyDate", "AccessionNumber", "StudyDescription"]
@@ -87,7 +88,7 @@ def get_naming_scheme(dicom_tags: Dict[str, str], patient_info: bool = False) ->
         return f"{p}/{study_layer}/{series_layer}/"
 
 
-def collect_auth() -> Tuple[str, str]:
+def collect_auth() -> tuple[str, str]:
     if "ORTHANC_USERNAME" in os.environ and "ORTHANC_PASSWORD" in os.environ:
         return os.environ["ORTHANC_USERNAME"], os.environ["ORTHANC_PASSWORD"]
     elif "ORTHANC__REGISTERED_USERS" in os.environ:
@@ -97,8 +98,8 @@ def collect_auth() -> Tuple[str, str]:
         )
         if m is None:
             raise ValueError(
-                f"{os.environ['ORTHANC__REGISTERED_USERS']} does not comply to the regex "
-                f"pattern for authorization."
+                f"{os.environ['ORTHANC__REGISTERED_USERS']} does not comply "
+                "to the regex pattern for authorization."
             )
         return m.group(1), m.group(2)
     else:
@@ -107,7 +108,8 @@ def collect_auth() -> Tuple[str, str]:
         )
 
 
-def get_db_connection() -> Optional[Any]:
+# TODO contextmanager
+def get_db_connection() -> Any | None:
     missing_vars = [
         var
         for var in [
@@ -121,7 +123,9 @@ def get_db_connection() -> Optional[Any]:
     ]
     if len(missing_vars) > 0:
         logger.error(
-            f"All environment variables must be defined to connect to the monitoring database: {', '.join(missing_vars)} missing."
+            "All environment variables must be defined to connect to the monitoring "
+            "database: %s missing.",
+            ", ".join(missing_vars),
         )
         return None
     try:
@@ -141,43 +145,45 @@ def get_db_connection() -> Optional[Any]:
 
 def write_to_postgres(
     db_conn: Any,
-    data: Dict[str, Any],
+    data: dict[str, Any],
 ) -> None:
     if db_conn is None:
         return
+    if "task_id" not in data:
+        raise KeyError("The task_id field must be given to update the row.")
     try:
-        cur = db_conn.cursor()
-        keys, values = zip(*data.items(), strict=False)
-        assert "task_id" in keys, "The task_id field must be given to update the row."
-        query = f"""
-        INSERT INTO boa_entries ({", ".join(keys)})
-        VALUES ({
-            ", ".join(
-                [
-                    "'" + str(val) + "'" if isinstance(val, str) else str(val)
-                    for val in values
-                ]
-            )
-        })
-        ON CONFLICT (task_id) DO UPDATE
-        SET {
-            ", ".join([f"{key} = EXCLUDED.{key}" for key in keys if key != "task_id"])
-        };
-        """
-        logger.info(f"Query: {query}")
-        cur.execute(query)
+        keys = list(data.keys())
+        values = list(data.values())
+        update_keys = [k for k in keys if k != "task_id"]
+
+        query = sql.SQL(
+            """
+            INSERT INTO boa_entries ({columns})
+            VALUES ({placeholders})
+            ON CONFLICT (task_id) DO UPDATE
+            SET {updates}
+            """
+        ).format(
+            columns=sql.SQL(", ").join(map(sql.Identifier, keys)),
+            placeholders=sql.SQL(", ").join(sql.Placeholder() * len(keys)),
+            updates=sql.SQL(", ").join(
+                sql.SQL("{col} = EXCLUDED.{col}").format(col=sql.Identifier(k))
+                for k in update_keys
+            ),
+        )
+
+        with db_conn.cursor() as cur:
+            cur.execute(query, values)
         db_conn.commit()
-        cur.close()
     except Exception:
-        logger.error(traceback.format_exc())
-        logger.error("Failed to write monitoring information to postgres.")
+        logger.exception("Failed to write monitoring information to postgres.")
 
 
 def download_dicoms_from_orthanc(
     session: requests.Session,
     output_folder: Path,
     base_url: str,
-    series_intances: Dict[str, Any],
+    series_intances: dict[str, Any],
 ) -> Path:
     input_data_folder = output_folder / "input_dicoms"
     input_data_folder.mkdir(parents=True, exist_ok=True)
@@ -189,16 +195,16 @@ def download_dicoms_from_orthanc(
         # Parse it using pydicom
         dicom = pydicom.dcmread(io.BytesIO(f.content))
         dicom.save_as(input_data_folder / f"{dicom.SOPInstanceUID}.dcm")
-    logger.info(f"DICOM data store: DONE in {time() - start:0.5f}s")
+    logger.info("DICOM data store: DONE in %0.5fs", time() - start)
     return input_data_folder
 
 
 def build_excel(
     input_data_folder: Path,
     output_folder: Path,
-    dicom_tags: Dict[str, Any],
+    dicom_tags: dict[str, Any],
     fast: bool = False,
-) -> Tuple[Path, Dict[str, Any]]:
+) -> tuple[Path, dict[str, Any]]:
     # Setup before calling
     start = time()
     excel_path, stats = analyze_ct(
@@ -215,12 +221,11 @@ def build_excel(
         )
         + ".xlsx"
     )
-    assert isinstance(new_excel_path, Path)
     shutil.move(
         excel_path,
         new_excel_path,
     )
-    logger.info(f"Excel build: DONE in {time() - start:0.5f}s")
+    logger.info("Excel build: DONE in %0.5fs", time() - start)
 
     return new_excel_path, stats
 
@@ -228,7 +233,7 @@ def build_excel(
 def save_data_persistent(
     input_data_folder: Path,
     output_folder: Path,
-    new_excel_path: Optional[Path],
+    new_excel_path: Path | None,
     secondary_excel_path: str,
     output_information: str,
 ) -> None:
@@ -243,17 +248,15 @@ def save_data_persistent(
                 segmentation_folder=output_folder,
             )
         except Exception:
-            traceback.print_exc()
-            output_information += traceback.format_exc() + "\n\n"
-            logger.error("Storing segmentation in DicomWeb failed.")
+            logger.exception("Storing segmentation in DicomWeb failed.")
     else:
         logger.info(
-            "The variables UPLOAD_USER, UPLOAD_PWD and SEGMENTATION_UPLOAD_URL are not set, "
-            "the segmentations will not be uploaded."
+            "The variables UPLOAD_USER, UPLOAD_PWD and SEGMENTATION_UPLOAD_URL are "
+            "not set, the segmentations will not be uploaded."
         )
 
     if len(output_information) > 0:
-        with open(output_folder / "debug_information.txt", "w") as f:
+        with (output_folder / "debug_information.txt").open("w") as f:
             f.write(output_information)
     if all(
         # Envs need to exist and not be TODO or empty
@@ -284,7 +287,7 @@ def save_data_persistent(
         except Exception:
             traceback.print_exc()
             logger.error("Storing Excel in SMB storage failed.")
-        logger.info(f"Storing Excel in SMB storage: DONE in {time() - start:0.5f}s")
+        logger.info("Storing Excel in SMB storage: DONE in %0.5fs", time() - start)
     else:
         logger.info(
             "The variables SMB_USER, SMB_PWD and SMB_DIR_OUTPUT are not set, "
@@ -294,7 +297,7 @@ def save_data_persistent(
 
 def get_dicom_tags(
     session: requests.Session, base_url: str, resource_id: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     # Get all the series information
     series_response = session.get(
         f"{base_url}/series/{resource_id}",

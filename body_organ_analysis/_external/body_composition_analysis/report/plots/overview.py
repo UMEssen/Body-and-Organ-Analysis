@@ -1,5 +1,4 @@
 import base64
-from typing import List
 
 import cv2
 import numpy as np
@@ -53,7 +52,7 @@ def _image_to_base64png(image: np.ndarray) -> str:
 def create_totalsegmentator_summary(
     image: sitk.Image,
     total_segmentation: sitk.Image,
-) -> List[np.ndarray]:
+) -> list[np.ndarray]:
     spacing = image.GetSpacing()
     image = sitk.GetArrayViewFromImage(image)
     total_segmentation = sitk.GetArrayViewFromImage(total_segmentation)
@@ -104,49 +103,50 @@ def create_tissue_summary(
     )
     trace_image_cor = go.Image(source=source)
 
-    bar_traces2 = []
-    for tissue in (
-        Tissue.IMAT,
-        Tissue.SAT,
-        Tissue.VAT,
-        Tissue.PAT,
-        Tissue.EAT,
-    ):
-        bar_traces2.append(
-            go.Bar(
-                x=tissue_measurements[tissue.name] / tissue_measurements["TAT"] * 100.0,
-                y=tissue_measurements.slice_idx - 1,
-                orientation="h",
-                showlegend=False,
-                marker_color=TISSUE_COLOR_SCALE[tissue.value * 2][1],
-                marker_line_width=0,
-            )
+    bar_traces2 = [
+        go.Bar(
+            x=tissue_measurements[tissue.name] / tissue_measurements["TAT"] * 100.0,
+            y=tissue_measurements.slice_idx - 1,
+            orientation="h",
+            showlegend=False,
+            marker_color=TISSUE_COLOR_SCALE[tissue.value * 2][1],
+            marker_line_width=0,
         )
+        for tissue in (
+            Tissue.IMAT,
+            Tissue.SAT,
+            Tissue.VAT,
+            Tissue.PAT,
+            Tissue.EAT,
+        )
+    ]
 
-    bar_traces = []
-    for tissue in (
-        Tissue.BONE,
-        Tissue.MUSCLE,
-        Tissue.IMAT,
-        Tissue.SAT,
-        Tissue.VAT,
-        Tissue.PAT,
-        Tissue.EAT,
-    ):
-        name = tissue.name
-        if tissue in {Tissue.MUSCLE, Tissue.BONE}:
-            name = name.capitalize()
-        bar_traces.append(
-            go.Bar(
-                x=tissue_measurements[name],
-                y=tissue_measurements.slice_idx - 1,
-                orientation="h",
-                showlegend=True,
-                marker_color=TISSUE_COLOR_SCALE[tissue.value * 2][1],
-                name=name,
-                marker_line_width=0,
-            )
+    bar_traces = [
+        go.Bar(
+            x=tissue_measurements[
+                tissue.name.capitalize()
+                if tissue in {Tissue.MUSCLE, Tissue.BONE}
+                else tissue.name
+            ],
+            y=tissue_measurements.slice_idx - 1,
+            orientation="h",
+            showlegend=True,
+            marker_color=TISSUE_COLOR_SCALE[tissue.value * 2][1],
+            name=tissue.name.capitalize()
+            if tissue in {Tissue.MUSCLE, Tissue.BONE}
+            else tissue.name,
+            marker_line_width=0,
         )
+        for tissue in (
+            Tissue.BONE,
+            Tissue.MUSCLE,
+            Tissue.IMAT,
+            Tissue.SAT,
+            Tissue.VAT,
+            Tissue.PAT,
+            Tissue.EAT,
+        )
+    ]
 
     # Add all defined traces
     fig.add_trace(trace_image_cor, row=1, col=1)

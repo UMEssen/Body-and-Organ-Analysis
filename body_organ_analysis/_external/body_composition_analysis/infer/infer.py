@@ -38,12 +38,12 @@ def inference(
         raise ValueError(f"The task name {task_name} does not exist.")
     task_specific_params = get_task_info(task_name)
     logger.info(
-        f"Computing model {task_name} with ID {task_specific_params['task_id']}..."
+        "Computing model %s with ID %s...", task_name, task_specific_params["task_id"]
     )
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / f"{task_name}.nii.gz"
     if not recompute and (output_file).is_file():
-        logger.info(f"Loading already computed {task_name}...")
+        logger.info("Loading already computed %s...", task_name)
         return nibabel.load(output_file)
 
     task_specific_params["crop"] = crop
@@ -63,7 +63,7 @@ def inference(
     )
 
     # TODO use output instead of reloading
-    logger.info(f"Computing postprocessing for task {task_name}")
+    logger.info("Computing postprocessing for task %s", task_name)
     img = sitk.ReadImage(output_file)
     if task_name == "body_parts":
         sitk_output = postprocess_part_segmentation(img)

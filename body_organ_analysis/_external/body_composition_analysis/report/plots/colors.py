@@ -1,5 +1,4 @@
 import colorsys
-from typing import List, Tuple
 
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
@@ -30,7 +29,7 @@ TISSUE_COLORS = {
 }
 
 
-def _generate_tissue_color_scale(alpha: float = 1.0) -> List[Tuple[float, str]]:
+def _generate_tissue_color_scale(alpha: float = 1.0) -> list[tuple[float, str]]:
     num_colors = len(Tissue) + 1
     result = [
         (0 / num_colors, "rgba(0, 0, 0, 0.0)"),
@@ -51,8 +50,7 @@ TISSUE_COLOR_SCALE = _generate_tissue_color_scale()
 
 def _generate_tissue_color_map() -> np.ndarray:
     colors = [(0, 0, 0)]
-    for tissue in Tissue:
-        colors.append(TISSUE_COLORS[tissue])
+    colors.extend(TISSUE_COLORS[tissue] for tissue in Tissue)
     return np.array(colors, dtype=np.uint8)
 
 

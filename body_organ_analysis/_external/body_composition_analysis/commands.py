@@ -1,7 +1,7 @@
 import json
 import logging
-import pathlib
-from typing import Any, Dict, Optional
+from pathlib import Path
+from typing import Any
 
 import nibabel
 import numpy as np
@@ -35,22 +35,22 @@ def create_vertebrae_info(
         mask = np.where((vertebrae_data == label).any(axis=(1, 2)))[0]
         if len(mask) == 0:
             continue
-        if "C" in vid and AggregatableBodyPart.NECK not in detected_body_part:
-            continue
-        elif "T" in vid and AggregatableBodyPart.THORAX not in detected_body_part:
-            continue
-        elif "L" in vid and AggregatableBodyPart.ABDOMEN not in detected_body_part:
+        if (
+            ("C" in vid and AggregatableBodyPart.NECK not in detected_body_part)
+            or ("T" in vid and AggregatableBodyPart.THORAX not in detected_body_part)
+            or ("L" in vid and AggregatableBodyPart.ABDOMEN not in detected_body_part)
+        ):
             continue
         vertebrae_info[vid] = (int(mask.min()), int(mask.max() + 1))
     return vertebrae_info
 
 
 def compute_segmentation(
-    input_image: pathlib.Path,
-    output: pathlib.Path,
+    input_image: Path,
+    output: Path,
     task_name: str,
     force_split: bool = False,
-    totalsegmentator_params: Dict[str, Any] | None = None,
+    totalsegmentator_params: dict[str, Any] | None = None,
 ) -> None:
     totalsegmentator_params = totalsegmentator_params or {}
     output.parent.mkdir(exist_ok=True, parents=True)
@@ -65,9 +65,9 @@ def compute_segmentation(
 
 
 def subclassify(
-    input_image: pathlib.Path,
-    input_body_regions: pathlib.Path,
-    output: pathlib.Path,
+    input_image: Path,
+    input_body_regions: Path,
+    output: Path,
     median_filtering: bool,
 ) -> None:
     orientation = nibabel.aff2axcodes(nibabel.load(input_image).affine)
@@ -81,13 +81,13 @@ def subclassify(
 
 
 def report(
-    input_image: pathlib.Path,
-    input_body_parts: pathlib.Path,
-    input_body_regions: pathlib.Path,
-    input_tissues: pathlib.Path,
-    output_report: pathlib.Path,
-    output_measurements: pathlib.Path,
-    examined_body_region: Optional[str] = None,
+    input_image: Path,
+    input_body_parts: Path,
+    input_body_regions: Path,
+    input_tissues: Path,
+    output_report: Path,
+    output_measurements: Path,
+    examined_body_region: str | None = None,
     save_pdf: bool = True,
 ) -> None:
     # Load data
@@ -115,20 +115,18 @@ def report(
 
     # Save PDF report
     if save_pdf:
-        assert output_report.suffix == ".pdf"
         output_report.parent.mkdir(exist_ok=True, parents=True)
         with output_report.open("wb") as obfile:
             obfile.write(pdf_bytes)
-    assert output_measurements.suffix == ".json"
     output_measurements.parent.mkdir(exist_ok=True, parents=True)
     with (output_measurements).open("w") as ofile:
         json.dump(json_data, ofile, indent=2)
 
 
 def run_pipeline(
-    input_image: pathlib.Path,
-    output_dir: pathlib.Path,
-    examined_body_region: Optional[str] = None,
+    input_image: Path,
+    output_dir: Path,
+    examined_body_region: str | None = None,
     median_filtering: bool = False,
     save_pdf: bool = True,
     force_split: bool = False,
@@ -185,10 +183,10 @@ def run_pipeline(
             logger.warning("No supported body part detected")
         else:
             logger.info(
-                f"Body parts detected: "
-                f"Abdomen={AggregatableBodyPart.ABDOMEN in body_part}, "
-                f"Thorax={AggregatableBodyPart.THORAX in body_part}, "
-                f"Neck={AggregatableBodyPart.NECK in body_part}."
+                "Body parts detected: Abdomen=%s, Thorax=%s, Neck=%s.",
+                AggregatableBodyPart.ABDOMEN in body_part,
+                AggregatableBodyPart.THORAX in body_part,
+                AggregatableBodyPart.NECK in body_part,
             )
 
     vertebrae_info = create_vertebrae_info(total=total, detected_body_part=body_part)

@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import Tuple
 
 import pandas as pd
 
@@ -46,7 +45,7 @@ def change_aggregated_name(name: str) -> str:
 
 def compute_bca_metrics(
     output_path: Path,
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     measurements_path = output_path / "bca-measurements.json"
     with measurements_path.open("r") as of:
         json_measurements = json.load(of)
@@ -78,7 +77,9 @@ def compute_bca_metrics(
                             "Present": False,
                         },
                         {
-                            "BodyPart": f"{convert_name(aggregated_name)}_NoExtremities",
+                            "BodyPart": (
+                                f"{convert_name(aggregated_name)}_NoExtremities"
+                            ),
                             "Present": False,
                         },
                     ]

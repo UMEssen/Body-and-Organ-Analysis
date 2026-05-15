@@ -1,10 +1,11 @@
 import logging
-import os
 import sys
+from pathlib import Path
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "_external"))
+sys.path.append(str(Path(__file__).resolve().parent / "_external"))
 
-# Configures nnUNet_* env vars on import. MUST come before the body_organ_analysis.commands
+# Configures nnUNet_* env vars on import. MUST come before the
+# body_organ_analysis.commands
 # import below, which transitively loads totalsegmentator.nnunet -> nnunetv2.paths.
 import totalsegmentator.nnunet_env  # noqa: F401
 

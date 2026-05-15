@@ -10,14 +10,14 @@ logger = logging.getLogger(__name__)
 
 def nib_to_sitk(image: nibabel.spatialimages.SpatialImage) -> sitk.Image:
     # From https://github.com/Kimerth/torchio/blob/19639037a530d31e8ba487e0945152ca765b8b8a/transforms/transform.py#L50-L62
-    FLIP_XY = np.diag((-1, -1, 1))
+    flip_xy = np.diag((-1, -1, 1))
     data = np.asanyarray(image.dataobj)
     affine = image.affine
-    origin = np.dot(FLIP_XY, affine[:3, 3]).astype(np.float64)
-    RZS = affine[:3, :3]
-    spacing = np.sqrt(np.sum(RZS * RZS, axis=0))
-    R = RZS / spacing
-    direction = np.dot(FLIP_XY, R).flatten()
+    origin = np.dot(flip_xy, affine[:3, 3]).astype(np.float64)
+    rzs = affine[:3, :3]
+    spacing = np.sqrt(np.sum(rzs * rzs, axis=0))
+    r = rzs / spacing
+    direction = np.dot(flip_xy, r).flatten()
     image = sitk.GetImageFromArray(data.transpose())
     image.SetOrigin(origin)
     image.SetSpacing(spacing)
@@ -44,7 +44,10 @@ def make_affine(image: sitk.Image) -> np.ndarray:
 
 def sitk_to_nib(image: sitk.Image) -> nibabel.spatialimages.SpatialImage:
     # https://niftynet.readthedocs.io/en/v0.2.1/_modules/niftynet/io/simple_itk_as_nibabel.html
-    assert isinstance(image, sitk.Image)
+    if not isinstance(image, sitk.Image):
+        raise TypeError(
+            f"'image' must be of type sitk.Image, got {type(image).__name__}"
+        )
     return nibabel.Nifti1Image(
         sitk.GetArrayFromImage(image).transpose(), make_affine(image)
     )
@@ -99,8 +102,10 @@ def load_nibabel_image_with_axcodes(
     axcodes = "".join(axcodes)
     if input_axcodes != axcodes:
         logger.debug(
-            f"Input image does not match the required axcodes: got {input_axcodes}, "
-            f"expected {axcodes}. Automatically reorienting the image volume."
+            "Input image does not match the required axcodes: got %s, "
+            "expected %s. Automatically reorienting the image volume.",
+            input_axcodes,
+            axcodes,
         )
         input_ornt = nibabel.orientations.axcodes2ornt(input_axcodes)
         expected_ornt = nibabel.orientations.axcodes2ornt(axcodes)

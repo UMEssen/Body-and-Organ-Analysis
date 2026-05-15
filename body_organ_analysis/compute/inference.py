@@ -1,7 +1,8 @@
 import json
 import logging
 import pathlib
-from typing import Any, Dict, Iterable, Optional, Tuple
+from collections.abc import Iterable
+from typing import Any
 
 import nibabel as nib
 import numpy as np
@@ -19,23 +20,26 @@ logger = logging.getLogger(__name__)
 def range_warning(ct_image_data: np.ndarray) -> None:
     if np.any(ct_image_data < -1024) or np.any(ct_image_data > 3071):
         logger.warning(
-            f"Unexpected CT values found in input image: "
-            f"got {np.min(ct_image_data)}-{np.max(ct_image_data)}, expected -1024-3071. "
-            f"The values have been clipped to the expected range. "
-            "Please check the segmentations to ensure that everything is correct."
+            "Unexpected CT values found in input image: "
+            "got %s-%s, expected -1024-3071. "
+            "The values have been clipped to the expected range. "
+            "Please check the segmentations to ensure that everything is correct.",
+            np.min(ct_image_data),
+            np.max(ct_image_data),
         )
 
 
 def print_and_collect_image_info(
     ct_path: pathlib.Path,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     ct_orig = nib.load(ct_path)
-    assert len(ct_orig.header.get_data_shape()) == 3, "Only 3D CT scans are supported."
-    logger.info(f"Input image:   {ct_path}")
-    logger.info(f"Image size:    {ct_orig.header.get_data_shape()}")
-    logger.info(f"Image dtype:   {ct_orig.header.get_data_dtype()}")
-    logger.info(f"Voxel spacing: {ct_orig.header.get_zooms()}")
-    logger.info(f"Input Axcodes: {nib.aff2axcodes(ct_orig.affine)}")
+    if ct_orig.ndim != 3:
+        raise ValueError(f"Only 3D CT scans are supported not {ct_orig.ndim}D.")
+    logger.info("Input image:   %s", ct_path)
+    logger.info("Image size:    %s", ct_orig.header.get_data_shape())
+    logger.info("Image dtype:   %s", ct_orig.header.get_data_dtype())
+    logger.info("Voxel spacing: %s", ct_orig.header.get_zooms())
+    logger.info("Input Axcodes: %s", nib.aff2axcodes(ct_orig.affine))
     ct_image_data = load_nibabel_image_with_axcodes(ct_orig, axcodes="LPS")
     range_warning(ct_image_data.get_fdata())
 
@@ -46,14 +50,12 @@ def compute_all_models(
     ct_path: pathlib.Path,
     segmentation_folder: pathlib.Path,
     models_to_compute: Iterable[str] | str,
-    totalsegmentator_params: Dict[str, Any],
-    bca_params: Optional[Dict[str, Any]] = None,
+    totalsegmentator_params: dict[str, Any],
+    bca_params: dict[str, Any] | None = None,
     force_split_threshold: int = 400,
     recompute: bool = True,
-    fast: bool = True,
-    device: str = "gpu",
     cnr_adjustment: bool = True,
-) -> Dict[str, int]:
+) -> dict[str, int]:
     totalsegmentator_params = totalsegmentator_params or {}
     totalsegmentator_params = totalsegmentator_params.copy()
     bca_params = bca_params or {}
@@ -76,7 +78,7 @@ def compute_all_models(
     }
 
     for chosen_task in measurement_models:
-        logger.info(f"Computing model {chosen_task}...")
+        logger.info("Computing model %s...", chosen_task)
         seg_file = segmentation_folder / f"{chosen_task}.nii.gz"
         if not recompute and seg_file.is_file():
             logger.info("The model was already computed, skipping...")
@@ -112,8 +114,12 @@ def compute_all_models(
         )
         if resampling_bca > force_split_threshold:
             logger.info(
-                f"Splitting the image into parts as the number of slices "
-                f"{resampling_bca} is more than {force_split_threshold}"
+                (
+                    "Splitting the image into parts as the "
+                    "number of slices %s is more than %s"
+                ),
+                resampling_bca,
+                force_split_threshold,
             )
         run_pipeline(
             input_image=ct_path,
@@ -132,8 +138,12 @@ def compute_all_models(
         )
         if resampling_bca > force_split_threshold:
             logger.info(
-                f"Splitting the image into parts as the number of slices "
-                f"{resampling_bca} is more than {force_split_threshold}"
+                (
+                    "Splitting the image into parts as the "
+                    "number of slices %s is more than %s"
+                ),
+                resampling_bca,
+                force_split_threshold,
             )
         inference(
             ct_path=ct_path,

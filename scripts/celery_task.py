@@ -6,7 +6,7 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 from time import time
-from typing import Any, ClassVar, Dict, List, Optional, Set
+from typing import Any, ClassVar
 
 import requests
 from celery import Celery, bootsteps
@@ -25,18 +25,18 @@ from util import (
 
 logger = logging.getLogger(__name__)
 
-
-HEARTBEAT_FILE = Path("/tmp/worker_heartbeat")
-READINESS_FILE = Path("/tmp/worker_ready")
+_TMP = Path(tempfile.gettempdir())
+HEARTBEAT_FILE = _TMP / "worker_heartbeat"
+READINESS_FILE = _TMP / "worker_ready"
 
 
 class LivenessProbe(bootsteps.StartStopStep):  # type: ignore[misc]
-    requires: ClassVar[Set[str]] = {"celery.worker.components:Timer"}
+    requires: ClassVar[set[str]] = {"celery.worker.components:Timer"}
 
     def __init__(self, parent: Any, **kwargs: Any) -> None:
         super().__init__(parent, **kwargs)
-        self.requests: List[Any] = []
-        self.tref: Optional[Any] = None
+        self.requests: list[Any] = []  # TODO: can be removed maybe
+        self.tref: Any | None = None
 
     def start(self, worker: Any) -> None:
         self.tref = worker.timer.call_repeatedly(
@@ -46,7 +46,7 @@ class LivenessProbe(bootsteps.StartStopStep):  # type: ignore[misc]
             priority=10,
         )
 
-    def stop(self, worker: Any) -> None:
+    def stop(self, _worker: Any) -> None:
         # logger.debug("Removing heartbeat file.")
         HEARTBEAT_FILE.unlink(missing_ok=True)
 
@@ -92,7 +92,7 @@ app.steps["worker"].add(LivenessProbe)
 
 
 @app.task  # type: ignore[untyped-decorator]
-def analyze_stable_series(resource_id: str) -> Dict[str, Optional[str]]:
+def analyze_stable_series(resource_id: str) -> dict[str, str | None]:
     patient_info = False
     if "PATIENT_INFO_IN_OUTPUT" in os.environ and os.environ[
         "PATIENT_INFO_IN_OUTPUT"
@@ -102,10 +102,10 @@ def analyze_stable_series(resource_id: str) -> Dict[str, Optional[str]]:
     }:
         patient_info = True
         logger.warning(
-            "CAREFUL: You have selected the PATIENT_INFO_IN_OUTPUT option, this means that the "
-            "results will be stored using the name of the patient and the dates of the study. "
-            "Also, if your DICOMs are anonymized, "
-            "you might not be able to distinguish between different patients."
+            "CAREFUL: You have selected the PATIENT_INFO_IN_OUTPUT option, this means "
+            "dates of the study. that the results will be stored using the name of the "
+            "patient and the Also, if your DICOMs are anonymized, you might not be "
+            "able to distinguish between different patients."
         )
     # Get the session ready for the next calls
     session = requests.Session()
@@ -129,15 +129,15 @@ def analyze_stable_series(resource_id: str) -> Dict[str, Optional[str]]:
             "TODO",
         }:
             logger.warning(
-                "The local directory does not exist and no SMB storage has been specified. "
-                "You will not be able to retrieve the Excel results."
+                "The local directory does not exist and no SMB storage has been "
+                "specified. You will not be able to retrieve the Excel results."
             )
         if "SEGMENTATION_UPLOAD_URL" not in os.environ or os.environ[
             "SEGMENTATION_UPLOAD_URL"
         ] in {"", "TODO"}:
             logger.warning(
-                "The local directory does not exist and no DicomWeb link has been specified. "
-                "You will not be able to retrieve the segmentation results."
+                "The local directory does not exist and no DicomWeb link has been "
+                "specified. You will not be able to retrieve the segmentation results."
             )
         logger.info(
             "Using temporary directory for output instead of given storage "
@@ -181,7 +181,7 @@ def analyze_stable_series(resource_id: str) -> Dict[str, Optional[str]]:
 
     secondary_excel_path = get_naming_scheme(dicom_tags, patient_info)
 
-    logger.info(f"The target directory is {secondary_excel_path}.")
+    logger.info("The target directory is %s.", secondary_excel_path)
 
     start_init = time()
     output_information = ""
@@ -189,7 +189,8 @@ def analyze_stable_series(resource_id: str) -> Dict[str, Optional[str]]:
     with tempfile.TemporaryDirectory(prefix="boa_") as working_dir:
         if output_root is not None:
             logger.info(
-                f"The outputs will be stored in {output_root / secondary_excel_path[1:]}"
+                "The outputs will be stored in %s",
+                output_root / secondary_excel_path[1:],
             )
             output_folder = output_root / secondary_excel_path[1:]
             output_folder.mkdir(parents=True, exist_ok=True)
@@ -205,7 +206,7 @@ def analyze_stable_series(resource_id: str) -> Dict[str, Optional[str]]:
         download_time = time() - download_start
         if len(list(input_data_folder.glob("*.dcm"))) == 0:
             output_information += "No DICOMs could be downloaded for this series.\n\n"
-        new_excel_path: Optional[Path] = None
+        new_excel_path: Path | None = None
         try:
             fast = False
             if "PREDICT_FAST" in os.environ and os.environ["PREDICT_FAST"].lower() in {
@@ -238,7 +239,7 @@ def analyze_stable_series(resource_id: str) -> Dict[str, Optional[str]]:
         stats["download_time"] = download_time
         stats["save_persistent_time"] = time() - start_store
     shutil.rmtree(input_data_folder)
-    logger.info(f"Entire pipeline: DONE in {time() - start_init:0.5f}s")
+    logger.info("Entire pipeline: DONE in %0.5fs", time() - start_init)
 
     stats["task_id"] = analyze_stable_series.request.id
     stats["end_timestamp"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")

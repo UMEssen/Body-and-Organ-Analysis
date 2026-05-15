@@ -1,6 +1,5 @@
 import argparse
 import logging
-import os
 import time
 from pathlib import Path
 
@@ -47,7 +46,9 @@ def get_parser() -> argparse.ArgumentParser:
         "--skip-contrast-information",
         default=False,
         action="store_true",
-        help="Whether to skip the computation of the IV phase and GIT contrast presence.",
+        help=(
+            "Whether to skip the computation of the IV phase and GIT contrast presence."
+        ),
     )
 
     parser.add_argument(
@@ -93,7 +94,10 @@ def get_parser() -> argparse.ArgumentParser:
         "-r",
         "--radiomics",
         action="store_true",
-        help="Calc radiomics features. Requires pyradiomics. Results will be in statistics_radiomics.json",
+        help=(
+            "Calc radiomics features. Requires pyradiomics. "
+            "Results will be in statistics_radiomics.json"
+        ),
         default=False,
     )
 
@@ -128,7 +132,10 @@ def get_parser() -> argparse.ArgumentParser:
         "--bca-median-filtering",
         default=False,
         action="store_true",
-        help="Apply median filtering before thresholding tissues using Hounsfield Unit ranges",
+        help=(
+            "Apply median filtering before thresholding "
+            "tissues using Hounsfield Unit ranges"
+        ),
     )
     parser.add_argument(
         "--bca-examined-body-region", choices=["abdomen", "neck", "thorax"]
@@ -155,11 +162,12 @@ def run(argv: list[str] | None = None) -> None:
     else:
         logging.getLogger().setLevel(logging.WARNING)
 
-    if args.triton_url is not None:
-        os.environ["TRITON_URL"] = args.triton_url
-        os.environ["nnUNet_USE_TRITON"] = "1"
-    else:
-        os.environ["nnUNet_USE_TRITON"] = "0"
+    # TODO add triton inference logic
+    # if args.triton_url is not None:
+    #     os.environ["TRITON_URL"] = args.triton_url
+    #     os.environ["nnUNet_USE_TRITON"] = "1"
+    # else:
+    #     os.environ["nnUNet_USE_TRITON"] = "0"
 
     models_to_compute = resolve_models(args.models)
     device = resolve_device(args.device)
@@ -191,7 +199,7 @@ def run(argv: list[str] | None = None) -> None:
             args.output_dir,
             args.output_dir / "statistics_radiomics.json",
         )
-        logger.info(f"  calculated in {time.time() - st:.2f}s")
+        logger.info("  calculated in %.2fs", time.time() - st)
 
     if args.use_study_prefix:
         study_name = args.input_image.name.removesuffix(".nii.gz")

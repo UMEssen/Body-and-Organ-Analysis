@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,8 +33,8 @@ def major_minor_axis(
     l3_mask: np.ndarray,
     body_mask: np.ndarray,
     img_spacing: np.ndarray,
-    plot_axes: Optional[Path] = None,
-) -> Tuple[Optional[float], Optional[float]]:
+    plot_axes: Path | None = None,
+) -> tuple[float | None, float | None]:
     if np.sum(l3_mask) == 0 or np.sum(body_mask) == 0:
         return None, None
     slices = np.where(l3_mask.any(axis=(1, 2)))[0]
@@ -61,7 +61,7 @@ def major_minor_axis(
     )
 
 
-def get_cnr_for_region(measurements: Dict[str, Any], region: str) -> Any:
+def get_cnr_for_region(measurements: dict[str, Any], region: str) -> Any:
     if measurements["segmentations"]["total"][region]["present"]:
         return measurements["segmentations"]["total"][region]["cnr"]
     return None
@@ -71,7 +71,7 @@ def compute_segmentator_metrics(
     ct_path: Path,
     segmentation_folder: Path,
     store_axes: bool = False,
-) -> Tuple[List[Dict[str, Any]], pd.DataFrame, pd.DataFrame]:
+) -> tuple[list[dict[str, Any]], pd.DataFrame, pd.DataFrame]:
     measurements_path = segmentation_folder / "total-measurements.json"
     with measurements_path.open("r") as of:
         json_measurements = json.load(of)
@@ -104,7 +104,7 @@ def compute_segmentator_metrics(
         minor_axis /= 10
         mean_axis = (major_axis + minor_axis) / 2
 
-    records: List[Dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
     for model_name in json_measurements["segmentations"]:
         for region in json_measurements["segmentations"][model_name]:
             base_dict = {
@@ -117,7 +117,7 @@ def compute_segmentator_metrics(
                 new_key = convert_name(key)
                 if "Hu" in new_key:
                     new_key = new_key.replace("Hu", "HU")
-                elif "Cnr" == new_key:
+                elif new_key == "Cnr":
                     new_key = "CNR"
                 base_dict[new_key] = val
             records.append(base_dict)
@@ -141,7 +141,7 @@ def compute_segmentator_metrics(
                 new_key = convert_name(key)
                 if "Hu" in new_key:
                     new_key = new_key.replace("Hu", "HU")
-                elif "Cnr" == new_key:
+                elif new_key == "Cnr":
                     new_key = "CNR"
                 base_dict[new_key] = val
             cnr_records.append(base_dict)

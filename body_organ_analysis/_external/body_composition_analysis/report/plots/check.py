@@ -1,14 +1,12 @@
-from typing import Dict, List, Tuple, Union
-
 import numpy as np
 import SimpleITK as sitk
 
 
 def create_equidistant_overview(
     image: sitk.Image,
-    segmentations: List[Tuple[sitk.Image, Dict[int, Tuple[int, int, int]]]],
+    segmentations: list[tuple[sitk.Image, dict[int, tuple[int, int, int]]]],
     opacity: float = 0.25,
-) -> List[List[Union[str, np.ndarray]]]:
+) -> list[list[str | np.ndarray]]:
     image_arr = sitk.GetArrayViewFromImage(image)
     segmentations_arr = [(sitk.GetArrayViewFromImage(s), c) for s, c in segmentations]
     num_slices = image_arr.shape[0]

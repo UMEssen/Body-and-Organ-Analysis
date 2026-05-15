@@ -83,31 +83,33 @@ dev = [
 build.targets.wheel.packages = [ "body_organ_analysis" ]
 
 [tool.ruff]
+target-version = "py312"
 # Same as Black
 line-length = 88
 lint.select = [
+  "ARG",  # Unused arguments
   "B",    # flake8-bugbear
   "C",    # flake8-comprehensions
   "D401", # First line of docstring should be in imperative mood
   "E",    # pycodestyle errors
   "EXE",  # flake8-executable
   "F",    # pyflakes
+  "G",    # flake8-logging-format
   "I",    # isort
+  "N",    # Naming conventions
+  "PERF", # perflint
   "PL",   # pylint
+  "PTH",  # pathlib usage
   "RUF",  # ruff
+  "S",    # flake8-bandit (security)
+  "SIM",  # flake8-simplify
+  "UP",   # PyUpgrade
   "W",    # pycodestyle warnings
 ]
 lint.ignore = [
-  "C901",    # Is too complex
-  "D100",    # Missing docstring in public module
-  "D101",    # Missing docstring in public class
-  "D104",    # Missing docstring in public package
-  "D105",    # Missing docstring in magic method
-  "E501",    # line too long, handled by black
-  "PLR0912", # Too many branches
-  "PLR0913", # Too many arguments in function definition
-  "PLR0915", # Too many statements
-  "PLR2004", # Magic value used in comparison
+  "C901", # Too complex
+  "N813", # Camelcase imported as lowercase
+  "PLR",  # pylint refactoring
 ]
 lint.unfixable = [
   "F401", # Do not fix unused imports, it's annoying during development
@@ -131,9 +133,13 @@ warn_unused_configs = true
 warn_unreachable = true
 show_error_codes = true
 
-[tool.pymarkdown]
-plugins.md013.code_blocks = false
-plugins.md013.line_length = 80
+[tool.pyright]
+extraPaths = [ "body_organ_analysis/_external" ]
+
+[tool.sqlfluff]
+core.dialect = "postgres"
+rules.capitalisation.keywords.capitalisation_policy = "upper"
+rules.capitalisation.types.extended_capitalisation_policy = "upper"
 
 [virtualenvs]
 create = true

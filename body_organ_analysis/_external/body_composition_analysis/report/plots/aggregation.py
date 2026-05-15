@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import cv2
 import numpy as np
 import SimpleITK as sitk
@@ -12,7 +10,7 @@ def create_aggregation_image(
     image: sitk.Image,
     body_regions: sitk.Image,
     tissues: sitk.Image,
-    group: Tuple[int, int],
+    group: tuple[int, int],
     opacity: float = 0.25,
 ) -> np.ndarray:
     # Access raw data

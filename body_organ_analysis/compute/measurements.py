@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import SimpleITK as sitk
@@ -39,7 +39,7 @@ def autochthon_reference(
     ct_data: np.ndarray,
     autochthon_right_mask: np.ndarray,
     autochthon_left_mask: np.ndarray,
-) -> Tuple[Optional[float], Optional[float]]:
+) -> tuple[float | None, float | None]:
     autochthon_minus_fat_mask = get_region_minus_fat(
         ct_data=ct_data,
         region_mask=np.logical_or(autochthon_right_mask, autochthon_left_mask),
@@ -67,13 +67,13 @@ def erode_region(
 def metrics_for_region(
     ct_data: np.ndarray,
     mask: np.ndarray,
-    autochthon_mean: Optional[float],
-    autochthon_std: Optional[float],
+    autochthon_mean: float | None,
+    autochthon_std: float | None,
     img_spacing: np.ndarray,
     cnr_adjustment: bool = False,
     region_name: str = "",
-) -> Dict[str, Any]:
-    measurements: Dict[str, Any] = {}
+) -> dict[str, Any]:
+    measurements: dict[str, Any] = {}
     if np.sum(mask) == 0:
         measurements["present"] = False
         return measurements
@@ -119,11 +119,11 @@ def metrics_for_region(
 def compute_lung_measurement(
     ct_data: np.ndarray,
     region_data: np.ndarray,
-    ids: List[int],
-    autochthon_mean: Optional[float],
-    autochthon_std: Optional[float],
+    ids: list[int],
+    autochthon_mean: float | None,
+    autochthon_std: float | None,
     img_spacing: np.ndarray,
-) -> Tuple[np.ndarray, Dict[str, Any]]:
+) -> tuple[np.ndarray, dict[str, Any]]:
     mask = create_mask(region_data, ids)
     fat_mask = np.logical_and(
         mask,
@@ -144,11 +144,11 @@ def compute_lung_measurement(
 def ct_pfav(
     ct_data: np.ndarray,
     region_image: sitk.Image,
-    label_map: Dict[str, int],
-    autochthon_mean: Optional[float],
-    autochthon_std: Optional[float],
+    label_map: dict[str, int],
+    autochthon_mean: float | None,
+    autochthon_std: float | None,
     segmentation_folder: Path,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     measurements = {}
     lung_masks = [
         "lung_upper_lobe_left",
@@ -196,12 +196,12 @@ def ct_pfav(
 def metrics_for_each_region(
     ct_data: np.ndarray,
     region_data: np.ndarray,
-    label_map: Dict[str, int],
-    autochthon_mean: Optional[float],
-    autochthon_std: Optional[float],
+    label_map: dict[str, int],
+    autochthon_mean: float | None,
+    autochthon_std: float | None,
     img_spacing: np.ndarray,
     cnr_adjustment: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     measurements = {}
     for region, label in label_map.items():
         mask = create_mask(region_data, label)
@@ -237,16 +237,16 @@ def metrics_for_each_region(
 def compute_measurements(
     ct_path: Path,
     segmentation_folder: Path,
-    models: List[str],
+    models: list[str],
     cnr_adjustment: bool,
-) -> Dict[str, Any]:
-    measurements: Dict[str, Any] = {
+) -> dict[str, Any]:
+    measurements: dict[str, Any] = {
         "segmentations": {},
         "info": {},
     }
     if len(models) == 0:
         return measurements
-    logger.info(f"Computing measurements for the computed segmentations: {models}")
+    logger.info("Computing measurements for the computed segmentations: %s", models)
     ct_image = sitk.ReadImage(str(ct_path))
     ct_data = sitk.GetArrayViewFromImage(ct_image)
     autochthon_mean, autochthon_std = None, None
@@ -261,10 +261,13 @@ def compute_measurements(
         if not model_path.exists():
             continue
         model_image = sitk.ReadImage(str(model_path))
-        assert np.isclose(
+        if not np.isclose(
             ct_image.GetSpacing(),
             model_image.GetSpacing(),
-        ).all(), "The spacing of the image and of the segmentation should be the same"
+        ).all():
+            raise ValueError(
+                "The spacing of the image and of the segmentation should be the same"
+            )
         model_data = sitk.GetArrayViewFromImage(model_image)
         if model_name == "total":
             autochthon_mean, autochthon_std = autochthon_reference(

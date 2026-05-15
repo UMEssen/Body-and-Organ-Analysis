@@ -1,8 +1,6 @@
-from typing import Dict, List, Optional, Union
-
 import numpy as np
 
-ADDITIONAL_MODELS_OUTPUT_NAME: Dict[str, str] = {
+ADDITIONAL_MODELS_OUTPUT_NAME: dict[str, str] = {
     "lung_vessels": "lung_vessels_airways",
     "cerebral_bleed": "cerebral_bleed",
     "hip_implant": "hip_implant",
@@ -13,14 +11,14 @@ ADDITIONAL_MODELS_OUTPUT_NAME: Dict[str, str] = {
 
 
 def convert_resampling_slices(
-    slices: int, current_sampling: float, target_resampling: Optional[float]
+    slices: int, current_sampling: float, target_resampling: float | None
 ) -> int:
     if target_resampling is None:
         return slices
     return round((slices / target_resampling) * current_sampling)
 
 
-def create_mask(region_data: np.ndarray, labels: Union[int, List[int]]) -> np.ndarray:
+def create_mask(region_data: np.ndarray, labels: int | list[int]) -> np.ndarray:
     mask = np.zeros(region_data.shape, dtype=bool)
     if isinstance(labels, int):
         mask[region_data == labels] = True

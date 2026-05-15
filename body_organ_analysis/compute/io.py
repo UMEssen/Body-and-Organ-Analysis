@@ -1,11 +1,12 @@
 import json
 import logging
 import os
+import shutil
 import subprocess
 from datetime import datetime
 from pathlib import Path
 from time import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pydicom
@@ -18,12 +19,12 @@ from body_organ_analysis.compute.constants import SERIES_DESCRIPTIONS
 logger = logging.getLogger(__name__)
 
 
-def _get_smb_info() -> Tuple[str, str]:
+def _get_smb_info() -> tuple[str, str]:
     smb = os.environ["SMB_DIR_OUTPUT"].replace("\\", "/")
     return smb.split("/")[2], smb[:-1] if smb.endswith("/") else smb
 
 
-def store_excel(paths_to_store: List[Path], store_path: str) -> None:
+def store_excel(paths_to_store: list[Path], store_path: str) -> None:
     import smbclient.shutil  # noqa: PLC0415
 
     smbclient.ClientConfig(
@@ -81,11 +82,11 @@ def set_dcm_params(
     _set_timestamp(out_dcm, timestamp)
 
 
-def store_dicoms(input_folder: Path, segmentation_folder: Path) -> List[Dict[str, Any]]:
+def store_dicoms(input_folder: Path, segmentation_folder: Path) -> list[dict[str, Any]]:
     import pydicom_seg  # noqa: PLC0415
     from dicomweb_client.api import DICOMwebClient  # noqa: PLC0415
 
-    generated_dicoms: List[pydicom.Dataset] = []
+    generated_dicoms: list[pydicom.Dataset] = []
     image, dicom_files = _load_series_from_disk(input_folder)
     img_dcm = pydicom.dcmread(dicom_files[0], stop_before_pixels=True)
     start = time()
@@ -94,37 +95,43 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> List[Dict[str
     templates = sorted((Path("body_organ_analysis") / "templates").glob("*-meta.json"))
     logger.info("Generating encapsulated PDF...")
     # Write encapsulated PDF DICOM
+    pdf2dcm = shutil.which("pdf2dcm")
+    if pdf2dcm is None:
+        raise RuntimeError("pdf2dcm not found on PATH")
     if (segmentation_folder / "report.pdf").exists():
-        subprocess.call(
+        subprocess.run(  # noqa: S603
             [
-                "pdf2dcm",
+                pdf2dcm,
                 "--study-from",
                 dicom_files[0],
                 "--title",
                 "Body Composition Analysis Report",
                 str(segmentation_folder / "report.pdf"),
                 str(segmentation_folder / "report.dcm"),
-            ]
+            ],
+            check=True,
         )
     logger.info("Generating DICOMs...")
     for i, template_name in enumerate(templates):
         output_kind = template_name.name.replace("-meta.json", "")
         seg_file = segmentation_folder / f"{output_kind}.nii.gz"
         if not seg_file.exists():
-            logger.warning(f"The segmentation {output_kind} does not exist.")
+            logger.warning("The segmentation %s does not exist.", output_kind)
             continue
         nifti_seg = sitk.ReadImage(str(seg_file))
         seg_array = sitk.GetArrayFromImage(nifti_seg)
-        assert np.isclose(nifti_seg.GetSize(), image.GetSize()).all(), (
-            f"Image and segmentation {output_kind} do not have the same size: "
-            f"{image.GetSize()} vs. {nifti_seg.GetSize()}"
-        )
-        assert np.isclose(nifti_seg.GetSpacing(), image.GetSpacing()).all(), (
-            f"Image and segmentation {output_kind} do not have the same spacing: "
-            f"{image.GetSpacing()} vs. {nifti_seg.GetSpacing()}"
-        )
+        if not np.isclose(nifti_seg.GetSize(), image.GetSize()).all():
+            raise ValueError(
+                f"Image and segmentation {output_kind} do not have the same size: "
+                f"{image.GetSize()} vs. {nifti_seg.GetSize()}"
+            )
+        if not np.isclose(nifti_seg.GetSpacing(), image.GetSpacing()).all():
+            raise ValueError(
+                f"Image and segmentation {output_kind} do not have the same spacing: "
+                f"{image.GetSpacing()} vs. {nifti_seg.GetSpacing()}"
+            )
         if not seg_array.sum():
-            logger.warning(f"The segmentation {output_kind} does not have any values.")
+            logger.warning("The segmentation %s does not have any values.", output_kind)
             continue
         if output_kind in {"body_regions"}:
             # Remove everything with ignore labels
@@ -175,20 +182,22 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> List[Dict[str
     new_session = requests.Session()
     new_session.auth = (os.environ["UPLOAD_USER"], os.environ["UPLOAD_PWD"])
     logger.info(
-        f"Uploading {len(generated_dicoms)} segmentations to {os.environ['SEGMENTATION_UPLOAD_URL']} "
-        f"with user {os.environ['UPLOAD_USER']}."
+        "Uploading %s segmentations to %s with user %s.",
+        len(generated_dicoms),
+        os.environ["SEGMENTATION_UPLOAD_URL"],
+        os.environ["UPLOAD_USER"],
     )
     client = DICOMwebClient(
         os.environ["SEGMENTATION_UPLOAD_URL"],
         session=new_session,
     )
     client.store_instances(generated_dicoms)
-    logger.info(f"Storing results as DICOMS: DONE in {time() - start:0.5f}s")
+    logger.info("Storing results as DICOMS: DONE in %0.5fs", time() - start)
 
     return output_dcm_info
 
 
-def _load_series_from_disk(working_dir: Path) -> Tuple[sitk.Image, List[str]]:
+def _load_series_from_disk(working_dir: Path) -> tuple[sitk.Image, list[str]]:
     reader = sitk.ImageSeriesReader()
     files = reader.GetGDCMSeriesFileNames(str(working_dir))
     reader.SetFileNames(files)
@@ -210,16 +219,17 @@ def get_dataset_attr(dcm: pydicom.Dataset, name: str) -> Any:
 
 def compute_boa(
     dcm: pydicom.Dataset, num_dicoms: int, minimum_images: int = 10
-) -> Tuple[bool, str]:
+) -> tuple[bool, str]:
     if (
         get_dataset_attr(dcm, "Modality") is not None
         and get_dataset_attr(dcm, "Modality") != "CT"
     ):
         message = f"The modality is not CT: {get_dataset_attr(dcm, 'Modality')}."
-        logger.warning(f"The modality is not CT: {get_dataset_attr(dcm, 'Modality')}.")
+        logger.warning("The modality is not CT: %s.", get_dataset_attr(dcm, "Modality"))
         return False, message
 
-    # TODO: Found open source CTs that are SECONDARY, DERIVED, so I have removed the constraints.
+    # TODO: Found open source CTs that are SECONDARY, DERIVED, so I have removed the
+    # constraints
     if get_dataset_attr(dcm, "ImageType") is not None and not all(
         typ in get_dataset_attr(dcm, "ImageType")
         for typ in [
@@ -240,8 +250,8 @@ def compute_boa(
 
 def get_image_info(
     input_folder: Path, output_folder: Path
-) -> Tuple[Path, List[Dict[str, Any]]]:
-    # Add code to communicate with PACS and download the image given study/series instance id
+) -> tuple[Path, list[dict[str, Any]]]:
+    # Add code to communicate with PACS and download the image given study/series uid
     image, dicom_files = _load_series_from_disk(input_folder)
     # Get the DICOM tags
     dcm = pydicom.dcmread(dicom_files[0], stop_before_pixels=True)
@@ -277,11 +287,8 @@ def get_image_info(
         "ScanLength",
     ]:
         # Change the name
-        if name == "PatientSex":
-            new_name = "Gender"
-        else:
-            new_name = name
-        value: Optional[Any] = None
+        new_name = "Gender" if name == "PatientSex" else name
+        value: Any | None = None
         # Change the value
         if name == "Date":
             value = (

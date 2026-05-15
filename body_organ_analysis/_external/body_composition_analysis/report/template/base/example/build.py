@@ -1,5 +1,5 @@
-import pathlib
 import tempfile
+from pathlib import Path
 
 import jinja2
 import weasyprint
@@ -9,10 +9,11 @@ if __name__ == "__main__":
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader(
             [
-                str(pathlib.Path(__file__).parent),
-                str(pathlib.Path(__file__).parent.parent / "template"),
+                str(Path(__file__).parent),
+                str(Path(__file__).parent.parent / "template"),
             ]
-        )
+        ),
+        autoescape=jinja2.select_autoescape(["html", "jinja"]),
     )
 
     # Load the derived report template and render HTML using Jinja2
@@ -26,15 +27,14 @@ if __name__ == "__main__":
     with tempfile.TemporaryDirectory() as tempdir:
         # Write HTML file to disk in order to be able to include relative files
         # (e.g. generated images in the same temporary directory)
-        html_file = pathlib.Path(tempdir) / "index.html"
+        html_file = Path(tempdir) / "index.html"
         with html_file.open("w") as ofile:
             ofile.write(html_content)
 
         # Create Weasyprint document and render as PDF file
         document = weasyprint.HTML(
             filename=html_file,
-            base_url=str(pathlib.Path(__file__).parent.parent / "template"),
+            base_url=str(Path(__file__).parent.parent / "template"),
         )
-        document.write_pdf(pathlib.Path(__file__).parent / "report.pdf")
-
-        document.write_png(str(pathlib.Path(__file__).parent / "report.png"))
+        document.write_pdf(Path(__file__).parent / "report.pdf")
+        document.write_png(str(Path(__file__).parent / "report.png"))

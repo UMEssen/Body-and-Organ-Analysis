@@ -1,6 +1,6 @@
 import re
 from importlib import import_module
-from typing import Any, Tuple
+from typing import Any
 
 PACKAGE_TO_CLASS = {
     "pandas": "training",
@@ -38,18 +38,22 @@ def optional_import(
     alias: str = "",
     descriptor: str = OPTIONAL_IMPORT_MSG_FMT,
     allow_namespace_pkg: bool = False,
-) -> Tuple[Any, bool]:
+) -> tuple[Any, bool]:
     """
     Import an optional module specified by `module` string.
     Any importing related exceptions will be stored, and exceptions raise lazily
     when attempting to use the failed-to-import module.
 
     :param module: name of the module to be imported.
-    :param name: a non-module attribute (such as method/class) to import from the imported module.
+    :param name: a non-module attribute (such as method/class) to import from
+        the imported module.
     :param alias: alias that can be given to the module
-    :param descriptor: a format string for the final error message when using a not imported module.
-    :param allow_namespace_pkg: whether importing a namespace package is allowed. Defaults to False.
-    :return: The imported module and a boolean flag indicating whether the import is successful.
+    :param descriptor: a format string for the final error message when using
+        a not imported module.
+    :param allow_namespace_pkg: whether importing a namespace package is
+        allowed. Defaults to False.
+    :return: The imported module and a boolean flag indicating whether the
+        import is successful.
     """
     tb = None
     if name:

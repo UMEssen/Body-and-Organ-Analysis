@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 import cv2
 import numpy as np
 import SimpleITK as sitk
@@ -11,7 +9,7 @@ from body_composition_analysis.tissue.definition import Tissue
 
 def _get_contour_image(
     body_regions: np.ndarray, axis: int, scale: float
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     mask = np.logical_and(body_regions > 0, body_regions < 255)
     mask = mask.any(axis=axis)
     mask = cv2.resize(
@@ -30,7 +28,7 @@ def _get_contour_image(
 
 def create_tissue_heatmaps(
     body_regions: sitk.Image, tissues: sitk.Image
-) -> List[Tuple[Tissue, np.ndarray, np.ndarray]]:
+) -> list[tuple[Tissue, np.ndarray, np.ndarray]]:
     spacing = tissues.GetSpacing()
     region_data = sitk.GetArrayViewFromImage(body_regions)
     tissue_data = sitk.GetArrayViewFromImage(tissues)

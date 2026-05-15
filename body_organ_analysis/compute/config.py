@@ -1,21 +1,21 @@
 import logging
 import os
-from typing import Optional, Set
 
 from body_organ_analysis.compute.constants import ALL_MODELS
 
 logger = logging.getLogger(__name__)
 
 
-def resolve_models(spec: Optional[str]) -> Set[str]:
+def resolve_models(spec: str | None) -> set[str]:
     if not spec or spec.lower() == "all":
         return set(ALL_MODELS)
     models = set(spec.split("+"))
     invalid = models - ALL_MODELS
     if invalid:
         logger.error(
-            f"Ignoring invalid model entries: {invalid}. "
-            f"Available models are: {sorted(ALL_MODELS)}."
+            "Ignoring invalid model entries: %s. Available models are: %s.",
+            invalid,
+            sorted(ALL_MODELS),
         )
         models -= invalid
     if "bca" in models:

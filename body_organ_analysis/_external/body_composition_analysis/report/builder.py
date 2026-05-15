@@ -3,7 +3,7 @@ import enum
 import logging
 import pathlib
 import tempfile
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import cv2
 import jinja2
@@ -38,7 +38,8 @@ def _pretty_volume(value: float) -> str:
     return f"{value:.2f} mL"
 
 
-def _to_embedded_image(img: np.ndarray, debug_name: Optional[str] = None) -> str:
+# TODO use debug_name for testing
+def _to_embedded_image(img: np.ndarray, _debug_name: str | None = None) -> str:
     _, img_bytes = cv2.imencode(".png", img[..., ::-1])
     return "data:image/png;base64," + base64.b64encode(img_bytes).decode("utf-8")
 
@@ -70,7 +71,8 @@ class AggregatableBodyPart(enum.IntFlag):
         if num_abdomen_slices * slice_thickness >= min_abdomen_length:
             result |= AggregatableBodyPart.ABDOMEN
             logger.info(
-                f"Found abdomen with length of {num_abdomen_slices * slice_thickness} mm"
+                "Found abdomen with length of %s mm",
+                num_abdomen_slices * slice_thickness,
             )
 
         # Detect neck
@@ -85,7 +87,8 @@ class AggregatableBodyPart(enum.IntFlag):
         if num_slices_above_mediastinum * slice_thickness >= min_neck_length:
             result |= AggregatableBodyPart.NECK
             logger.info(
-                f"Found neck with length of {num_slices_above_mediastinum * slice_thickness} mm"
+                "Found neck with length of %s mm",
+                num_slices_above_mediastinum * slice_thickness,
             )
 
         # Detect thorax
@@ -111,7 +114,8 @@ class AggregatableBodyPart(enum.IntFlag):
         ):
             result |= AggregatableBodyPart.THORAX
             logger.info(
-                f"Found thorax with length of {num_thorax_slices * slice_thickness} mm"
+                "Found thorax with length of %s mm",
+                num_thorax_slices * slice_thickness,
             )
 
         return result
@@ -133,7 +137,8 @@ class Builder:
                         pathlib.Path(__file__).parent / "template" / "base" / "template"
                     ),
                 ]
-            )
+            ),
+            autoescape=jinja2.select_autoescape(["html", "jinja"]),
         )
         self._image = image
         self._body_parts = body_parts
@@ -166,7 +171,7 @@ class Builder:
         pdf_data: bytes = document.write_pdf()
         return pdf_data
 
-    def create_png(self, template_name: str, **kwargs: Any) -> List[bytes]:
+    def create_png(self, template_name: str, **kwargs: Any) -> list[bytes]:
         document = self._build_document(template_name, **kwargs)
         return [document.copy([page]).write_png()[0] for page in document.pages]
 
@@ -174,7 +179,7 @@ class Builder:
         self,
         slice_measurements: pd.DataFrame,
         slice_measurements_no_limbs: pd.DataFrame,
-        vertebrae: Optional[Dict[str, Tuple[int, int]]],
+        vertebrae: dict[str, tuple[int, int]] | None,
     ) -> pd.DataFrame:
         # Find relevant regions for aggregation
         groups = [("Whole Scan", 0, self._image.GetDepth())]
@@ -208,8 +213,10 @@ class Builder:
             AggregatableBodyPart.ABDOMEN in self.examined_body_part
             and AggregatableBodyPart.THORAX in self.examined_body_part
         ):
-            assert groups[1][0] == "Abdominal Cavity"
-            assert groups[2][0] == "Thoracic Cavity"
+            if groups[1][0] != "Abdominal Cavity":
+                raise ValueError("Something went wrong for Abdominal Cavity")
+            if groups[2][0] != "Thoracic Cavity":
+                raise ValueError("Something went wrong for Thoracic Cavity")
             groups.insert(1, ("Ventral Cavity", groups[1][1], groups[2][2]))
 
         # If provided add the vertebrae to the aggregation groups
@@ -219,7 +226,7 @@ class Builder:
 
         logger.info("Aggregation groups:")
         for name, min_idx, max_idx in groups:
-            logger.info(f' - "{name}" from slice index {min_idx} to {max_idx}')
+            logger.info(' - "%s" from slice index %s to %s', name, min_idx, max_idx)
 
         # Aggregate measurements
         result = []
@@ -314,7 +321,7 @@ class Builder:
 
         return measurements.replace({np.nan: None})
 
-    def generate_secondary_findings(self) -> List[str]:
+    def generate_secondary_findings(self) -> list[str]:
         result = []
         region_data = sitk.GetArrayViewFromImage(self._body_regions)
         mid_index = region_data.shape[1] // 2
@@ -325,12 +332,13 @@ class Builder:
                 * ml_per_voxel
             )
             result.append(
-                f"Total volume of the abdominal cavity is {_pretty_volume(abdominal_cavity_vol)}"
+                "Total volume of the abdominal cavity "
+                f"is {_pretty_volume(abdominal_cavity_vol)}"
             )
 
         if AggregatableBodyPart.THORAX in self.examined_body_part:
-            # Compute total volume of the thoracic cavity, which consists of three individual
-            # labels from the multi class segmentation
+            # Compute total volume of the thoracic cavity, which consists of three
+            # individual labels from the multi class segmentation
             thoracic_cavity_vol = (
                 np.isin(
                     region_data,
@@ -346,7 +354,7 @@ class Builder:
                 f"Volume of thoracic cavity is {_pretty_volume(thoracic_cavity_vol)}"
             )
 
-            # Compute total volume of the mediastinum, which consists of two individual labels
+            # Compute total volume of the mediastinum, which consists of two labels
             thoracic_cavity_vol = (
                 np.isin(
                     region_data,
@@ -363,7 +371,8 @@ class Builder:
                 np.equal(region_data, BodyRegion.PERICARDIUM).sum() * ml_per_voxel
             )
             result.append(
-                f"Volume enclosed by the pericardial sack is {_pretty_volume(pericardium_vol)}"
+                "Volume enclosed by the pericardial sack is "
+                f"{_pretty_volume(pericardium_vol)}"
             )
 
             # Check for presence of breast implants
@@ -383,14 +392,17 @@ class Builder:
 
                     if len(measurements) == 1:
                         result.append(
-                            f"Patient has a single breast implant on the {measurements[0][0]} side "
-                            f"with volume of {_pretty_volume(measurements[0][1])}"
+                            "Patient has a single breast implant on the "
+                            f"{measurements[0][0]} side with volume of "
+                            f"{_pretty_volume(measurements[0][1])}"
                         )
                     elif len(measurements) == 2:
                         result.append(
                             f"Patient has two breast implants with volume of "
-                            f"{_pretty_volume(measurements[0][1])} ({measurements[0][0]}) and "
-                            f"{_pretty_volume(measurements[1][1])} ({measurements[1][0]})"
+                            f"{_pretty_volume(measurements[0][1])} ("
+                            f"{measurements[0][0]}) and "
+                            f"{_pretty_volume(measurements[1][1])} "
+                            f"({measurements[1][0]})"
                         )
                     else:
                         logger.error("More than two breast implant segments found")
@@ -399,10 +411,10 @@ class Builder:
 
     def prepare(
         self,
-        vertebrae: Optional[Dict[str, Tuple[int, int]]] = None,
-        total: Optional[sitk.Image] = None,
-        total_measurements: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        vertebrae: dict[str, tuple[int, int]] | None = None,
+        total: sitk.Image | None = None,
+        total_measurements: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         ml_per_voxel = np.prod(self._image.GetSpacing()) / 1000.0
         tissue_data = sitk.GetArrayViewFromImage(self._tissues)
 
@@ -536,7 +548,7 @@ class Builder:
             "summary_totalsegmentator": total_summary,
         }
 
-    def create_json(self, **kwargs: Any) -> Dict[str, Any]:
+    def create_json(self, **kwargs: Any) -> dict[str, Any]:
         return {
             "slices": (
                 kwargs["slicewise_measurements"]
