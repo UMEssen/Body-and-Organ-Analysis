@@ -4,7 +4,6 @@ SERIES_DESCRIPTIONS = {
     "tissues": "Tissue Segmentation",
     "total": "Total Body Segmentation",
     "lung_vessels_airways": "Lung Vessels and Airways Segmentation",
-    "covid": "Covid Infiltrate Segmentation",
     "cerebral_bleed": "Intracerebral Hemorrhage Segmentation",
     "hip_implant": "Hip Implant Segmentation",
     "coronary_arteries": "Coronary Arteries Segmentation",
@@ -14,4 +13,16 @@ SERIES_DESCRIPTIONS = {
     "ct_pfav": "Pulmonary Fat Segmentation",
 }
 
-BASE_MODELS = ["body", "total"]
+BASE_MODELS = ["bca", "total"]
+
+ALL_MODELS = {
+    "bca",
+    "body_parts",
+    "cerebral_bleed",
+    "hip_implant",
+    "liver_segments",
+    "liver_vessels",
+    "lung_vessels",
+    "pleural_pericard_effusion",
+    "total",
+}

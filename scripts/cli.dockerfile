@@ -1,36 +1,37 @@
-FROM python:3.9 as poetry2requirements
-COPY pyproject.toml poetry.lock README.md /
-ENV POETRY_HOME=/etc/poetry
-RUN pip3 install poetry==1.6.1
-RUN python3 -m poetry export -E "triton pacs" --without-hashes -f requirements.txt > /Requirements.txt
+FROM nvcr.io/nvidia/pytorch:24.12-py3
 
-FROM nvcr.io/nvidia/pytorch:24.10-py3
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
-# Install app dependencies
-COPY --from=poetry2requirements /Requirements.txt /tmp
-RUN apt-get -y update; DEBIAN_FRONTEND=noninteractive apt-get -y install \
-    curl ffmpeg libsm6 libxext6 libpangocairo-1.0-0 dcmtk xvfb libjemalloc2 && rm -rf /var/lib/apt/lists/*
+RUN apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
+        curl ffmpeg libsm6 libxext6 libpangocairo-1.0-0 dcmtk xvfb libjemalloc2 && \
+    rm -rf /var/lib/apt/lists/*
 
-ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 
 ARG PACKAGE_VERSION
 ARG GIT_VERSION
 ENV BOA_VERSION=$PACKAGE_VERSION
 ENV BOA_GITHASH=$GIT_VERSION
-WORKDIR /app
-
-ENV TOTALSEG_WEIGHTS_PATH="/app/weights"
-ENV MPLCONFIGDIR = "/app/configs"
+ENV TOTALSEG_WEIGHTS_PATH=/app/weights
+ENV MPLCONFIGDIR=/app/configs
 ENV nnUNet_USE_TRITON=0
 
+ENV UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_PYTHON=python3.12 \
+    UV_PROJECT_ENVIRONMENT=/app/.venv
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock README.md /app/
+RUN uv sync --frozen --no-install-project
+
 COPY weights /app/weights
-
-COPY pyproject.toml README.md /app/
 COPY body_organ_analysis /app/body_organ_analysis
+RUN uv sync --frozen
 
-RUN chmod a+rwx -R /app && \
-    pip3 install -U pip && \
-    pip3 install -r /tmp/Requirements.txt && \
-    rm /tmp/Requirements.txt && \
-    pip install pyradiomics && \
-    pip install .
+ENV PATH="/app/.venv/bin:$PATH"
+
+RUN chmod a+rwx -R /app

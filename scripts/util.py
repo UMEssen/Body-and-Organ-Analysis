@@ -17,8 +17,11 @@ logger = logging.getLogger(__name__)
 
 pydicom, _ = imports.optional_import(module="pydicom")
 analyze_ct, _ = imports.optional_import(module="body_organ_analysis", name="analyze_ct")
-BASE_MODELS, _ = imports.optional_import(
-    module="body_organ_analysis.compute.constants", name="BASE_MODELS"
+resolve_models, _ = imports.optional_import(
+    module="body_organ_analysis.compute.config", name="resolve_models"
+)
+resolve_device, _ = imports.optional_import(
+    module="body_organ_analysis.compute.config", name="resolve_device"
 )
 
 ADDITIONAL_MODELS_OUTPUT_NAME, _ = imports.optional_import(
@@ -198,22 +201,12 @@ def build_excel(
 ) -> Tuple[Path, Dict[str, Any]]:
     # Setup before calling
     start = time()
-    all_models = [*BASE_MODELS, "bca"]
-    if "PACS_MODEL" in os.environ:
-        models = os.environ["PACS_MODEL"].split("+")
-        missing = set(models) - set(all_models)
-        if missing:
-            logger.error(
-                f"The following PACS_MODEL entries are invalid: {missing}. "
-                f"Available models are: {all_models}."
-            )
-    else:
-        models = all_models
     excel_path, stats = analyze_ct(
         input_folder=input_data_folder,
         processed_output_folder=output_folder,
         excel_output_folder=output_folder,
-        models=models,
+        models=resolve_models(os.environ.get("PACS_MODEL")),
+        device=resolve_device(),
         fast=fast,
     )
     new_excel_path = excel_path.parent / (

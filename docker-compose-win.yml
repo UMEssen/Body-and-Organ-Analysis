@@ -12,7 +12,7 @@ services:
       - "15672:15672"
 
   worker-gpu:
-    image: shipai/boa-task-gpu
+    image: shipai/boa-worker-gpu
     build:
       dockerfile: scripts/task_gpu.dockerfile
       context: .

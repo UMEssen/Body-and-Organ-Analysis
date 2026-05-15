@@ -29,7 +29,7 @@ Load the docker images:
 ```bash
 docker pull shipai/boa-orthanc
 docker pull shipai/boa-rabbitmq
-docker pull shipai/boa-task-gpu
+docker pull shipai/boa-worker-gpu
 
 # Only needed if you are using a triton instance for the models
 docker pull shipai/boa-task 

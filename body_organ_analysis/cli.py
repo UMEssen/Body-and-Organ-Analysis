@@ -7,6 +7,7 @@ import time
 from totalsegmentator.statistics import get_radiomics_features_for_entire_dir
 
 from body_organ_analysis.commands import analyze_ct
+from body_organ_analysis.compute.config import resolve_device, resolve_models
 
 logger = logging.getLogger(__name__)
 
@@ -160,35 +161,8 @@ def run(argv: list[str] | None = None) -> None:
     else:
         os.environ["nnUNet_USE_TRITON"] = "0"
 
-    if args.models == "all":
-        models_to_compute = {
-            "bca",
-            "body_parts",
-            "cerebral_bleed",
-            "hip_implant",
-            "liver_segments",
-            "liver_vessels",
-            "lung_vessels",
-            "pleural_pericard_effusion",
-            "total",
-        }
-    else:
-        models_to_compute = set(args.models.split("+"))
-        if "bca" in models_to_compute:
-            models_to_compute.add("total")
-
-    device = args.device or os.getenv("DEVICE", "gpu")
-    device, _, gpu_id = device.partition(":")
-    # TotalSegmentator's public API expects "gpu"; accept "cuda" as an alias.
-    if device == "cuda":
-        device = "gpu"
-    gpu_id = gpu_id or os.getenv("NVIDIA_ID")
-    if gpu_id:
-        os.environ.setdefault("NVIDIA_VISIBLE_DEVICES", gpu_id)
-        # Preserve the GPU id in the device string so select_device picks
-        # cuda:<gpu_id> instead of defaulting to cuda:0.
-        if device == "gpu":
-            device = f"gpu:{gpu_id}"
+    models_to_compute = resolve_models(args.models)
+    device = resolve_device(args.device)
 
     analyze_ct(
         input_folder=args.input_image,

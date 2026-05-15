@@ -183,6 +183,9 @@ dependencies = [
     { name = "unittest2" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/9c/f8/bff7e5eaf85b064a85bf8827a6bda04e92e2ff4d2e908c45033344886b44/batchgenerators-0.25.1.tar.gz", hash = "sha256:4663a7f393bf1681d7675648362ba3f11b2a9474fb17228a92aac5d1ad28bb39", size = 76970, upload-time = "2024-11-07T06:56:32.595Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/85/9b/80dd928c6a3a8873677d2aba70274cbe2e411c3f260d063396d50fd5ace4/batchgenerators-0.25.1-py3-none-any.whl", hash = "sha256:edaa428031692eeac06371e12d08f9895cd743d72dc0a33c53acc9d2aad7f74a", size = 100740, upload-time = "2026-05-12T06:56:06.509Z" },
+]
 
 [[package]]
 name = "batchgeneratorsv2"
@@ -198,11 +201,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/c6/de/18e980df1ae1a1a74
 
 [[package]]
 name = "billiard"
-version = "3.6.4.0"
+version = "4.2.4"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/92/91/40de1901da8ec9eeb7c6a22143ba5d55d8aaa790761ca31342cedcd5c793/billiard-3.6.4.0.tar.gz", hash = "sha256:299de5a8da28a783d51b197d496bef4f1595dd023a93a4f59dde1886ae905547", size = 155303, upload-time = "2021-04-01T09:23:50.092Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/58/23/b12ac0bcdfb7360d664f40a00b1bda139cbbbced012c34e375506dbd0143/billiard-4.2.4.tar.gz", hash = "sha256:55f542c371209e03cd5862299b74e52e4fbcba8250ba611ad94276b369b6a85f", size = 156537, upload-time = "2025-11-30T13:28:48.52Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2b/89/0c43de91d4e52eaa7bd748771d417f6ac9e51e66b2f61928c2151bf65878/billiard-3.6.4.0-py3-none-any.whl", hash = "sha256:87103ea78fa6ab4d5c751c4909bcff74617d985de7fa8b672cf8618afd5a875b", size = 89472, upload-time = "2021-04-01T09:23:42.019Z" },
+    { url = "https://files.pythonhosted.org/packages/cb/87/8bab77b323f16d67be364031220069f79159117dd5e43eeb4be2fef1ac9b/billiard-4.2.4-py3-none-any.whl", hash = "sha256:525b42bdec68d2b983347ac312f892db930858495db601b5836ac24e6477cde5", size = 87070, upload-time = "2025-11-30T13:28:47.016Z" },
 ]
 
 [[package]]
@@ -315,21 +318,21 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "acvl-utils", specifier = ">=0.2.5" },
-    { name = "batchgeneratorsv2", specifier = ">=0.3.0" },
+    { name = "batchgeneratorsv2", specifier = ">=0.3" },
     { name = "boa-contrast", specifier = ">=0.1.5,<0.2" },
-    { name = "celery", marker = "extra == 'pacs'", specifier = "==5.2.7" },
+    { name = "celery", marker = "extra == 'pacs'", specifier = ">=5.3,<6" },
     { name = "dataclasses-json", specifier = ">=0.5.7,<1" },
-    { name = "dicomweb-client", marker = "extra == 'pacs'", specifier = ">=0.59.0,<1" },
-    { name = "dicomweb-client", marker = "extra == 'storage'", specifier = ">=0.59.0,<1" },
+    { name = "dicomweb-client", marker = "extra == 'pacs'", specifier = ">=0.59,<1" },
+    { name = "dicomweb-client", marker = "extra == 'storage'", specifier = ">=0.59,<1" },
     { name = "dynamic-network-architectures", specifier = ">=0.4.3" },
-    { name = "fury", specifier = ">=0.8.0,<1" },
+    { name = "fury", specifier = ">=0.8,<1" },
     { name = "jinja2", specifier = ">=3.0.3,<4" },
     { name = "kaleido", specifier = "==0.2.1" },
     { name = "matplotlib", specifier = ">=3.6.2,<4" },
-    { name = "medpy", specifier = ">=0.4.0,<1" },
-    { name = "nibabel", specifier = ">=5.1.0,<6" },
+    { name = "medpy", specifier = ">=0.4,<1" },
+    { name = "nibabel", specifier = ">=5.1,<6" },
     { name = "numpy", specifier = ">=1.24,<2" },
-    { name = "p-tqdm", specifier = ">=1.4.0,<2" },
+    { name = "p-tqdm", specifier = ">=1.4,<2" },
     { name = "pandas", specifier = ">=2,<3" },
     { name = "plotly", specifier = ">=5.3.1,<6" },
     { name = "psutil", specifier = ">=5.9.4,<6" },
@@ -340,19 +343,19 @@ requires-dist = [
     { name = "pywavelets", specifier = ">=1.1.1,<2" },
     { name = "requests", specifier = ">=2.28.2,<3" },
     { name = "scikit-image", specifier = "<=0.28" },
-    { name = "scikit-learn", specifier = "==1.3.0" },
+    { name = "scikit-learn", specifier = "==1.3" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "simpleitk", specifier = ">=2.0.1,<3" },
     { name = "smbprotocol", marker = "extra == 'pacs'", specifier = ">=1.10.1,<2" },
     { name = "smbprotocol", marker = "extra == 'storage'", specifier = ">=1.10.1,<2" },
-    { name = "tqdm", specifier = ">=4.45.0,<5" },
-    { name = "tritonclient", extras = ["grpc"], marker = "extra == 'triton'", specifier = ">=2.5.0,<3" },
+    { name = "tqdm", specifier = ">=4.45,<5" },
+    { name = "tritonclient", extras = ["grpc"], marker = "extra == 'triton'", specifier = ">=2.5,<3" },
     { name = "unidecode", specifier = ">=1.3.6,<2" },
     { name = "weasyprint", specifier = ">=52.5,<53" },
     { name = "xlsxwriter", specifier = ">=3.1.2,<4" },
     { name = "xvfbwrapper", specifier = ">=0.2.9,<1" },
 ]
-provides-extras = ["triton", "pacs", "storage"]
+provides-extras = ["pacs", "storage", "triton"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pre-commit", specifier = ">=4.5.1,<5" }]
@@ -387,7 +390,7 @@ wheels = [
 
 [[package]]
 name = "celery"
-version = "5.2.7"
+version = "5.6.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "billiard" },
@@ -396,12 +399,13 @@ dependencies = [
     { name = "click-plugins" },
     { name = "click-repl" },
     { name = "kombu" },
-    { name = "pytz" },
+    { name = "python-dateutil" },
+    { name = "tzlocal" },
     { name = "vine" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ce/21/41a0028f6d610987c0839250357c1a00f351790b8a448c2eb323caa719ac/celery-5.2.7.tar.gz", hash = "sha256:fafbd82934d30f8a004f81e8f7a062e31413a23d444be8ee3326553915958c6d", size = 1474243, upload-time = "2022-05-29T12:58:03.046Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/b4/a1233943ab5c8ea05fb877a88a0a0622bf47444b99e4991a8045ac37ea1d/celery-5.6.3.tar.gz", hash = "sha256:177006bd2054b882e9f01be59abd8529e88879ef50d7918a7050c5a9f4e12912", size = 1742243, upload-time = "2026-03-26T12:14:51.76Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1d/99/21fe9d1829cab4fc77d18f89d0c4cbcfe754e95f8b8f4af64fe4997c442f/celery-5.2.7-py3-none-any.whl", hash = "sha256:138420c020cd58d6707e6257b6beda91fd39af7afde5d36c6334d175302c0e14", size = 405637, upload-time = "2022-05-29T12:57:59.911Z" },
+    { url = "https://files.pythonhosted.org/packages/cf/c9/6eccdda96e098f7ae843162db2d3c149c6931a24fda69fe4ab84d0027eb5/celery-5.6.3-py3-none-any.whl", hash = "sha256:0808f42f80909c4d5833202360ffafb2a4f83f4d8e23e1285d926610e9a7afa6", size = 451235, upload-time = "2026-03-26T12:14:49.491Z" },
 ]
 
 [[package]]
@@ -2983,6 +2987,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/5e/a7/c202b344c5ca7daf398f3b8a477eeb205cf3b6f32e7ec3a6bac0629ca975/tzdata-2025.3.tar.gz", hash = "sha256:de39c2ca5dc7b0344f2eba86f49d614019d29f060fc4ebc8a417896a620b56a7", size = 196772, upload-time = "2025-12-13T17:45:35.667Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/b0/003792df09decd6849a5e39c28b513c06e84436a54440380862b5aeff25d/tzdata-2025.3-py2.py3-none-any.whl", hash = "sha256:06a47e5700f3081aab02b2e513160914ff0694bce9947d6b76ebd6bf57cfc5d1", size = 348521, upload-time = "2025-12-13T17:45:33.889Z" },
+]
+
+[[package]]
+name = "tzlocal"
+version = "5.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "tzdata", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8b/2e/c14812d3d4d9cd1773c6be938f89e5735a1f11a9f184ac3639b93cef35d5/tzlocal-5.3.1.tar.gz", hash = "sha256:cceffc7edecefea1f595541dbd6e990cb1ea3d19bf01b2809f362a03dd7921fd", size = 30761, upload-time = "2025-03-05T21:17:41.549Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c2/14/e2a54fabd4f08cd7af1c07030603c3356b74da07f7cc056e600436edfa17/tzlocal-5.3.1-py3-none-any.whl", hash = "sha256:eb1a66c3ef5847adf7a834f1be0800581b683b5608e74f86ecbcef8ab91bb85d", size = 18026, upload-time = "2025-03-05T21:17:39.857Z" },
 ]
 
 [[package]]

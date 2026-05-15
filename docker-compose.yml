@@ -12,7 +12,7 @@ services:
       - "15672:15672"
 
   worker-gpu:
-    image: shipai/boa-task-gpu
+    image: shipai/boa-worker-gpu
     runtime: nvidia
     build:
       dockerfile: scripts/task_gpu.dockerfile
@@ -22,6 +22,7 @@ services:
         - PACKAGE_VERSION=${PACKAGE_VERSION}
     environment:
       - NVIDIA_VISIBLE_DEVICES=${NVIDIA_ID}
+      - DOCKER_USER
       - CELERY_BROKER
       - ORTHANC_URL
       - ORTHANC_PORT
@@ -43,7 +44,6 @@ services:
       - UPLOAD_USER
       - UPLOAD_PWD
     restart: always
-    user: ${DOCKER_USER}
     deploy:
       resources:
         limits:
@@ -53,8 +53,6 @@ services:
       memlock: -1
       stack: 67108864
     volumes:
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/group:/etc/group:ro
       - ${SEGMENTATION_DIR}:/storage_directory
       - ${LOCAL_WEIGHTS_PATH}:/app/weights
     command:
@@ -69,6 +67,8 @@ services:
         "--loglevel=INFO",
         "-P",
         "threads",
+        "--without-mingle",
+        "--without-gossip",
       ]
     depends_on:
       - rabbitmq
@@ -82,6 +82,7 @@ services:
         - GIT_VERSION=${GIT_VERSION}
         - PACKAGE_VERSION=${PACKAGE_VERSION}
     environment:
+      - DOCKER_USER
       - CELERY_BROKER
       - ORTHANC_URL
       - ORTHANC_PORT
@@ -103,14 +104,11 @@ services:
       - SMB_USER
       - SMB_PWD
     restart: always
-    user: ${DOCKER_USER}
     deploy:
       resources:
         limits:
           cpus: "5"
     volumes:
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/group:/etc/group:ro
       - ${SEGMENTATION_DIR}:/storage_directory
       - ${LOCAL_WEIGHTS_PATH}:/app/weights
     command:
@@ -125,6 +123,8 @@ services:
         "--loglevel=INFO",
         "-P",
         "threads",
+        "--without-mingle",
+        "--without-gossip",
       ]
     depends_on:
       - rabbitmq

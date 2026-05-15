@@ -1,4 +1,4 @@
-FROM osimis/orthanc:23.2.0
+FROM orthancteam/orthanc:26.4.2
 
 ARG PACKAGE_VERSION
 ARG GIT_VERSION
@@ -8,7 +8,8 @@ ENV VERBOSE_STARTUP=true
 ENV BOA_VERSION=$PACKAGE_VERSION
 ENV BOA_GITHASH=$GIT_VERSION
 
-RUN pip3 install celery==5.2.7 unidecode==1.3.6 requests==2.31.0 psycopg2-binary==2.9.9
+RUN pip3 install --break-system-packages \
+    celery==5.6.3 unidecode==1.4.0 requests==2.34.0 psycopg2-binary==2.9.12
 
 COPY scripts/*.py /
 

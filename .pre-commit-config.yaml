@@ -1,3 +1,5 @@
+exclude: '^body_organ_analysis/_external/(nnunetv2|totalsegmentator)/'
+
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: v0.11.9
