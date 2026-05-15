@@ -1,8 +1,8 @@
 import argparse
 import logging
 import os
-from pathlib import Path
 import time
+from pathlib import Path
 
 from totalsegmentator.statistics import get_radiomics_features_for_entire_dir
 
@@ -177,10 +177,9 @@ def run(argv: list[str] | None = None) -> None:
         bca_median_filtering=args.bca_median_filtering,
         bca_examined_body_region=args.bca_examined_body_region,
         bca_pdf=not args.bca_no_pdf,
-        bca_compute_bmd=False,
         recompute=args.force_recompute,
         nnunet_verbose=args.nnunet_verbose,
-        fast=False, # TODO
+        fast=False,  # TODO
         cnr_adjustment=args.cnr_adjustment,
     )
 

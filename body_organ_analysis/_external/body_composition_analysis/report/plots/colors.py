@@ -1,8 +1,10 @@
-from typing import List, Tuple
 import colorsys
+from typing import List, Tuple
+
 import numpy as np
-from body_composition_analysis.tissue.definition import BodyRegion, Tissue
 from matplotlib.colors import LinearSegmentedColormap
+
+from body_composition_analysis.tissue.definition import BodyRegion, Tissue
 
 BODY_REGION_COLORS = {
     BodyRegion.ABDOMINAL_CAVITY: (6, 158, 45),
@@ -77,13 +79,12 @@ def _generate_general_color_map(num_colors: int) -> np.ndarray:
     return cmap
 
 
-def get_colors(num_colors: int):
-    return [
-        tuple(
-            int(c * 255) for c in colorsys.hsv_to_rgb((x * 1.0) / num_colors, 1.0, 1.0)
-        )
-        for x in range(num_colors)
-    ]
+def get_colors(num_colors: int) -> list[tuple[int, int, int]]:
+    result: list[tuple[int, int, int]] = []
+    for x in range(num_colors):
+        r, g, b = colorsys.hsv_to_rgb(x / num_colors, 1.0, 1.0)
+        result.append((int(r * 255), int(g * 255), int(b * 255)))
+    return result
 
 
 TOTAL_COLOR_MAP = _generate_general_color_map(104)

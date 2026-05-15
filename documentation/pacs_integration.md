@@ -32,7 +32,7 @@ docker pull shipai/boa-rabbitmq
 docker pull shipai/boa-worker-gpu
 
 # Only needed if you are using a triton instance for the models
-docker pull shipai/boa-task 
+docker pull shipai/boa-task
 ```
 
 or clone the repository and build the images. If you are doing this, please set

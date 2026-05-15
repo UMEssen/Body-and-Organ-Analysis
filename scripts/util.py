@@ -147,7 +147,7 @@ def write_to_postgres(
         return
     try:
         cur = db_conn.cursor()
-        keys, values = zip(*data.items())
+        keys, values = zip(*data.items(), strict=False)
         assert "task_id" in keys, "The task_id field must be given to update the row."
         query = f"""
         INSERT INTO boa_entries ({", ".join(keys)})

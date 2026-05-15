@@ -1,25 +1,27 @@
 import base64
-from typing import Dict, List
+from typing import List
+
 import cv2
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import SimpleITK as sitk
+from plotly.subplots import make_subplots
+
 from body_composition_analysis.report.plots.colors import (
     TISSUE_COLOR_MAP,
     TISSUE_COLOR_SCALE,
     TOTAL_COLOR_MAP,
 )
 from body_composition_analysis.tissue.definition import Tissue
-from plotly.subplots import make_subplots
 
 
 def _central_overlay_image(
     image: np.ndarray,
     seg: np.ndarray,
     axis: int,
-    colormap: Dict,
-    chosen_slice: int = None,
+    colormap: np.ndarray,
+    chosen_slice: int | None = None,
     opacity: float = 0.25,
 ) -> np.ndarray:
     n = np.take(image.shape, axis)

@@ -2,13 +2,15 @@ import logging
 import warnings
 from pathlib import Path
 from time import time
-from typing import Any, Dict, List, Optional, Tuple, Iterable
+from typing import Any, Dict, Iterable, Optional
 
 import pandas as pd
 import SimpleITK as sitk
 from boa_contrast import predict
-from body_organ_analysis._external.body_composition_analysis.body_regions.definition import BodyRegion
 
+from body_organ_analysis._external.body_composition_analysis.body_regions.definition import (
+    BodyRegion,
+)
 from body_organ_analysis._version import __githash__, __version__
 from body_organ_analysis.compute.bca_metrics import compute_bca_metrics
 from body_organ_analysis.compute.inference import compute_all_models
@@ -41,7 +43,6 @@ def analyze_ct(
     bca_median_filtering: bool = False,
     bca_examined_body_region: Optional[str] = None,
     bca_pdf: bool = True,
-    bca_compute_bmd: bool = False,
     recompute: bool = False,
     nnunet_verbose: bool = False,
     fast: bool = False,
@@ -90,7 +91,6 @@ def analyze_ct(
             "median_filtering": bca_median_filtering,
             "examined_body_region": bca_examined_body_region,
             "save_pdf": bca_pdf,
-            "compute_bmd": bca_compute_bmd,
         },
         recompute=recompute,
         fast=fast,
@@ -102,10 +102,10 @@ def analyze_ct(
     stats["inference_time"] = time() - start
     stats.update(ct_stats)
 
-    aggr_df, slices_df, slices_no_limbs_df, bmd_df = None, None, None, None
+    aggr_df, slices_df, slices_no_limbs_df = None, None, None
     if "bca" in models:
         start = time()
-        aggr_df, slices_df, slices_no_limbs_df, bmd_df = compute_bca_metrics(
+        aggr_df, slices_df, slices_no_limbs_df = compute_bca_metrics(
             output_path=seg_output,
         )
         logger.info(f"Metrics from BCA: DONE in {time() - start:0.5f}s")
@@ -204,8 +204,6 @@ def analyze_ct(
             slices_no_limbs_df.to_excel(
                 writer, sheet_name="bca-slice_measurements_no_ext", index=False
             )
-        if bmd_df is not None:
-            bmd_df.to_excel(writer, sheet_name="bmd", index=False)
     logger.info(f"Excel stored: DONE in {time() - start:0.5f}s")
     stats["excel_time"] = time() - start
     logger.info(f"Complete CT analysis: DONE in {time() - start_total:0.5f}s")

@@ -1,8 +1,12 @@
 import logging
 from pathlib import Path
+from typing import Any
 
 import nibabel
 import SimpleITK as sitk
+from totalsegmentator.nnunet import nnUNet_predict_image
+from totalsegmentator.python_api import select_device
+
 from body_composition_analysis.body_parts.postprocess import (
     postprocess_part_segmentation,
 )
@@ -10,9 +14,6 @@ from body_composition_analysis.body_regions.postprocess import (
     postprocess_region_segmentation,
 )
 from body_composition_analysis.io import sitk_to_nib
-from totalsegmentator.libs import download_pretrained_weights
-from totalsegmentator.nnunet import nnUNet_predict_image
-from totalsegmentator.python_api import select_device
 from body_composition_analysis.tasks import get_task_info
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ def inference(
     force_split: bool = False,
     recompute: bool = False,
     crop: nibabel.Nifti1Image | None = None,
-    totalsegmentator_params: dict | None = None,
+    totalsegmentator_params: dict[str, Any] | None = None,
 ) -> nibabel.Nifti1Image:
     totalsegmentator_params = totalsegmentator_params or {}
     if task_name not in BCA_TASKS:

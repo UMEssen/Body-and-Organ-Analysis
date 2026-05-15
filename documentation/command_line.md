@@ -23,17 +23,20 @@ then you can run your image!
 ```bash
 docker run \
     --rm \
-    -v $INPUT_FILE:/image.nii.gz \
-    -v $WORKING_DIR:/workspace \
-    -v $LOCAL_WEIGHTS_PATH:/app/weights \ # Add this to avoid redownloading
+    -v "$INPUT_FILE":/image.nii.gz \
+    -v "$WORKING_DIR":/workspace \
+    -v "$LOCAL_WEIGHTS_PATH":/app/weights \
     --runtime=nvidia \
     --network host \
-    --user $(id -u):$(id -g) \ # This sets your user ID
+    --user $(id -u):$(id -g) \
     --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
     --entrypoint /bin/sh \
     shipai/boa-cli \
-    -c \
-    "python body_organ_analysis --input-image /image.nii.gz --output-dir /workspace/ --models all --verbose"
+    -c "python body_organ_analysis \
+        --input-image /image.nii.gz \
+        --output-dir /workspace/ \
+        --models all \
+        --verbose"
 ```
 
 ## Run on Windows
@@ -41,16 +44,19 @@ docker run \
 ```bash
 docker run \
     --rm \
-    -v $INPUT_FILE:/image.nii.gz \
-    -v $WORKING_DIR:/workspace \
-    -v $LOCAL_WEIGHTS_PATH:/app/weights \ # Add this to avoid redownloading
+    -v "$INPUT_FILE":/image.nii.gz \
+    -v "$WORKING_DIR":/workspace \
+    -v "$LOCAL_WEIGHTS_PATH":/app/weights \
     --gpus all \
     --network host \
     --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
     --entrypoint /bin/sh \
     shipai/boa-cli \
-    -c \
-    "python body_organ_analysis --input-image /image.nii.gz --output-dir /workspace/ --models all --verbose"
+    -c "python body_organ_analysis \
+        --input-image /image.nii.gz \
+        --output-dir /workspace/ \
+        --models all \
+        --verbose"
 ```
 
 where `$INPUT_FILE` is the path to the input CT and `$WORKING_DIR` is the path

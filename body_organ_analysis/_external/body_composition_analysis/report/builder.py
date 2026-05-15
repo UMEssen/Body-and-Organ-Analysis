@@ -12,21 +12,21 @@ import pandas as pd
 import SimpleITK as sitk
 import skimage.measure
 import weasyprint
-from body_composition_analysis import debug_mode_enabled, get_debug_dir
+
 from body_composition_analysis.body_parts.definition import BodyParts
 from body_composition_analysis.report.plots.aggregation import create_aggregation_image
 from body_composition_analysis.report.plots.check import create_equidistant_overview
+from body_composition_analysis.report.plots.colors import (
+    BODY_REGION_COLOR_MAP,
+    TISSUE_COLOR_MAP,
+    TOTAL_COLOR_MAP,
+)
 from body_composition_analysis.report.plots.heatmaps import create_tissue_heatmaps
 from body_composition_analysis.report.plots.overview import (
     create_tissue_summary,
     create_totalsegmentator_summary,
 )
 from body_composition_analysis.tissue.definition import BodyRegion, Tissue
-from body_composition_analysis.report.plots.colors import (
-    BODY_REGION_COLOR_MAP,
-    TISSUE_COLOR_MAP,
-    TOTAL_COLOR_MAP,
-)
 from body_organ_analysis._version import __githash__, __version__
 
 logger = logging.getLogger(__name__)
@@ -34,15 +34,12 @@ logger = logging.getLogger(__name__)
 
 def _pretty_volume(value: float) -> str:
     if value >= 1000:
-        return f"{value/1000:.3f} L"
+        return f"{value / 1000:.3f} L"
     return f"{value:.2f} mL"
 
 
 def _to_embedded_image(img: np.ndarray, debug_name: Optional[str] = None) -> str:
     _, img_bytes = cv2.imencode(".png", img[..., ::-1])
-    if debug_mode_enabled() and debug_name is not None:
-        with (get_debug_dir() / f"report_{debug_name}.png").open("wb") as ofile:
-            ofile.write(img_bytes)
     return "data:image/png;base64," + base64.b64encode(img_bytes).decode("utf-8")
 
 
@@ -166,13 +163,6 @@ class Builder:
 
     def create_pdf(self, template_name: str, **kwargs: Any) -> bytes:
         document = self._build_document(template_name, **kwargs)
-        if debug_mode_enabled():
-            for idx, page in enumerate(document.pages):
-                png_bytes, _, _ = document.copy([page]).write_png(resolution=300)
-                with (get_debug_dir() / f"report_page_{idx:02d}.png").open(
-                    "wb"
-                ) as ofile:
-                    ofile.write(png_bytes)
         pdf_data: bytes = document.write_pdf()
         return pdf_data
 
@@ -186,8 +176,6 @@ class Builder:
         slice_measurements_no_limbs: pd.DataFrame,
         vertebrae: Optional[Dict[str, Tuple[int, int]]],
     ) -> pd.DataFrame:
-        _, _, slice_thickness = self._image.GetSpacing()
-
         # Find relevant regions for aggregation
         groups = [("Whole Scan", 0, self._image.GetDepth())]
         region_data = sitk.GetArrayViewFromImage(self._body_regions)
@@ -412,7 +400,6 @@ class Builder:
     def prepare(
         self,
         vertebrae: Optional[Dict[str, Tuple[int, int]]] = None,
-        bmd: Optional = None,
         total: Optional[sitk.Image] = None,
         total_measurements: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
@@ -462,9 +449,6 @@ class Builder:
         image_summary = create_tissue_summary(self._image, self._tissues, df).to_image(
             format="svg"
         )
-        if debug_mode_enabled():
-            with (get_debug_dir() / "report_tissue_summary.svg").open("wb") as ofile:
-                ofile.write(image_summary)
         image_summary = "data:image/svg+xml;base64," + base64.b64encode(
             image_summary
         ).decode("utf-8")
@@ -521,8 +505,6 @@ class Builder:
 
         aggregations = self.generate_aggregated_measurements(df, df_no_limbs, vertebrae)
 
-        bmd_measurements = None
-
         if (
             total_measurements is None
             or "segmentations" not in total_measurements
@@ -542,18 +524,17 @@ class Builder:
                 inplace=True,
             )
 
-        return dict(
-            aggregated_measurements=aggregations,
-            equidistant_slice_check=equidistant_slice_check,
-            image_summary=image_summary,
-            other_findings=self.generate_secondary_findings(),
-            slicewise_measurements=df,
-            slicewise_measurements_no_limbs=df_no_limbs,
-            measurements_total=df_total,
-            tissue_heatmaps=heatmaps,
-            bmd_measurements=bmd_measurements,
-            summary_totalsegmentator=total_summary,
-        )
+        return {
+            "aggregated_measurements": aggregations,
+            "equidistant_slice_check": equidistant_slice_check,
+            "image_summary": image_summary,
+            "other_findings": self.generate_secondary_findings(),
+            "slicewise_measurements": df,
+            "slicewise_measurements_no_limbs": df_no_limbs,
+            "measurements_total": df_total,
+            "tissue_heatmaps": heatmaps,
+            "summary_totalsegmentator": total_summary,
+        }
 
     def create_json(self, **kwargs: Any) -> Dict[str, Any]:
         return {
@@ -581,9 +562,7 @@ class Builder:
                 .to_dict("records")
             ),
             "aggregated": {
-                name.lower()
-                .replace(" ", "_")
-                .replace("-", "_"): {
+                name.lower().replace(" ", "_").replace("-", "_"): {
                     "num_slices": int(max_z - min_z),
                     "min_slice_idx": int(min_z),
                     "max_slice_idx": int(max_z),
@@ -634,9 +613,5 @@ class Builder:
                 "abdomen": AggregatableBodyPart.ABDOMEN in self.examined_body_part,
                 "neck": AggregatableBodyPart.NECK in self.examined_body_part,
                 "thorax": AggregatableBodyPart.THORAX in self.examined_body_part,
-            },
-            "bmd": {
-                x[0]: x[2].to_dict() if x[2] is not None else {"error": x[3]}
-                for x in kwargs["bmd_measurements"] or []
             },
         }

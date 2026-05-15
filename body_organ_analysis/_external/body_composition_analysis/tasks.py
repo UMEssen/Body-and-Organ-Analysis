@@ -1,4 +1,18 @@
-task_vals = {
+from typing import TypedDict
+
+import nibabel
+
+
+class TaskConfig(TypedDict):
+    task_id: int
+    resample: float
+    folds: list[int]
+    resample_only_thickness: bool
+    trainer: str
+    crop: nibabel.Nifti1Image | None
+
+
+task_vals: dict[str, TaskConfig] = {
     "body_parts": {
         "task_id": 543,
         "resample": 5.0,
@@ -18,5 +32,5 @@ task_vals = {
 }
 
 
-def get_task_info(task_name: str, fast: bool = False):
+def get_task_info(task_name: str, fast: bool = False) -> TaskConfig:
     return task_vals[task_name]

@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Tuple
 
 import pandas as pd
 
@@ -46,7 +46,7 @@ def change_aggregated_name(name: str) -> str:
 
 def compute_bca_metrics(
     output_path: Path,
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, Optional[pd.DataFrame]]:
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     measurements_path = output_path / "bca-measurements.json"
     with measurements_path.open("r") as of:
         json_measurements = json.load(of)
@@ -104,12 +104,6 @@ def compute_bca_metrics(
     aggregation_df = pd.concat(dfs, copy=False)
     slices_df = pd.DataFrame(json_measurements["slices"])
     slices_no_limbs_df = pd.DataFrame(json_measurements["slices_no_extremities"])
-    bmd_df = pd.DataFrame(json_measurements["bmd"]).T.reset_index()
-    bmd_df.rename(
-        {"index": "vertebrae"},
-        axis=1,
-        inplace=True,
-    )
     rename_cols["index"] = "SliceNumber"
     for df in [slices_df, slices_no_limbs_df]:
         df.index = df.index + 1
@@ -119,5 +113,4 @@ def compute_bca_metrics(
         aggregation_df,
         slices_df,
         slices_no_limbs_df,
-        bmd_df if len(bmd_df) > 0 else None,
     )

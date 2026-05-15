@@ -1,18 +1,18 @@
-exclude: '^body_organ_analysis/_external/(nnunetv2|totalsegmentator)/'
+exclude: "^body_organ_analysis/_external/(nnunetv2|totalsegmentator)/"
 
 repos:
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.11.9
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.12
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
+    rev: v1.20.2
     hooks:
       - id: mypy
-        language_version: python3
+        language_version: python3.12
         additional_dependencies: ["types-pytz", "types-requests"]
 
   - repo: https://github.com/pre-commit/mirrors-prettier
@@ -22,21 +22,52 @@ repos:
         types_or: [html, css, json, javascript, xml, yaml]
 
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.5.1
+    rev: v2.21.2
     hooks:
       - id: pyproject-fmt
         types: [toml]
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.18.0
+    rev: v0.22.1
     hooks:
       - id: markdownlint-cli2
         args: [--fix]
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.2
+    hooks:
+      - id: codespell
         types: [markdown]
 
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+  - repo: local
     hooks:
-      - id: end-of-file-fixer
-      - id: check-merge-conflict
+      - id: export-requirements
+        name: Export requirements
+        entry: uv
+        args:
+          [
+            export,
+            --format,
+            requirements.txt,
+            --locked,
+            --no-emit-local,
+            --no-all-extras,
+            --no-hashes,
+            --output-file,
+            requirements.txt,
+          ]
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
       - id: check-added-large-files
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: trailing-whitespace

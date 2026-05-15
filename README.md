@@ -38,26 +38,26 @@ If you use this tool, please cite the following papers:
 [BOA](https://journals.lww.com/investigativeradiology/abstract/9900/boa__a_ct_based_body_and_organ_analysis_for.176.aspx):
 
 ```text
-Haubold, J., Baldini, G., Parmar, V., Schaarschmidt, B. M., Koitka, S., Kroll, 
-L., van Landeghem, N., Umutlu, L., Forsting, M., Nensa, F., & Hosch, R. (2023). 
-BOA: A CT-Based Body and Organ Analysis for Radiologists at the Point of Care. 
-Investigative radiology, 10.1097/RLI.0000000000001040. Advance online 
+Haubold, J., Baldini, G., Parmar, V., Schaarschmidt, B. M., Koitka, S., Kroll,
+L., van Landeghem, N., Umutlu, L., Forsting, M., Nensa, F., & Hosch, R. (2023).
+BOA: A CT-Based Body and Organ Analysis for Radiologists at the Point of Care.
+Investigative radiology, 10.1097/RLI.0000000000001040. Advance online
 publication. https://doi.org/10.1097/RLI.0000000000001040
 ```
 
 [TotalSegmentator](https://pubs.rsna.org/doi/10.1148/ryai.230024):
 
 ```text
-Wasserthal J, Breit H-C, Meyer MT, et al. TotalSegmentator: Robust Segmentation 
-of 104 Anatomic Structures in CT Images. Radiol. Artif. Intell. 2023:e230024. 
+Wasserthal J, Breit H-C, Meyer MT, et al. TotalSegmentator: Robust Segmentation
+of 104 Anatomic Structures in CT Images. Radiol. Artif. Intell. 2023:e230024.
 Available at: https://pubs.rsna.org/doi/10.1148/ryai.230024.
 ```
 
 [nnU-Net](https://www.nature.com/articles/s41592-020-01008-z):
 
 ```text
-Isensee F, Jaeger PF, Kohl SAA, et al. nnU-Net: a self-configuring method for 
-deep learning-based biomedical image segmentation. Nat. Methods. 
+Isensee F, Jaeger PF, Kohl SAA, et al. nnU-Net: a self-configuring method for
+deep learning-based biomedical image segmentation. Nat. Methods.
 2021;18(2):203–211. Available at: https://www.nature.com/articles/s41592-020-01008-z.
 ```
 

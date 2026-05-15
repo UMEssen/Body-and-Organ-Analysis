@@ -1,16 +1,17 @@
 import json
 import logging
 import pathlib
-from typing import Any, Dict, List, Optional, Tuple, Iterable
+from typing import Any, Dict, Iterable, Optional, Tuple
 
 import nibabel as nib
 import numpy as np
 from body_composition_analysis.commands import run_pipeline
+from body_composition_analysis.infer.infer import inference
 from body_composition_analysis.io import load_nibabel_image_with_axcodes
 from totalsegmentator.python_api import totalsegmentator
+
 from body_organ_analysis.compute.measurements import compute_measurements
-from body_composition_analysis.infer.infer import inference
-from body_organ_analysis.compute.util import convert_resampling_slices, create_mask
+from body_organ_analysis.compute.util import convert_resampling_slices
 
 logger = logging.getLogger(__name__)
 
@@ -56,12 +57,14 @@ def compute_all_models(
     totalsegmentator_params = totalsegmentator_params or {}
     totalsegmentator_params = totalsegmentator_params.copy()
     bca_params = bca_params or {}
-    preview_param = totalsegmentator_params.get("preview", False)
+    with_preview = totalsegmentator_params.get("preview", False)
     if "preview" in totalsegmentator_params:
         del totalsegmentator_params["preview"]
 
     shape, spacing = print_and_collect_image_info(ct_path)
-    measurement_models = [m for m in models_to_compute if m not in {"bca", "body_parts"}]
+    measurement_models = [
+        m for m in models_to_compute if m not in {"bca", "body_parts"}
+    ]
     stats = {
         "num_voxels": shape[0] * shape[1] * shape[2],
         "num_slices": shape[2],
@@ -82,9 +85,9 @@ def compute_all_models(
             input=ct_path,
             task=chosen_task,
             output=seg_file,
+            preview=with_preview and chosen_task == "total",
             **totalsegmentator_params,
         )
-
 
     # TODO move to the place where the file is read
     measurement_file = segmentation_folder / "total-measurements.json"

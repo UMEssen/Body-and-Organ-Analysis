@@ -80,7 +80,7 @@
     margin-left: 0.5cm;
   }
   @top-center {
-    background-color: #2D3748;
+    background-color: #2d3748;
     content: "";
     width: 100%;
     height: 100%;
@@ -104,19 +104,19 @@
     width: 5cm;
   }
   @bottom-center {
-    background-color: #2D3748;
+    background-color: #2d3748;
     width: 100%;
     height: 100%;
     z-index: -1;
     display: block;
     content: "Not for clinical use!";
-    color: #FC8181;
+    color: #fc8181;
     font-size: 3em;
     font-weight: bold;
   }
   @bottom-right {
-    background-color: #FC8181;
-    color: #2D3748;
+    background-color: #fc8181;
+    color: #2d3748;
     content: counter(page);
     width: 1cm;
     height: 1cm;
@@ -133,13 +133,18 @@
   color: #fff;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   padding: 0;
   padding-bottom: 0.2cm;
   padding-top: 0cm;
   margin: 0;
   font-family: Roboto;
-  color: #2D3748;
+  color: #2d3748;
 }
 
 h1 {
@@ -148,34 +153,42 @@ h1 {
 }
 
 h2 {
-  border-bottom: 1px solid #2D3748;
+  border-bottom: 1px solid #2d3748;
 }
 
-article table, section table {
+article table,
+section table {
   width: 100%;
   border-collapse: collapse;
   text-align: center;
 }
-article table thead, section table thead {
+article table thead,
+section table thead {
   display: table-header-group;
 }
-article table td div.rotate90, section table td div.rotate90 {
+article table td div.rotate90,
+section table td div.rotate90 {
   transform: rotate(-90deg);
 }
-article table thead tr, section table thead tr {
-  background-color: #2D3748;
+article table thead tr,
+section table thead tr {
+  background-color: #2d3748;
 }
-article table thead tr th, section table thead tr th {
+article table thead tr th,
+section table thead tr th {
   color: #fff;
 }
-article table tbody th, section table tbody th {
-  background-color: #2D3748;
+article table tbody th,
+section table tbody th {
+  background-color: #2d3748;
   color: #fff;
 }
-article table tr, section table tr {
+article table tr,
+section table tr {
   background-color: rgb(255, 255, 255);
 }
-article table.striped tr:nth-child(even), section table.striped tr:nth-child(even) {
+article table.striped tr:nth-child(even),
+section table.striped tr:nth-child(even) {
   background-color: #e6eaef;
 }
 
@@ -183,7 +196,7 @@ html {
   font-family: OpenSans;
   font-size: 0.6em;
   background-color: rgb(255, 255, 255);
-  color: #2D3748;
+  color: #2d3748;
 }
 html body {
   padding: 0;

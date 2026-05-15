@@ -1,10 +1,7 @@
-from typing import Any
-
 import cv2
 import numpy as np
 import SimpleITK as sitk
 from skimage.morphology import remove_small_objects
-
 
 
 def remove_small_labeled_objects(mask: np.ndarray, threshold: int = 3000) -> np.ndarray:
@@ -43,15 +40,11 @@ def remove_small_labeled_objects(mask: np.ndarray, threshold: int = 3000) -> np.
         filled = filled.astype(bool)
 
         # Remove small foreground objects
-        remove_small_objects(
-            filled, min_size=threshold, connectivity=3, out=filled
-        )
+        remove_small_objects(filled, min_size=threshold, connectivity=3, out=filled)
 
         # Remove small holes
         np.invert(filled, out=filled)
-        remove_small_objects(
-            filled, min_size=threshold, connectivity=3, out=filled
-        )
+        remove_small_objects(filled, min_size=threshold, connectivity=3, out=filled)
         np.invert(filled, out=filled)
 
         out[filled] = label
@@ -59,7 +52,7 @@ def remove_small_labeled_objects(mask: np.ndarray, threshold: int = 3000) -> np.
     return out
 
 
-def postprocess_part_segmentation(img: sitk.Image):
+def postprocess_part_segmentation(img: sitk.Image) -> sitk.Image:
     arr = sitk.GetArrayFromImage(img).astype(np.uint8, copy=False)
     arr = remove_small_labeled_objects(arr)
     new_img = sitk.GetImageFromArray(arr)

@@ -27,11 +27,11 @@ def nib_to_sitk(image: nibabel.spatialimages.SpatialImage) -> sitk.Image:
 
 def make_affine(image: sitk.Image) -> np.ndarray:
     # get affine transform in LPS
-    c = [
+    points = [
         image.TransformContinuousIndexToPhysicalPoint(p)
         for p in ((1, 0, 0), (0, 1, 0), (0, 0, 1), (0, 0, 0))
     ]
-    c = np.array(c)
+    c = np.array(points)
     affine = np.concatenate(
         [np.concatenate([c[0:3] - c[3:], c[3:]], axis=0), [[0.0], [0.0], [0.0], [1.0]]],
         axis=1,
@@ -74,7 +74,7 @@ def resample_to_thickness(image: sitk.Image, thickness: float) -> sitk.Image:
 
 def process_image(
     img: nibabel.Nifti1Image,
-    resample_thickness: float = None,
+    resample_thickness: float | None = None,
 ) -> sitk.Image:
     image = nib_to_sitk(load_nibabel_image_with_axcodes(img, axcodes="LPS"))
     slice_thickness = image.GetSpacing()[2]
@@ -85,14 +85,16 @@ def process_image(
     return image
 
 
-def load_image(path: Path, resample_thickness: float = None) -> sitk.Image:
+def load_image(path: Path, resample_thickness: float | None = None) -> sitk.Image:
     return process_image(
         nibabel.load(path),
         resample_thickness=resample_thickness,
     )
 
 
-def load_nibabel_image_with_axcodes(image, axcodes="RAS"):
+def load_nibabel_image_with_axcodes(
+    image: nibabel.spatialimages.SpatialImage, axcodes: str = "RAS"
+) -> nibabel.spatialimages.SpatialImage:
     input_axcodes = "".join(nibabel.aff2axcodes(image.affine))
     axcodes = "".join(axcodes)
     if input_axcodes != axcodes:

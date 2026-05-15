@@ -1,11 +1,13 @@
 import json
 import logging
 import pathlib
-from typing import Any, Dict, Mapping, Optional, Sequence
+from typing import Any, Dict, Optional
 
 import nibabel
 import numpy as np
 import SimpleITK as sitk
+from totalsegmentator.map_to_binary import class_map
+
 from body_composition_analysis.infer.infer import inference
 from body_composition_analysis.io import (
     load_image,
@@ -15,14 +17,13 @@ from body_composition_analysis.io import (
 )
 from body_composition_analysis.report.builder import AggregatableBodyPart, Builder
 from body_composition_analysis.tissue.subclassification import subclassify_tissues
-from totalsegmentator.map_to_binary import class_map
 
 logger = logging.getLogger(__name__)
 
 
 def create_vertebrae_info(
     total: sitk.Image, detected_body_part: AggregatableBodyPart
-):
+) -> dict[str, Any]:
     vertebrae_data = sitk.GetArrayViewFromImage(total)
     vertebrae_map = {
         v.removeprefix("vertebrae_"): k
@@ -49,7 +50,7 @@ def compute_segmentation(
     output: pathlib.Path,
     task_name: str,
     force_split: bool = False,
-    totalsegmentator_params: Dict[str, Any] = None,
+    totalsegmentator_params: Dict[str, Any] | None = None,
 ) -> None:
     totalsegmentator_params = totalsegmentator_params or {}
     output.parent.mkdir(exist_ok=True, parents=True)
@@ -68,7 +69,7 @@ def subclassify(
     input_body_regions: pathlib.Path,
     output: pathlib.Path,
     median_filtering: bool,
-):
+) -> None:
     orientation = nibabel.aff2axcodes(nibabel.load(input_image).affine)
     subclassify_tissues(
         image=sitk.ReadImage(str(input_image)),
@@ -95,7 +96,6 @@ def report(
     body_regions = load_image(input_body_regions)
     tissues = load_image(input_tissues)
     vertebrae = None
-    bmd = None
 
     # Create report
     builder = Builder(image, body_parts, body_regions, tissues)
@@ -108,7 +108,7 @@ def report(
         if builder.examined_body_part == AggregatableBodyPart.NONE:
             logger.warning("No supported body part detected")
 
-    prepared_data = builder.prepare(vertebrae, bmd)
+    prepared_data = builder.prepare(vertebrae)
     if save_pdf:
         pdf_bytes = builder.create_pdf("report.html.jinja", **prepared_data)
     json_data = builder.create_json(**prepared_data)
@@ -130,15 +130,12 @@ def run_pipeline(
     output_dir: pathlib.Path,
     examined_body_region: Optional[str] = None,
     median_filtering: bool = False,
-    compute_bmd: bool = False,
     save_pdf: bool = True,
     force_split: bool = False,
     recompute: bool = True,
     crop_body: bool = False,
     totalsegmentator_params: dict[str, Any] | None = None,
 ) -> None:
-    if compute_bmd:
-        logger.info("The BMD functionality will be soon part of the BOA, stay tuned!")
     totalsegmentator_params = totalsegmentator_params or {}
     # Write results back to disk
     output_dir.mkdir(exist_ok=True, parents=True)
@@ -194,15 +191,12 @@ def run_pipeline(
                 f"Neck={AggregatableBodyPart.NECK in body_part}."
             )
 
-    vertebrae_info = create_vertebrae_info(
-        total=total, detected_body_part=body_part
-    )
-    bmd = None
+    vertebrae_info = create_vertebrae_info(total=total, detected_body_part=body_part)
     # Build report
     builder = Builder(image, body_parts, body_regions, tissues)
     builder.examined_body_part = body_part
     prepared_data = builder.prepare(
-        vertebrae_info, bmd, total=total, total_measurements=total_measurements
+        vertebrae_info, total=total, total_measurements=total_measurements
     )
     if save_pdf:
         pdf_bytes = builder.create_pdf("report.html.jinja", **prepared_data)
@@ -213,8 +207,5 @@ def run_pipeline(
     if vertebrae_info is not None and len(vertebrae_info) > 0:
         with (output_dir / "vertebrae.json").open("w") as ofile:
             json.dump(vertebrae_info, ofile, indent=2)
-    if bmd is not None:
-        with (output_dir / "bmd.json").open("w") as ofile:
-            ofile.write(bmd.to_json(indent=2))
     with (output_dir / "bca-measurements.json").open("w") as ofile:
         json.dump(json_data, ofile, indent=2)

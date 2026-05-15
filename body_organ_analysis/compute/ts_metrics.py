@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import SimpleITK as sitk
-from body_organ_analysis._external.body_composition_analysis.io import load_image
 from scipy import spatial
 from totalsegmentator.map_to_binary import class_map
 
+from body_organ_analysis._external.body_composition_analysis.io import load_image
 from body_organ_analysis.compute.geometry import find_axes
 from body_organ_analysis.compute.util import (
     ADDITIONAL_MODELS_OUTPUT_NAME,
@@ -29,7 +29,6 @@ reverse_class_map_complete = {
 }
 
 
-
 def major_minor_axis(
     l3_mask: np.ndarray,
     body_mask: np.ndarray,
@@ -45,7 +44,7 @@ def major_minor_axis(
         return None, None
     major_p1, major_p2, minor_p1, minor_p2 = find_axes(middle_slice)
     if plot_axes is not None:
-        fig, ax = plt.subplots(1, 1)
+        _, ax = plt.subplots(1, 1)
         ax.imshow(middle_slice, cmap="gray")
         ax.plot((major_p1.x, major_p2.x), (major_p1.y, major_p2.y), "-g", linewidth=2.5)
         ax.plot((minor_p1.x, minor_p2.x), (minor_p1.y, minor_p2.y), "-b", linewidth=2.5)

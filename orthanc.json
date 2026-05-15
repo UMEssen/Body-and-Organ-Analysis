@@ -2,10 +2,7 @@
   "Name": "Orthanc - Body & Organ Analyzer",
   "PythonScript": "/on_change_callback.py",
   "PythonVerbose": true,
-  // Maximum size of the storage in MB (a value of "0" indicates no
-  // limit on the storage size)
   "MaximumStorageSize": 100000,
-  // Use the OrthancExplorer1 Design
   "OrthancExplorer2": {
     "Enable": false
   }

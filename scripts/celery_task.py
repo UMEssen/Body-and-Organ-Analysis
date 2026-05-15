@@ -55,13 +55,13 @@ class LivenessProbe(bootsteps.StartStopStep):  # type: ignore[misc]
         HEARTBEAT_FILE.touch()
 
 
-@worker_ready.connect  # type: ignore[misc]
+@worker_ready.connect  # type: ignore[untyped-decorator]
 def worker_ready_handler(**_: Any) -> None:
     # logger.debug("Creating readiness file.")
     READINESS_FILE.touch()
 
 
-@worker_shutdown.connect  # type: ignore[misc]
+@worker_shutdown.connect  # type: ignore[untyped-decorator]
 def worker_shutdown_handler(**_: Any) -> None:
     # logger.debug("Removing readiness file.")
     READINESS_FILE.unlink(missing_ok=True)
@@ -91,7 +91,7 @@ app.conf.update(
 app.steps["worker"].add(LivenessProbe)
 
 
-@app.task()  # type: ignore[misc]
+@app.task  # type: ignore[untyped-decorator]
 def analyze_stable_series(resource_id: str) -> Dict[str, Optional[str]]:
     patient_info = False
     if "PATIENT_INFO_IN_OUTPUT" in os.environ and os.environ[

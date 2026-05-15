@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import SimpleITK as sitk
 import skimage.morphology
+
 from body_composition_analysis.report.plots.colors import TISSUE_COLOR_MAP
 
 

@@ -24,7 +24,7 @@ def _get_smb_info() -> Tuple[str, str]:
 
 
 def store_excel(paths_to_store: List[Path], store_path: str) -> None:
-    import smbclient.shutil
+    import smbclient.shutil  # noqa: PLC0415
 
     smbclient.ClientConfig(
         username=os.environ["SMB_USER"], password=os.environ["SMB_PWD"]
@@ -82,8 +82,8 @@ def set_dcm_params(
 
 
 def store_dicoms(input_folder: Path, segmentation_folder: Path) -> List[Dict[str, Any]]:
-    import pydicom_seg
-    from dicomweb_client.api import DICOMwebClient
+    import pydicom_seg  # noqa: PLC0415
+    from dicomweb_client.api import DICOMwebClient  # noqa: PLC0415
 
     generated_dicoms: List[pydicom.Dataset] = []
     image, dicom_files = _load_series_from_disk(input_folder)

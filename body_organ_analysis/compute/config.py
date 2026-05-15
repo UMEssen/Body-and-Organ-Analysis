@@ -23,14 +23,14 @@ def resolve_models(spec: Optional[str]) -> Set[str]:
     return models
 
 
-def resolve_device(device: Optional[str] = None) -> str:
-    device = device or os.environ.get("DEVICE", "gpu")
-    device, _, gpu_id = device.partition(":")
+def resolve_device(device: str | None = None) -> str:
+    device_str = device or os.environ.get("DEVICE", "gpu")
+    device_str, _, gpu_id = device_str.partition(":")
     # TotalSegmentator's public API expects "gpu"; accept "cuda" as an alias.
-    if device == "cuda":
-        device = "gpu"
+    if device_str == "cuda":
+        device_str = "gpu"
     gpu_id = gpu_id or os.environ.get("NVIDIA_ID", "")
-    if gpu_id and device == "gpu":
+    if gpu_id and device_str == "gpu":
         os.environ.setdefault("NVIDIA_VISIBLE_DEVICES", gpu_id)
-        device = f"gpu:{gpu_id}"
-    return device
+        device_str = f"gpu:{gpu_id}"
+    return device_str

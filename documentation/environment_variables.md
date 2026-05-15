@@ -96,9 +96,9 @@ the following:
   - The output folders will not be anonymized and will contain the patient name
   and birthdate.
 - `PREDICT_FAST`: If set to `true`, TotalSegmentator will be executed in fast mode.
-- `PACS_MODEL`: Defines which models are executed during inference.  
+- `PACS_MODEL`: Defines which models are executed during inference.
   Multiple models can be specified by separating them with a `+`
-(e.g. `body+total+bca`).  
+(e.g. `body+total+bca`).
   Available models are:
   - `total`: Runs the full-body TotalSegmentator model.
   - `body_parts`: Runs the body_parts model to segment head, torso and legs.

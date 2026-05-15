@@ -3,6 +3,7 @@ import pathlib
 import numpy as np
 import scipy.ndimage
 import SimpleITK as sitk
+
 from body_composition_analysis.tissue.definition import TISSUE_DERIVATION_RULES, HURange
 
 
@@ -11,7 +12,7 @@ def subclassify_tissues(
     body_regions: sitk.Image,
     output_dir: pathlib.Path,
     median_filtering: bool = False,
-    orientation: str = None,
+    orientation: str | None = None,
 ) -> sitk.Image:
     image_data = sitk.GetArrayFromImage(image)
     seg_data = sitk.GetArrayFromImage(body_regions)
