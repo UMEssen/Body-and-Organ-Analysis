@@ -28,6 +28,7 @@ def inference(
     ct_path: Path,
     output_dir: Path,
     task_name: str,
+    fast_bca: bool = False,
     force_split: bool = False,
     recompute: bool = False,
     crop: nibabel.Nifti1Image | None = None,
@@ -36,7 +37,7 @@ def inference(
     totalsegmentator_params = totalsegmentator_params or {}
     if task_name not in BCA_TASKS:
         raise ValueError(f"The task name {task_name} does not exist.")
-    task_specific_params = get_task_info(task_name)
+    task_specific_params = get_task_info(task_name, fast_bca)
     logger.info(
         "Computing model %s with ID %s...", task_name, task_specific_params["task_id"]
     )

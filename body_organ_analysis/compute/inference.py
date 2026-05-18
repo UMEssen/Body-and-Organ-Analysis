@@ -51,13 +51,13 @@ def compute_all_models(
     segmentation_folder: pathlib.Path,
     models_to_compute: Iterable[str] | str,
     totalsegmentator_params: dict[str, Any],
+    fast_bca: bool = False,
     bca_params: dict[str, Any] | None = None,
     force_split_threshold: int = 400,
     recompute: bool = True,
     cnr_adjustment: bool = True,
 ) -> dict[str, int]:
-    totalsegmentator_params = totalsegmentator_params or {}
-    totalsegmentator_params = totalsegmentator_params.copy()
+    totalsegmentator_params = totalsegmentator_params.copy() or {}
     bca_params = bca_params or {}
     with_preview = totalsegmentator_params.get("preview", False)
     if "preview" in totalsegmentator_params:
@@ -124,6 +124,7 @@ def compute_all_models(
         run_pipeline(
             input_image=ct_path,
             output_dir=segmentation_folder,
+            fast=fast_bca,
             force_split=resampling_bca > force_split_threshold,
             crop_body=False,
             recompute=recompute,
@@ -149,6 +150,7 @@ def compute_all_models(
             ct_path=ct_path,
             output_dir=segmentation_folder,
             task_name="body_parts",
+            fast_bca=fast_bca,
             recompute=recompute,
             force_split=resampling_bca > force_split_threshold,
             totalsegmentator_params=totalsegmentator_params,

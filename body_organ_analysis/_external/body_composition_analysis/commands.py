@@ -45,23 +45,24 @@ def create_vertebrae_info(
     return vertebrae_info
 
 
-def compute_segmentation(
-    input_image: Path,
-    output: Path,
-    task_name: str,
-    force_split: bool = False,
-    totalsegmentator_params: dict[str, Any] | None = None,
-) -> None:
-    totalsegmentator_params = totalsegmentator_params or {}
-    output.parent.mkdir(exist_ok=True, parents=True)
-    inference(
-        ct_path=input_image,
-        output_dir=output,
-        task_name=task_name,
-        recompute=True,
-        force_split=force_split,
-        totalsegmentator_params=totalsegmentator_params,
-    )
+# TODO can be removed?
+# def compute_segmentation(
+#     input_image: Path,
+#     output: Path,
+#     task_name: str,
+#     force_split: bool = False,
+#     totalsegmentator_params: dict[str, Any] | None = None,
+# ) -> None:
+#     totalsegmentator_params = totalsegmentator_params or {}
+#     output.parent.mkdir(exist_ok=True, parents=True)
+#     inference(
+#         ct_path=input_image,
+#         output_dir=output,
+#         task_name=task_name,
+#         recompute=True,
+#         force_split=force_split,
+#         totalsegmentator_params=totalsegmentator_params,
+#     )
 
 
 def subclassify(
@@ -126,6 +127,7 @@ def report(
 def run_pipeline(
     input_image: Path,
     output_dir: Path,
+    fast_bca: bool = False,
     examined_body_region: str | None = None,
     median_filtering: bool = False,
     save_pdf: bool = True,
@@ -143,6 +145,7 @@ def run_pipeline(
         ct_path=input_image,
         output_dir=output_dir,
         task_name="body_parts",
+        fast_bca=fast_bca,
         recompute=recompute,
         force_split=force_split,
         totalsegmentator_params=totalsegmentator_params,
@@ -152,6 +155,7 @@ def run_pipeline(
         ct_path=input_image,
         output_dir=output_dir,
         task_name="body_regions",
+        fast_bca=fast_bca,
         recompute=recompute,
         force_split=force_split,
         crop=body_parts if crop_body else None,

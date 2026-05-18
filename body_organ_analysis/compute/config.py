@@ -6,10 +6,18 @@ from body_organ_analysis.compute.constants import ALL_MODELS
 logger = logging.getLogger(__name__)
 
 
+def env_bool(name: str, default: bool = False) -> bool:
+    """Parse an environment variable as a boolean."""
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true"}
+
+
 def resolve_models(spec: str | None) -> set[str]:
     if not spec or spec.lower() == "all":
         return set(ALL_MODELS)
-    models = set(spec.split("+"))
+    models = {s.replace("-", "_") for s in spec.split("+")}
     invalid = models - ALL_MODELS
     if invalid:
         logger.error(

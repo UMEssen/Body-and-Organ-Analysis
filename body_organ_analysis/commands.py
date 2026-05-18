@@ -46,12 +46,13 @@ def analyze_ct(
     bca_pdf: bool = True,
     recompute: bool = False,
     nnunet_verbose: bool = False,
-    fast: bool = False,
+    fast_bca: bool = False,
+    fast_total: bool = False,
     cnr_adjustment: bool = False,
 ) -> tuple[Path, dict[str, Any]]:
     start_total = time()
     ct_info: list[dict[str, Any]] = []
-    if input_folder.is_file() and ".nii" in input_folder.name:
+    if input_folder.is_file() and ".nii" in input_folder.name.lower():
         ct_path = input_folder
     else:
         ct_path, ct_info = get_image_info(
@@ -74,7 +75,7 @@ def analyze_ct(
     start = time()
     totalsegmentator_params = {
         "preview": total_preview,
-        "fast": fast,
+        "fast": fast_total,
         "ml": True,
         "nr_thr_resamp": nr_thr_resamp,
         "nr_thr_saving": nr_thr_saving,
@@ -86,6 +87,7 @@ def analyze_ct(
         ct_path=ct_path,
         segmentation_folder=seg_output,
         models_to_compute=models,
+        fast_bca=fast_bca,
         force_split_threshold=400,
         totalsegmentator_params=totalsegmentator_params,
         bca_params={

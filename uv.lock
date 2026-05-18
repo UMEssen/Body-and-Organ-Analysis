@@ -280,6 +280,7 @@ dependencies = [
     { name = "plotly" },
     { name = "psutil" },
     { name = "pydicom" },
+    { name = "python-dotenv" },
     { name = "pywavelets" },
     { name = "requests" },
     { name = "scikit-image" },
@@ -340,6 +341,7 @@ requires-dist = [
     { name = "pydicom", specifier = ">=3,<4" },
     { name = "pydicom-seg", marker = "extra == 'pacs'", specifier = ">=0.4.1,<0.5" },
     { name = "pydicom-seg", marker = "extra == 'storage'", specifier = ">=0.4.1,<0.5" },
+    { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "pywavelets", specifier = ">=1.1.1,<2" },
     { name = "requests", specifier = ">=2.28.2,<3" },
     { name = "scikit-image", specifier = "<=0.28" },
@@ -2369,6 +2371,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7a/16/6f3f5e9258f0733aaca19aa18e298cb3a629ae49363573e78d241abeef59/python_discovery-1.1.2.tar.gz", hash = "sha256:c500bd2153e3afc5f48a61d33ff570b6f3e710d36ceaaf882fa9bbe5cc2cec49", size = 56928, upload-time = "2026-03-09T20:02:28.402Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/03/48/8bdfaec240edb1a79b79201eff38b737fc3c29ce59e2e71271bdd8bafdda/python_discovery-1.1.2-py3-none-any.whl", hash = "sha256:d18edd61b382d62f8bcd004a71ebaabc87df31dbefb30aeed59f4fc6afa005be", size = 31486, upload-time = "2026-03-09T20:02:27.277Z" },
+]
+
+[[package]]
+name = "python-dotenv"
+version = "1.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/82/ed/0301aeeac3e5353ef3d94b6ec08bbcabd04a72018415dcb29e588514bba8/python_dotenv-1.2.2.tar.gz", hash = "sha256:2c371a91fbd7ba082c2c1dc1f8bf89ca22564a087c2c287cd9b662adde799cf3", size = 50135, upload-time = "2026-03-01T16:00:26.196Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0b/d7/1959b9648791274998a9c3526f6d0ec8fd2233e4d4acce81bbae76b44b2a/python_dotenv-1.2.2-py3-none-any.whl", hash = "sha256:1d8214789a24de455a8b8bd8ae6fe3c6b69a5e3d64aa8a8e5d68e694bbcb285a", size = 22101, upload-time = "2026-03-01T16:00:25.09Z" },
 ]
 
 [[package]]

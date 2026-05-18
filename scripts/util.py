@@ -203,7 +203,8 @@ def build_excel(
     input_data_folder: Path,
     output_folder: Path,
     dicom_tags: dict[str, Any],
-    fast: bool = False,
+    fast_bca: bool = False,
+    fast_total: bool = False,
 ) -> tuple[Path, dict[str, Any]]:
     # Setup before calling
     start = time()
@@ -213,7 +214,8 @@ def build_excel(
         excel_output_folder=output_folder,
         models=resolve_models(os.environ.get("PACS_MODEL")),
         device=resolve_device(),
-        fast=fast,
+        fast_bca=fast_bca,
+        fast_total=fast_total,
     )
     new_excel_path = excel_path.parent / (
         _process_info_element(

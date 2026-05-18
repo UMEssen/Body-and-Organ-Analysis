@@ -2,6 +2,8 @@ import logging
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 sys.path.append(str(Path(__file__).resolve().parent / "_external"))
 
 # Configures nnUNet_* env vars on import. MUST come before the
@@ -30,6 +32,7 @@ logging.captureWarnings(True)
 # situation, but the event should still be noted
 
 logger = logging.getLogger(__name__)
+load_dotenv()
 
 __all__ = [
     "analyze_ct",

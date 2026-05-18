@@ -8,6 +8,7 @@ from pathlib import Path
 from time import time
 from typing import Any, ClassVar
 
+import imports
 import requests
 from celery import Celery, bootsteps
 from celery.signals import worker_ready, worker_shutdown
@@ -21,6 +22,10 @@ from util import (
     get_naming_scheme,
     save_data_persistent,
     write_to_postgres,
+)
+
+env_bool, _ = imports.optional_import(
+    module="body_organ_analysis.compute.config", name="env_bool"
 )
 
 logger = logging.getLogger(__name__)
@@ -93,14 +98,8 @@ app.steps["worker"].add(LivenessProbe)
 
 @app.task  # type: ignore[untyped-decorator]
 def analyze_stable_series(resource_id: str) -> dict[str, str | None]:
-    patient_info = False
-    if "PATIENT_INFO_IN_OUTPUT" in os.environ and os.environ[
-        "PATIENT_INFO_IN_OUTPUT"
-    ].lower() in {
-        "true",
-        "1",
-    }:
-        patient_info = True
+    patient_info = env_bool("PATIENT_INFO_IN_OUTPUT", False)
+    if patient_info:
         logger.warning(
             "CAREFUL: You have selected the PATIENT_INFO_IN_OUTPUT option, this means "
             "dates of the study. that the results will be stored using the name of the "
@@ -208,18 +207,15 @@ def analyze_stable_series(resource_id: str) -> dict[str, str | None]:
             output_information += "No DICOMs could be downloaded for this series.\n\n"
         new_excel_path: Path | None = None
         try:
-            fast = False
-            if "PREDICT_FAST" in os.environ and os.environ["PREDICT_FAST"].lower() in {
-                "true",
-                "1",
-            }:
-                fast = True
+            fast_bca = env_bool("FAST_BCA", False)
+            fast_total = env_bool("FAST_TOTAL", False)
 
             new_excel_path, stats = build_excel(
                 input_data_folder=input_data_folder,
                 output_folder=output_folder,
                 dicom_tags=dicom_tags,
-                fast=fast,
+                fast_bca=fast_bca,
+                fast_total=fast_total,
             )
             computed = True
         except Exception:

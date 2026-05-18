@@ -6,7 +6,7 @@ from pathlib import Path
 from totalsegmentator.statistics import get_radiomics_features_for_entire_dir
 
 from body_organ_analysis.commands import analyze_ct
-from body_organ_analysis.compute.config import resolve_device, resolve_models
+from body_organ_analysis.compute.config import env_bool, resolve_device, resolve_models
 
 logger = logging.getLogger(__name__)
 
@@ -16,32 +16,32 @@ def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     # Run complete BCA pipeline
     parser.add_argument(
+        "-i",
         "--input-image",
         required=True,
         type=Path,
         help="Path to the ITK image which contains the CT image",
     )
     parser.add_argument(
+        "-o",
         "--output-dir",
         required=True,
         type=Path,
     )
-
     parser.add_argument(
         "--use-study-prefix",
         default=False,
         action="store_true",
         help="Output files will be prefixed with the study name",
     )
-
     parser.add_argument(
+        "-m",
         "--models",
         required=True,
         default="all",
         help="Plus separated list of models to compute. "
         "If 'all' is specified, all models will be computed",
     )
-
     parser.add_argument(
         "--skip-contrast-information",
         default=False,
@@ -50,7 +50,6 @@ def get_parser() -> argparse.ArgumentParser:
             "Whether to skip the computation of the IV phase and GIT contrast presence."
         ),
     )
-
     parser.add_argument(
         "-nr",
         "--nr_thr_resamp",
@@ -58,7 +57,6 @@ def get_parser() -> argparse.ArgumentParser:
         help="Nr of threads for resampling",
         default=1,
     )
-
     parser.add_argument(
         "-p",
         "--preview",
@@ -66,14 +64,12 @@ def get_parser() -> argparse.ArgumentParser:
         help="Generate a png preview of segmentation",
         default=False,
     )
-
     parser.add_argument(
         "--force-recompute",
         action="store_true",
         help="Generate all segmentations from scratch, even if they already exist",
         default=False,
     )
-
     parser.add_argument(
         "-ns",
         "--nr_thr_saving",
@@ -81,7 +77,6 @@ def get_parser() -> argparse.ArgumentParser:
         help="Nr of threads for saving segmentations",
         default=6,
     )
-
     parser.add_argument(
         "-d",
         "--device",
@@ -89,7 +84,6 @@ def get_parser() -> argparse.ArgumentParser:
         help="",  # TODO
         default=None,
     )
-
     parser.add_argument(
         "-r",
         "--radiomics",
@@ -100,14 +94,12 @@ def get_parser() -> argparse.ArgumentParser:
         ),
         default=False,
     )
-
     parser.add_argument(
         "--cnr-adjustment",
         action="store_true",
         help="",  # TODO
         default=False,
     )
-
     parser.add_argument(
         "--triton-url",
         default=None,
@@ -120,14 +112,12 @@ def get_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Print additional information for debugging purposes",
     )
-
     parser.add_argument(
         "--nnunet-verbose",
         default=False,
         action="store_true",
         help="Print all the output logs of nnunet",
     )
-
     parser.add_argument(
         "--bca-median-filtering",
         default=False,
@@ -146,9 +136,18 @@ def get_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip the PDF generation and only create a bca-measurements.json file.",
     )
-
-    # TODO add --fast
-
+    parser.add_argument(
+        "--fast-bca",
+        default=None,
+        action="store_true",
+        help="",  # TODO
+    )
+    parser.add_argument(
+        "--fast-total",
+        default=None,
+        action="store_true",
+        help="",  # TODO
+    )
     return parser
 
 
@@ -171,6 +170,8 @@ def run(argv: list[str] | None = None) -> None:
 
     models_to_compute = resolve_models(args.models)
     device = resolve_device(args.device)
+    fast_bca: bool = args.fast_bca or env_bool("FAST_BCA", False)
+    fast_total: bool = args.fast_total or env_bool("FAST_TOTAL", False)
 
     analyze_ct(
         input_folder=args.input_image,
@@ -187,7 +188,8 @@ def run(argv: list[str] | None = None) -> None:
         bca_pdf=not args.bca_no_pdf,
         recompute=args.force_recompute,
         nnunet_verbose=args.nnunet_verbose,
-        fast=False,  # TODO
+        fast_bca=fast_bca,
+        fast_total=fast_total,
         cnr_adjustment=args.cnr_adjustment,
     )
 

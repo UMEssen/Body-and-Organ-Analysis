@@ -44,6 +44,7 @@ dependencies = [
   "plotly>=5.3.1,<6",
   "psutil>=5.9.4,<6",
   "pydicom>=3,<4",
+  "python-dotenv>=1.2.2",
   "pywavelets>=1.1.1,<2",
   "requests>=2.28.2,<3",
   "scikit-image<=0.28",                   # binary_erosion -> erosion, with different results for kernel 6
