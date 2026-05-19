@@ -124,7 +124,7 @@ def compute_all_models(
         run_pipeline(
             input_image=ct_path,
             output_dir=segmentation_folder,
-            fast=fast_bca,
+            fast_bca=fast_bca,
             force_split=resampling_bca > force_split_threshold,
             crop_body=False,
             recompute=recompute,
