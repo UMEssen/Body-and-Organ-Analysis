@@ -20,6 +20,10 @@ reverse_class_map_complete = {
 logger = logging.getLogger(__name__)
 
 ADIPOSE_TISSUE = (-200, -40)
+CNR_ADJUSTED_REGIONS: dict[str, set[str]] = {
+    "total": {"aorta", "autochthon_left", "autochthon_right"},
+    "heartchambers_highres": {"pulmonary_artery"},
+}
 
 
 def get_region_minus_fat(
@@ -253,14 +257,15 @@ def compute_measurements(
     ct_image = sitk.ReadImage(str(ct_path))
     ct_data = sitk.GetArrayViewFromImage(ct_image)
     autochthon_mean, autochthon_std = None, None
-    for model_name in models:
+    # Process "total" first: it produces the autochthon reference used by the
+    # CNR computation for other models (e.g. heartchambers_highres).
+    ordered_models = sorted(models, key=lambda m: m != "total")
+    for model_name in ordered_models:
         if model_name == "total":
             model_path = segmentation_folder / "total.nii.gz"
         else:
-            model_path = (
-                segmentation_folder
-                / f"{ADDITIONAL_MODELS_OUTPUT_NAME[model_name]}.nii.gz"
-            )
+            file_name = ADDITIONAL_MODELS_OUTPUT_NAME.get(model_name, model_name)
+            model_path = segmentation_folder / f"{file_name}.nii.gz"
         if not model_path.exists():
             continue
         model_image = sitk.ReadImage(str(model_path))
@@ -307,26 +312,30 @@ def compute_measurements(
                     segmentation_folder=segmentation_folder,
                 ),
             }
-            if cnr_adjustment:
-                measurements["cnr_adjusted"] = metrics_for_each_region(
+        if cnr_adjustment and model_name in CNR_ADJUSTED_REGIONS:
+            if autochthon_mean is None or autochthon_std is None:
+                logger.warning(
+                    "Skipping CNR-adjusted measurements for %s: autochthon "
+                    "reference is unavailable (the 'total' model did not run "
+                    "or did not produce a usable autochthon mask).",
+                    model_name,
+                )
+            else:
+                regions = CNR_ADJUSTED_REGIONS[model_name]
+                cnr_adjusted = metrics_for_each_region(
                     ct_data=ct_data,
                     region_data=model_data,
                     label_map={
                         region: value
                         for region, value in label_map.items()
-                        if region
-                        in {
-                            "aorta",
-                            "pulmonary_artery",
-                            "autochthon_left",
-                            "autochthon_right",
-                        }
+                        if region in regions
                     },
                     autochthon_mean=autochthon_mean,
                     autochthon_std=autochthon_std,
                     img_spacing=ct_image.GetSpacing(),
                     cnr_adjustment=True,
                 )
+                measurements.setdefault("cnr_adjusted", {}).update(cnr_adjusted)
 
     measurements["info"]["autochthon_mean"] = autochthon_mean
     measurements["info"]["autochthon_std"] = autochthon_std

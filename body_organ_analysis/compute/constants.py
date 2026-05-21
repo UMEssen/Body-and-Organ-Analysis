@@ -19,6 +19,7 @@ ALL_MODELS = {
     "bca",
     "body_parts",
     "cerebral_bleed",
+    "heartchambers_highres",
     "hip_implant",
     "liver_segments",
     "liver_vessels",

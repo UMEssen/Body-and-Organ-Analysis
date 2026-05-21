@@ -107,6 +107,7 @@ def compute_segmentator_metrics(
     records: list[dict[str, Any]] = []
     for model_name in json_measurements["segmentations"]:
         for region in json_measurements["segmentations"][model_name]:
+            # TODO make name conversion better
             base_dict = {
                 "ModelName": convert_name(model_name),
                 "BodyRegion": convert_name(region),
