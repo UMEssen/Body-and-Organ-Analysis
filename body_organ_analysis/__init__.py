@@ -10,9 +10,13 @@ sys.path.append(str(Path(__file__).resolve().parent / "_external"))
 # body_organ_analysis.commands
 # import below, which transitively loads totalsegmentator.nnunet -> nnunetv2.paths.
 import totalsegmentator.nnunet_env  # noqa: F401
+from totalsegmentator.config import set_config_key, setup_totalseg
 
-from body_organ_analysis.commands import analyze_ct
-from body_organ_analysis.compute.io import store_dicoms, store_excel
+setup_totalseg()
+set_config_key("send_usage_stats", False)
+
+from body_organ_analysis.commands import analyze_ct  # noqa: E402
+from body_organ_analysis.compute.io import store_dicoms, store_excel  # noqa: E402
 
 try:
     from body_organ_analysis._version import __githash__, __version__

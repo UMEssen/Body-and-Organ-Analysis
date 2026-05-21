@@ -37,4 +37,3 @@ if __name__ == "__main__":
             base_url=str(Path(__file__).parent.parent / "template"),
         )
         document.write_pdf(Path(__file__).parent / "report.pdf")
-        document.write_png(str(Path(__file__).parent / "report.png"))

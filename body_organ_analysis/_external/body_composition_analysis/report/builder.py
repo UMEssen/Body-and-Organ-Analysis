@@ -171,10 +171,6 @@ class Builder:
         pdf_data: bytes = document.write_pdf()
         return pdf_data
 
-    def create_png(self, template_name: str, **kwargs: Any) -> list[bytes]:
-        document = self._build_document(template_name, **kwargs)
-        return [document.copy([page]).write_png()[0] for page in document.pages]
-
     def generate_aggregated_measurements(
         self,
         slice_measurements: pd.DataFrame,
@@ -295,7 +291,7 @@ class Builder:
         ]
         measurements.loc["Total"] = slicewise_measurements.sum()
         # Compute the Mean of the Housfield Units per tissue
-        # Get the portion of the image data beloging to the current region
+        # Get the portion of the image data belonging to the current region
         for tissue in Tissue:
             # Create a mask for the current tissue to select the original pixels
             tissue_mask = np.equal(tissue_data, tissue)
@@ -433,7 +429,7 @@ class Builder:
             ["slice_idx", "Bone", "Muscle", "TAT", "IMAT", "SAT", "VAT", "PAT", "EAT"]
         ]
 
-        # Create slice-wise measurements without extremeties
+        # Create slice-wise measurements without extremities
         part_data = sitk.GetArrayViewFromImage(self._body_parts)
         no_extremity_mask = part_data == BodyParts.TORSO
         data = {

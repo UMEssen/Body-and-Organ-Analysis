@@ -67,6 +67,20 @@ deep learning-based biomedical image segmentation. Nat. Methods.
 - Either use the [PACS integration](./documentation/pacs_integration.md) or the
 [command line tool](./documentation/command_line.md).
 
+### macOS notes
+
+`uv sync` (or the pip equivalent) installs all Python dependencies, but PDF
+report generation relies on WeasyPrint, which loads the system `pango` library
+at runtime via cffi. On macOS this is not preinstalled:
+
+```bash
+brew install pango
+```
+
+If you don't need PDF reports — or don't want to install `pango` — pass
+`--bca-no-pdf` to the CLI. Segmentation and all JSON/Excel outputs work without
+it; only the PDF report is skipped.
+
 ## Notes on Performance
 
 To make an estimate on how much power and time is needed to process a study, we

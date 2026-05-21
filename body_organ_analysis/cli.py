@@ -173,6 +173,13 @@ def run(argv: list[str] | None = None) -> None:
     fast_bca: bool = args.fast_bca or env_bool("FAST_BCA", False)
     fast_total: bool = args.fast_total or env_bool("FAST_TOTAL", False)
 
+    if not args.bca_no_pdf:
+        logger.warning(
+            "PDF report generation is enabled. WeasyPrint requires the system "
+            "'pango' library at runtime (on macOS: `brew install pango`). "
+            "Pass --bca-no-pdf to skip."
+        )
+
     analyze_ct(
         input_folder=args.input_image,
         processed_output_folder=args.output_dir,

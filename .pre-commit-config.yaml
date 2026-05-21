@@ -50,7 +50,8 @@ repos:
     rev: v2.4.2
     hooks:
       - id: codespell
-        types: [markdown]
+        # types: [markdown]
+        exclude: \.(svg|png|jpg|jpeg)$
 
   - repo: local
     hooks:

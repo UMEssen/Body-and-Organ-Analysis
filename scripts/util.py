@@ -41,11 +41,11 @@ def _replace_umlauts(text: str) -> str:
     vowel_char_map = {
         # German
         ord("ä"): "ae",
-        ord("ü"): "ue",
+        ord("ü"): "ue",  # codespell:ignore
         ord("ö"): "oe",
         ord("ß"): "ss",
         ord("Ä"): "Ae",
-        ord("Ü"): "Ue",
+        ord("Ü"): "Ue",  # codespell:ignore
         ord("Ö"): "Oe",
         # Scandinavia
         ord("æ"): "ae",

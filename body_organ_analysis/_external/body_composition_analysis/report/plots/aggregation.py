@@ -57,7 +57,7 @@ def create_aggregation_image(
         composed,
     )
 
-    # Blend outer selection countour inside of the body with the composed image
+    # Blend outer selection contour inside of the body with the composed image
     composed = np.where(
         np.logical_and(sag_body_mask, selection_contour)[..., np.newaxis],
         composed * (1 - opacity) + np.array([[[0, 0, 0]]]) * opacity,

@@ -4,7 +4,7 @@ from typing import Any
 
 import numpy as np
 import SimpleITK as sitk
-from skimage.morphology import binary_erosion
+from skimage.morphology import binary_erosion, pad_footprint
 from totalsegmentator.map_to_binary import class_map
 
 from body_organ_analysis.compute.util import ADDITIONAL_MODELS_OUTPUT_NAME, create_mask
@@ -59,6 +59,9 @@ def erode_region(
     kernel_value: int = 6,
 ) -> np.ndarray:
     kernel = np.ones([kernel_value] * 3, dtype=np.uint8)
+    # Preserve old binary_erosion behavior for even-sized kernels like 6.
+    if kernel_value % 2 == 0:
+        kernel = pad_footprint(kernel, pad_end=True)
     shrunken_volume = binary_erosion(mask, kernel)
 
     return shrunken_volume
