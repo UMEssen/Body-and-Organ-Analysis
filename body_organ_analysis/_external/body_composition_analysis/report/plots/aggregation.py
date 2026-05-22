@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import SimpleITK as sitk
-import skimage.morphology
+from skimage.morphology import dilation, disk
 
 from body_composition_analysis.report.plots.colors import TISSUE_COLOR_MAP
 
@@ -28,9 +28,7 @@ def create_aggregation_image(
     sag_selection_mask[group[0] : group[1]] = 1
     selection_contour = np.logical_xor(
         sag_selection_mask,
-        skimage.morphology.binary_dilation(
-            sag_selection_mask, skimage.morphology.disk(1)
-        ),
+        dilation(sag_selection_mask, disk(1)),
     )
 
     # Apply hounsfield unit window and mask everything outside body

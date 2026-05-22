@@ -40,11 +40,11 @@ def remove_small_labeled_objects(mask: np.ndarray, threshold: int = 3000) -> np.
         filled = filled.astype(bool)
 
         # Remove small foreground objects
-        remove_small_objects(filled, min_size=threshold, connectivity=3, out=filled)
+        remove_small_objects(filled, max_size=threshold - 1, connectivity=3, out=filled)
 
         # Remove small holes
         np.invert(filled, out=filled)
-        remove_small_objects(filled, min_size=threshold, connectivity=3, out=filled)
+        remove_small_objects(filled, max_size=threshold - 1, connectivity=3, out=filled)
         np.invert(filled, out=filled)
 
         out[filled] = label

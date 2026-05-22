@@ -1,8 +1,16 @@
 import logging
 import sys
+import warnings
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+warnings.filterwarnings(
+    "ignore", category=DeprecationWarning, module=r"totalsegmentator(\..*)?"
+)
+warnings.filterwarnings(
+    "ignore", category=DeprecationWarning, module=r"nnunetv2(\..*)?"
+)
 
 sys.path.append(str(Path(__file__).resolve().parent / "_external"))
 
@@ -26,8 +34,6 @@ except ImportError:
     __githash__ = "N/A"
     __version__ = "N/A"
 
-# TODO already in cli.py. Can be removed?
-logging.basicConfig()
 logging.captureWarnings(True)
 # warnings.warn() in library code if the issue is avoidable and the client application
 # should be modified to eliminate the warning

@@ -1,6 +1,6 @@
 # TODO's
 
-- Fix scikit deprecated warnings
+- Fix scikit deprecated warnings and add tests for checking new behaviour
 - New README.md file
 - CNR CI/CD pipeline tests
 - Windows and MacOS example scripts
@@ -11,3 +11,4 @@ and check the installation of the homebrew package needed
 - Pulmonary Artery from total went to heartchambers highres. Adjust Readme and maybe add
 an info
 - Check for sitk.XYZ(str())
+- Slices should be in 2D not 3D calculated

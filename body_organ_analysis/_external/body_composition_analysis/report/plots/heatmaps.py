@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import SimpleITK as sitk
-import skimage.morphology
+from skimage.morphology import dilation, disk
 
 from body_composition_analysis.report.plots.colors import TISSUE_HEATMAP_COLOR_MAP
 from body_composition_analysis.tissue.definition import Tissue
@@ -20,7 +20,7 @@ def _get_contour_image(
         interpolation=cv2.INTER_NEAREST,
     )
     mask = np.pad(mask, ((1, 1), (0, 0)), "constant")
-    dilated_mask = skimage.morphology.binary_dilation(mask, skimage.morphology.disk(2))
+    dilated_mask = dilation(mask, disk(2))
 
     contour = dilated_mask & ~mask
     return contour[1:-1] > 0, mask[1:-1] > 0

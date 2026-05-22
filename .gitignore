@@ -132,3 +132,9 @@ dmypy.json
 .idea/
 .DS_Store
 body_organ_analysis/_version.py
+
+# TODO delete
+output/
+CLAUDE.md
+.ai/
+test.py
