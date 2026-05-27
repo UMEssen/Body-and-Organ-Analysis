@@ -16,8 +16,8 @@ class TestCLI(unittest.TestCase):
         platform.system() in {"Windows", "Linux"}, "Requires Windows or Linux"
     )
     def test_dicom_inference_gpu(self) -> None:
-        shutil.rmtree(OUTPUT_GPU_DIR, ignore_errors=True)
-        OUTPUT_GPU_DIR.mkdir()
+        # shutil.rmtree(OUTPUT_GPU_DIR, ignore_errors=True)
+        # OUTPUT_GPU_DIR.mkdir()
 
         run(
             [

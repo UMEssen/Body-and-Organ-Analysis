@@ -7,6 +7,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 logging.captureWarnings(True)
+# Always emit INFO from BOA loggers; the sinks (console/file) decide visibility.
+logging.getLogger("body_organ_analysis").setLevel(logging.INFO)
 # Suppress fontTools logging from weasyprint
 logging.getLogger("fontTools").propagate = False
 

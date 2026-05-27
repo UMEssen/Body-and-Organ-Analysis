@@ -4,7 +4,10 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
 RUN apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
-        curl ffmpeg libsm6 libxext6 libpangocairo-1.0-0 dcmtk xvfb libjemalloc2 gosu && \
+        curl ffmpeg libsm6 libxext6 libpangocairo-1.0-0 dcmtk xvfb libjemalloc2 \
+        gosu libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+        libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 \
+        libdrm2 libasound2 && \
     rm -rf /var/lib/apt/lists/*
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
@@ -30,6 +33,9 @@ COPY body_organ_analysis /app/body_organ_analysis
 RUN uv sync --frozen --extra pacs
 
 ENV PATH="/app/.venv/bin:$PATH"
+
+RUN kaleido_get_chrome --path /app/chrome
+ENV BROWSER_PATH=/app/chrome/chrome-linux64/chrome
 
 RUN chmod a+rwx -R /app
 

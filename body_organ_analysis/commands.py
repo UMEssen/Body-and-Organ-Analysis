@@ -35,22 +35,15 @@ warnings.filterwarnings(
 
 
 @contextmanager
-def _debug_log_handler(path: Path) -> Iterator[None]:
-    handler = logging.FileHandler(path, mode="w")
+def _debug_log_handler(path: Path, header: str = "") -> Iterator[None]:
+    # The header is written straight to the file (bypassing logging) so it
+    # appears only in debug_information.txt, never on the console.
+    path.write_text(header)
+    handler = logging.FileHandler(path, mode="a")
     handler.setFormatter(
         logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
     )
     root = logging.getLogger()
-    # Pin pre-existing handlers to their effective level so lowering the root
-    # level for the file capture doesn't make the console more verbose.
-    pinned: list[tuple[logging.Handler, int]] = []
-    for h in root.handlers:
-        if h.level == logging.NOTSET:
-            pinned.append((h, h.level))
-            h.setLevel(root.getEffectiveLevel())
-    prior_level = root.level
-    if prior_level == logging.NOTSET or prior_level > logging.INFO:
-        root.setLevel(logging.INFO)
     root.addHandler(handler)
     try:
         yield
@@ -60,10 +53,6 @@ def _debug_log_handler(path: Path) -> Iterator[None]:
     finally:
         root.removeHandler(handler)
         handler.close()
-        root.setLevel(prior_level)
-        for h, lvl in pinned:
-            h.setLevel(lvl)
-
 
 def analyze_ct(
     input_folder: Path,
@@ -85,10 +74,22 @@ def analyze_ct(
     cnr_adjustment: bool = False,
 ) -> tuple[Path, dict[str, Any]]:
     processed_output_folder.mkdir(parents=True, exist_ok=True)
-    with _debug_log_handler(processed_output_folder / "debug_information.txt"):
-        os_name = platform.system()
-        # TODO maybe just in debug_information.txt instead of logging
-        logger.info("Platform: %s", os_name)
+    os_name = platform.system()
+    header = (
+        f"Platform: {os_name}\n"
+        f"BOA version: {__version__}\n"
+        f"BOA githash: {__githash__}\n"
+        f"Device: {device}\n"
+        f"Fast BCA: {fast_bca}\n"
+        f"Fast Total: {fast_total}\n"
+        f"Contrast Prediciton: {compute_contrast_information}\n"
+        f"PDF generation: {bca_pdf}\n"
+        f"Models: {models}\n\n"
+    )
+
+    with _debug_log_handler(
+        processed_output_folder / "debug_information.txt", header=header
+    ):
         if (
             os_name == "Darwin"
             and bca_pdf
@@ -100,8 +101,6 @@ def analyze_ct(
                 "`brew install pango` or pass --bca-no-pdf to skip."
             )
 
-        logger.info("BOA version: %s", __version__)
-        logger.info("BOA githash: %s", __githash__)
         start_total = time()
         ct_info: list[dict[str, Any]] = []
         if input_folder.is_file() and ".nii" in input_folder.name.lower():

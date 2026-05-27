@@ -156,10 +156,13 @@ def run(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     logging.basicConfig()
-    if args.verbose:
-        logging.getLogger().setLevel(logging.INFO)
-    else:
-        logging.getLogger().setLevel(logging.WARNING)
+    # Root stays at WARNING so third-party loggers are quiet. body_organ_analysis
+    # is pinned to INFO in body_organ_analysis/__init__.py; --verbose controls
+    # only the console handler so BOA INFO surfaces in the terminal on demand.
+    logging.getLogger().setLevel(logging.WARNING)
+    console_level = logging.INFO if args.verbose else logging.WARNING
+    for h in logging.getLogger().handlers:
+        h.setLevel(console_level)
 
     # TODO add triton inference logic
     # if args.triton_url is not None:

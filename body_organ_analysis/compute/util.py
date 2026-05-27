@@ -10,6 +10,7 @@ ADDITIONAL_MODELS_OUTPUT_NAME: dict[str, str] = {
     "coronary_arteries": "coronary_arteries",
     "pleural_pericard_effusion": "pleural_pericard_effusion",
     "liver_vessels": "liver_vessels",
+    "heartchambers_highres": "heartchambers",
 }
 
 
