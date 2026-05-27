@@ -1,6 +1,9 @@
+import ctypes.util
 import logging
+import platform
 import warnings
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from time import time
 from typing import Any
@@ -31,6 +34,37 @@ warnings.filterwarnings(
 )
 
 
+@contextmanager
+def _debug_log_handler(path: Path) -> Iterator[None]:
+    handler = logging.FileHandler(path, mode="w")
+    handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+    )
+    root = logging.getLogger()
+    # Pin pre-existing handlers to their effective level so lowering the root
+    # level for the file capture doesn't make the console more verbose.
+    pinned: list[tuple[logging.Handler, int]] = []
+    for h in root.handlers:
+        if h.level == logging.NOTSET:
+            pinned.append((h, h.level))
+            h.setLevel(root.getEffectiveLevel())
+    prior_level = root.level
+    if prior_level == logging.NOTSET or prior_level > logging.INFO:
+        root.setLevel(logging.INFO)
+    root.addHandler(handler)
+    try:
+        yield
+    except Exception:
+        logger.exception("BOA run failed")
+        raise
+    finally:
+        root.removeHandler(handler)
+        handler.close()
+        root.setLevel(prior_level)
+        for h, lvl in pinned:
+            h.setLevel(lvl)
+
+
 def analyze_ct(
     input_folder: Path,
     processed_output_folder: Path,
@@ -50,164 +84,187 @@ def analyze_ct(
     fast_total: bool = False,
     cnr_adjustment: bool = False,
 ) -> tuple[Path, dict[str, Any]]:
-    start_total = time()
-    ct_info: list[dict[str, Any]] = []
-    if input_folder.is_file() and ".nii" in input_folder.name.lower():
-        ct_path = input_folder
-    else:
-        ct_path, ct_info = get_image_info(
-            input_folder=input_folder,
-            output_folder=processed_output_folder,
-        )
-    ct_info = [
-        {"name": "BOAVersion", "value": __version__},
-        {"name": "BOAGitHash", "value": __githash__},
-        *ct_info,
-    ]
-    logger.info("Image loaded and retrieved: DONE in %0.5fs", time() - start_total)
+    processed_output_folder.mkdir(parents=True, exist_ok=True)
+    with _debug_log_handler(processed_output_folder / "debug_information.txt"):
+        os_name = platform.system()
+        logger.info("Operating System: %s", os_name)
+        if (
+            os_name == "Darwin"
+            and bca_pdf
+            and ctypes.util.find_library("pango-1.0") is None
+        ):
+            logger.warning(
+                "PDF report generation is enabled but the 'pango' library was not "
+                "found. WeasyPrint will fail at runtime. Install it with "
+                "`brew install pango` or pass --bca-no-pdf to skip."
+            )
 
-    stats: dict[str, Any] = {
-        "git_hash": __githash__,
-        "boa_version": __version__,
-    }
-    seg_output = processed_output_folder  # / "segmentations"
-    # seg_output.mkdir(parents=True, exist_ok=True)
-    start = time()
-    totalsegmentator_params = {
-        "preview": total_preview,
-        "fast": fast_total,
-        "ml": True,
-        "nr_thr_resamp": nr_thr_resamp,
-        "nr_thr_saving": nr_thr_saving,
-        "quiet": False,
-        "verbose": nnunet_verbose,
-        "device": device,
-    }
-    ct_stats = compute_all_models(
-        ct_path=ct_path,
-        segmentation_folder=seg_output,
-        models_to_compute=models,
-        fast_bca=fast_bca,
-        force_split_threshold=400,
-        totalsegmentator_params=totalsegmentator_params,
-        bca_params={
-            "median_filtering": bca_median_filtering,
-            "examined_body_region": bca_examined_body_region,
-            "save_pdf": bca_pdf,
-        },
-        recompute=recompute,
-        cnr_adjustment=cnr_adjustment,
-    )
-    logger.info("All models computed: DONE in %0.5fs", time() - start)
+        logger.info("BOA version: %s", __version__)
+        logger.info("BOA githash: %s", __githash__)
+        start_total = time()
+        ct_info: list[dict[str, Any]] = []
+        if input_folder.is_file() and ".nii" in input_folder.name.lower():
+            ct_path = input_folder
+        else:
+            ct_path, ct_info = get_image_info(
+                input_folder=input_folder,
+                output_folder=processed_output_folder,
+            )
+        ct_info = [
+            {"name": "BOAVersion", "value": __version__},
+            {"name": "BOAGitHash", "value": __githash__},
+            *ct_info,
+        ]
+        logger.info("Image loaded and retrieved: DONE in %0.5fs", time() - start_total)
 
-    stats["inference_time"] = time() - start
-    stats.update(ct_stats)
-
-    aggr_df, slices_df, slices_no_limbs_df = None, None, None
-    if "bca" in models:
+        stats: dict[str, Any] = {
+            "git_hash": __githash__,
+            "boa_version": __version__,
+        }
+        seg_output = processed_output_folder  # / "segmentations"
+        # seg_output.mkdir(parents=True, exist_ok=True)
         start = time()
-        aggr_df, slices_df, slices_no_limbs_df = compute_bca_metrics(
-            output_path=seg_output,
-        )
-        logger.info("Metrics from BCA: DONE in %0.5fs", time() - start)
-        stats["bca_metrics_time"] = time() - start
-        regions_path = seg_output / "body_regions.nii.gz"
-        if regions_path.is_file():
-            regions = sitk.GetArrayFromImage(sitk.ReadImage(regions_path))
-            # We store the found regions as a binary integer
-            # the first index is the brain
-            # the second index is the thorax
-            # the third index is the abdomen
-            regions_flag = 0
-            if BodyRegion.ABDOMINAL_CAVITY in regions:
-                regions_flag = regions_flag | 1
-            if BodyRegion.THORACIC_CAVITY in regions:
-                regions_flag = regions_flag | 2
-            if BodyRegion.BRAIN in regions:
-                regions_flag = regions_flag | 4
-            stats["bca_regions"] = regions_flag
-
-    regions_df = None
-    cnr_df = None
-    if any(a in models for a in (*ADDITIONAL_MODELS_OUTPUT_NAME, "total")):
-        start = time()
-        region_information, regions_df, cnr_df = compute_segmentator_metrics(
+        totalsegmentator_params = {
+            "preview": total_preview,
+            "fast": fast_total,
+            "ml": True,
+            "nr_thr_resamp": nr_thr_resamp,
+            "nr_thr_saving": nr_thr_saving,
+            "quiet": False,
+            "verbose": nnunet_verbose,
+            "device": device,
+        }
+        ct_stats = compute_all_models(
             ct_path=ct_path,
             segmentation_folder=seg_output,
-            store_axes=False,
+            models_to_compute=models,
+            fast_bca=fast_bca,
+            force_split_threshold=400,
+            totalsegmentator_params=totalsegmentator_params,
+            bca_params={
+                "median_filtering": bca_median_filtering,
+                "examined_body_region": bca_examined_body_region,
+                "save_pdf": bca_pdf,
+            },
+            recompute=recompute,
+            cnr_adjustment=cnr_adjustment,
         )
-        logger.info("Metrics from TotalSegmentator: DONE in %0.5fs", time() - start)
-        stats["totalsegmentator_metrics_time"] = time() - start
-        ct_info += region_information
+        logger.info("All models computed: DONE in %0.5fs", time() - start)
 
-    if compute_contrast_information:
-        try:
+        stats["inference_time"] = time() - start
+        stats.update(ct_stats)
+
+        aggr_df, slices_df, slices_no_limbs_df = None, None, None
+        if "bca" in models:
             start = time()
-            contrast_information = predict(
+            aggr_df, slices_df, slices_no_limbs_df = compute_bca_metrics(
+                output_path=seg_output,
+            )
+            logger.info("Metrics from BCA: DONE in %0.5fs", time() - start)
+            stats["bca_metrics_time"] = time() - start
+            regions_path = seg_output / "body_regions.nii.gz"
+            if regions_path.is_file():
+                regions = sitk.GetArrayFromImage(sitk.ReadImage(regions_path))
+                # We store the found regions as a binary integer
+                # the first index is the brain
+                # the second index is the thorax
+                # the third index is the abdomen
+                regions_flag = 0
+                if BodyRegion.ABDOMINAL_CAVITY in regions:
+                    regions_flag = regions_flag | 1
+                if BodyRegion.THORACIC_CAVITY in regions:
+                    regions_flag = regions_flag | 2
+                if BodyRegion.BRAIN in regions:
+                    regions_flag = regions_flag | 4
+                stats["bca_regions"] = regions_flag
+
+        regions_df = None
+        cnr_df = None
+        if any(a in models for a in (*ADDITIONAL_MODELS_OUTPUT_NAME, "total")):
+            start = time()
+            region_information, regions_df, cnr_df = compute_segmentator_metrics(
                 ct_path=ct_path,
                 segmentation_folder=seg_output,
-                one_mask_per_file=False,
+                store_axes=False,
             )
-            logger.info("Contrast phase predicted: DONE in %0.5fs", time() - start)
-            ct_info.append(
-                {
-                    "name": "PredictedContrastPhase",
-                    "value": contrast_information["phase_ensemble_predicted_class"],
-                }
-            )
-            ct_info.append(
-                {
-                    "name": "PredictedContrastInGIT",
-                    "value": contrast_information["git_ensemble_predicted_class"],
-                }
-            )
-            stats["iv_contrast_phase"] = contrast_information[
-                "phase_ensemble_prediction"
-            ]
-            stats["git_contrast"] = contrast_information["git_ensemble_prediction"]
-        except AssertionError:
-            logger.warning("Contrast phase prediction failed")
+            logger.info("Metrics from TotalSegmentator: DONE in %0.5fs", time() - start)
+            stats["totalsegmentator_metrics_time"] = time() - start
+            ct_info += region_information
 
-    info_df = pd.DataFrame(ct_info).set_index("name")
+        if compute_contrast_information:
+            try:
+                start = time()
+                contrast_information = predict(
+                    ct_path=ct_path,
+                    segmentation_folder=seg_output,
+                    one_mask_per_file=False,
+                )
+                logger.info("Contrast phase predicted: DONE in %0.5fs", time() - start)
+                ct_info.append(
+                    {
+                        "name": "PredictedContrastPhase",
+                        "value": contrast_information["phase_ensemble_predicted_class"],
+                    }
+                )
+                ct_info.append(
+                    {
+                        "name": "PredictedContrastInGIT",
+                        "value": contrast_information["git_ensemble_predicted_class"],
+                    }
+                )
+                stats["iv_contrast_phase"] = contrast_information[
+                    "phase_ensemble_prediction"
+                ]
+                stats["git_contrast"] = contrast_information["git_ensemble_prediction"]
+            except AssertionError:
+                logger.warning("Contrast phase prediction failed")
 
-    excel_path = excel_output_folder / "output.xlsx"
+        info_df = pd.DataFrame(ct_info).set_index("name")
 
-    start = time()
-    with pd.ExcelWriter(excel_path, engine="xlsxwriter") as writer:
-        info_df.to_excel(writer, sheet_name="info", header=False)
-        if regions_df is not None:
-            regions_df.to_excel(writer, sheet_name="regions-statistics", index=False)
-        if cnr_df is not None:
-            cnr_df.to_excel(writer, sheet_name="cnr-adjusted", startrow=1, index=False)
-            workbook = writer.book
-            worksheet = writer.sheets["cnr-adjusted"]
-            warning = (
-                "These results were yielded by a modified version of BOA, "
-                "adjusted for image quality assessment."
-            )
-            fmt = workbook.add_format(
-                {
-                    "bold": True,
-                    "bg_color": "#FFF2CC",
-                    "align": "center",
-                    "text_wrap": True,
-                }
-            )
-            last_col = len(cnr_df.columns) - 1
-            worksheet.merge_range(0, 0, 0, last_col, warning, fmt)
-        if aggr_df is not None:
-            aggr_df.to_excel(
-                writer, sheet_name="bca-aggregated-measurements", index=False
-            )
-        if slices_df is not None:
-            slices_df.to_excel(writer, sheet_name="bca-slice-measurements", index=False)
-        if slices_no_limbs_df is not None:
-            slices_no_limbs_df.to_excel(
-                writer, sheet_name="bca-slice-measurements_no_ext", index=False
-            )
-    logger.info("Excel stored: DONE in %0.5fs", time() - start)
-    stats["excel_time"] = time() - start
-    logger.info("Complete CT analysis: DONE in %0.5fs", time() - start_total)
-    stats["total_time"] = time() - start_total
+        excel_path = excel_output_folder / "output.xlsx"
 
-    return excel_path, stats
+        start = time()
+        with pd.ExcelWriter(excel_path, engine="xlsxwriter") as writer:
+            info_df.to_excel(writer, sheet_name="info", header=False)
+            if regions_df is not None:
+                regions_df.to_excel(
+                    writer, sheet_name="regions-statistics", index=False
+                )
+            if cnr_df is not None:
+                cnr_df.to_excel(
+                    writer, sheet_name="cnr-adjusted", startrow=1, index=False
+                )
+                workbook = writer.book
+                worksheet = writer.sheets["cnr-adjusted"]
+                warning = (
+                    "These results were yielded by a modified version of BOA, "
+                    "adjusted for image quality assessment."
+                )
+                fmt = workbook.add_format(
+                    {
+                        "bold": True,
+                        "bg_color": "#FFF2CC",
+                        "align": "center",
+                        "text_wrap": True,
+                    }
+                )
+                last_col = len(cnr_df.columns) - 1
+                worksheet.merge_range(0, 0, 0, last_col, warning, fmt)
+            if aggr_df is not None:
+                aggr_df.to_excel(
+                    writer, sheet_name="bca-aggregated-measurements", index=False
+                )
+            if slices_df is not None:
+                slices_df.to_excel(
+                    writer, sheet_name="bca-slice-measurements", index=False
+                )
+            if slices_no_limbs_df is not None:
+                slices_no_limbs_df.to_excel(
+                    writer, sheet_name="bca-slice-measurements_no_ext", index=False
+                )
+        logger.info("Excel stored: DONE in %0.5fs", time() - start)
+        stats["excel_time"] = time() - start
+        logger.info("Complete CT analysis: DONE in %0.5fs", time() - start_total)
+        stats["total_time"] = time() - start_total
+
+        return excel_path, stats

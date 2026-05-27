@@ -195,7 +195,7 @@ def ct_pfav(
     )
     mask_img = sitk.GetImageFromArray(fat_mask.astype(np.uint8))
     mask_img.CopyInformation(region_image)
-    sitk.WriteImage(mask_img, str(segmentation_folder / "ct_pfav.nii.gz"), True)
+    sitk.WriteImage(mask_img, segmentation_folder / "ct_pfav.nii.gz", True)
 
     return measurements
 
@@ -254,7 +254,7 @@ def compute_measurements(
     if len(models) == 0:
         return measurements
     logger.info("Computing measurements for the computed segmentations: %s", models)
-    ct_image = sitk.ReadImage(str(ct_path))
+    ct_image = sitk.ReadImage(ct_path)
     ct_data = sitk.GetArrayViewFromImage(ct_image)
     autochthon_mean, autochthon_std = None, None
     # Process "total" first: it produces the autochthon reference used by the
@@ -268,7 +268,7 @@ def compute_measurements(
             model_path = segmentation_folder / f"{file_name}.nii.gz"
         if not model_path.exists():
             continue
-        model_image = sitk.ReadImage(str(model_path))
+        model_image = sitk.ReadImage(model_path)
         if not np.isclose(
             ct_image.GetSpacing(),
             model_image.GetSpacing(),

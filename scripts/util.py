@@ -257,9 +257,8 @@ def save_data_persistent(
             "not set, the segmentations will not be uploaded."
         )
 
-    if len(output_information) > 0:
-        with (output_folder / "debug_information.txt").open("w") as f:
-            f.write(output_information)
+    with (output_folder / "debug_information.txt").open("a") as f:
+        f.write(output_information)
     if all(
         # Envs need to exist and not be TODO or empty
         env in os.environ and os.environ[env] not in {"", "TODO"}

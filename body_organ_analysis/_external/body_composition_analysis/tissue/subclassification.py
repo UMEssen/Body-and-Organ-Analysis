@@ -59,5 +59,5 @@ def subclassify_tissues(
 
     result = sitk.GetImageFromArray(tissue_data)
     result.CopyInformation(body_regions)
-    sitk.WriteImage(result, str(output_path))
+    sitk.WriteImage(result, output_path)
     return result

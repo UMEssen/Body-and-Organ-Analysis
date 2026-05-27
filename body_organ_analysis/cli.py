@@ -2,7 +2,6 @@ import argparse
 import logging
 import time
 from pathlib import Path
-
 from totalsegmentator.statistics import get_radiomics_features_for_entire_dir
 
 from body_organ_analysis.commands import analyze_ct
@@ -172,13 +171,6 @@ def run(argv: list[str] | None = None) -> None:
     device = resolve_device(args.device)
     fast_bca: bool = args.fast_bca or env_bool("FAST_BCA", False)
     fast_total: bool = args.fast_total or env_bool("FAST_TOTAL", False)
-
-    if not args.bca_no_pdf:
-        logger.warning(
-            "PDF report generation is enabled. WeasyPrint requires the system "
-            "'pango' library at runtime (on macOS: `brew install pango`). "
-            "Pass --bca-no-pdf to skip."
-        )
 
     analyze_ct(
         input_folder=args.input_image,

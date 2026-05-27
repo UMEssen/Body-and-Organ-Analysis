@@ -16,9 +16,6 @@ services:
     build:
       dockerfile: scripts/task_gpu.dockerfile
       context: .
-      args:
-        - GIT_VERSION=${GIT_VERSION}
-        - PACKAGE_VERSION=${PACKAGE_VERSION}
     environment:
       - CELERY_BROKER
       - ORTHANC_URL
@@ -72,9 +69,6 @@ services:
     build:
       dockerfile: scripts/orthanc.dockerfile
       context: .
-      args:
-        - GIT_VERSION=${GIT_VERSION}
-        - PACKAGE_VERSION=${PACKAGE_VERSION}
     environment:
       - CELERY_BROKER
       - POSTGRES_HOST

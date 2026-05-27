@@ -76,6 +76,8 @@ dynamic-network-architectures==0.4.3
     # via body-organ-analysis
 einops==0.8.2
     # via dynamic-network-architectures
+et-xmlfile==2.0.0
+    # via openpyxl
 fft-conv-pytorch==1.2.0
     # via batchgeneratorsv2
 filelock==3.25.1
@@ -242,6 +244,7 @@ nvidia-nvtx-cu12==12.4.127 ; platform_machine == 'x86_64' and sys_platform == 'l
     # via torch
 opencv-python==4.11.0.86
     # via boa-contrast
+openpyxl==3.1.5
 p-tqdm==1.4.2
     # via body-organ-analysis
 packaging==26.0

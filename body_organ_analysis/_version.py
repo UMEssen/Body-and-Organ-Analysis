@@ -1,3 +1,12 @@
-# This file was generated automatically, do not edit
-__version__ = "0.1.4"
-__githash__ = "98f8c54"
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _pkg_version
+
+try:
+    __version__ = _pkg_version("body-organ-analysis")
+except PackageNotFoundError:
+    __version__ = "N/A"
+
+try:
+    from body_organ_analysis._githash import __githash__
+except ImportError:
+    __githash__ = "N/A"

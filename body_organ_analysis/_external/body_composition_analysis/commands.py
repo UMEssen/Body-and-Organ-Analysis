@@ -73,8 +73,8 @@ def subclassify(
 ) -> None:
     orientation = nibabel.aff2axcodes(nibabel.load(input_image).affine)
     subclassify_tissues(
-        image=sitk.ReadImage(str(input_image)),
-        body_regions=sitk.ReadImage(str(input_body_regions)),
+        image=sitk.ReadImage(input_image),
+        body_regions=sitk.ReadImage(input_body_regions),
         output_dir=output,
         median_filtering=median_filtering,
         orientation=orientation,

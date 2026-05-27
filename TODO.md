@@ -10,5 +10,4 @@ and check the installation of the homebrew package needed
 - Add caching for Resampling so no recalculation is needed
 - Pulmonary Artery from total went to heartchambers highres. Adjust Readme and maybe add
 an info
-- Check for sitk.XYZ(str())
-- Slices should be in 2D not 3D calculated
+- Excel Slices should be in 2D not 3D calculated

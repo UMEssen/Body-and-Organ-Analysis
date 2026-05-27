@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 import sys
 import warnings
 from pathlib import Path
@@ -17,24 +18,20 @@ sys.path.append(str(Path(__file__).resolve().parent / "_external"))
 # Configures nnUNet_* env vars on import. MUST come before the
 # body_organ_analysis.commands
 # import below, which transitively loads totalsegmentator.nnunet -> nnunetv2.paths.
-import totalsegmentator.nnunet_env  # noqa: F401
-from totalsegmentator.config import set_config_key, setup_totalseg
+import totalsegmentator.nnunet_env  # noqa
+from totalsegmentator.config import set_config_key, setup_totalseg  # noqa: E402
 
-setup_totalseg()
-set_config_key("send_usage_stats", False)
+# Fix: RuntimeError: Some background workers are no longer alive
+if multiprocessing.current_process().name == "MainProcess":
+    setup_totalseg()
+    set_config_key("send_usage_stats", False)
 
+from body_organ_analysis._version import __githash__, __version__  # noqa: E402
 from body_organ_analysis.commands import analyze_ct  # noqa: E402
 from body_organ_analysis.compute.io import store_dicoms, store_excel  # noqa: E402
 
-try:
-    from body_organ_analysis._version import __githash__, __version__
-except ImportError:
-    print('Missing file "body_organ_analysis._version.py"')
-    print('Run "./scripts/generate_version.sh" from the project root directory')
-    __githash__ = "N/A"
-    __version__ = "N/A"
-
 logging.captureWarnings(True)
+logging.getLogger("fontTools").setLevel(logging.WARNING)
 # warnings.warn() in library code if the issue is avoidable and the client application
 # should be modified to eliminate the warning
 
@@ -45,6 +42,8 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 __all__ = [
+    "__githash__",
+    "__version__",
     "analyze_ct",
     "store_dicoms",
     "store_excel",

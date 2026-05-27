@@ -118,7 +118,7 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> list[dict[str
         if not seg_file.exists():
             logger.warning("The segmentation %s does not exist.", output_kind)
             continue
-        nifti_seg = sitk.ReadImage(str(seg_file))
+        nifti_seg = sitk.ReadImage(seg_file)
         seg_array = sitk.GetArrayFromImage(nifti_seg)
         if not np.isclose(nifti_seg.GetSize(), image.GetSize()).all():
             raise ValueError(
@@ -262,7 +262,7 @@ def get_image_info(
     nifti_path = output_folder / "image.nii.gz"
     output_folder.mkdir(parents=True, exist_ok=True)
     # Convert the file to nifti
-    sitk.WriteImage(image, str(nifti_path), True)
+    sitk.WriteImage(image, nifti_path, True)
     ct_info = []
     for name in [
         "StudyInstanceUID",

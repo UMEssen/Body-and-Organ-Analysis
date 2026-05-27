@@ -3,7 +3,7 @@ import shutil
 import unittest
 
 import _state
-from _paths import CNR_DICOM_DIR, CNR_NIFTI_FILE, OUTPUT_CPU_DIR, OUTPUT_GPU_DIR
+from _paths import CNR_DICOM_DIR, OUTPUT_GPU_DIR
 
 from body_organ_analysis.cli import run
 
