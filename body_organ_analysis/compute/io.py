@@ -2,8 +2,7 @@ import json
 import logging
 import os
 import shutil
-import subprocess
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from time import time
 from typing import Any
@@ -12,6 +11,8 @@ import numpy as np
 import pydicom
 import requests
 import SimpleITK as sitk
+from numpy.typing import NDArray
+from pydicom.valuerep import DA, MultiValue
 
 from body_organ_analysis._version import __githash__, __version__
 from body_organ_analysis.compute.constants import SERIES_DESCRIPTIONS
@@ -20,12 +21,39 @@ logger = logging.getLogger(__name__)
 
 
 def _get_smb_info() -> tuple[str, str]:
-    smb = os.environ["SMB_DIR_OUTPUT"].replace("\\", "/")
-    return smb.split("/")[2], smb[:-1] if smb.endswith("/") else smb
+    """
+    Parse SMB_DIR_OUTPUT into (server, normalized_path).
+    Expects a UNC-style path like \\\\server\\share\\subdir\\ or //server/share/subdir/.
+    """
+    raw = os.environ["SMB_DIR_OUTPUT"].replace("\\", "/")
+    normalized = raw.rstrip("/") + "/"  # ensure single trailing slash
+    parts = [p for p in normalized.split("/") if p]
+    if len(parts) < 2:
+        raise ValueError(
+            f"SMB_DIR_OUTPUT must be a UNC-style path with server/share, got: {raw!r}"
+        )
+    server = parts[0]
+    return server, normalized
+
+
+def _first_if_multi(value: Any) -> Any:
+    """Return the first element if value is a MultiValue, else value itself."""
+    if isinstance(value, MultiValue):
+        return value[0] if len(value) else None
+    return value
+
+
+def _safe_da(value: Any) -> DA | None:
+    if not value:
+        return None
+    try:
+        return DA(str(value).strip())
+    except (ValueError, TypeError):
+        return None
 
 
 def store_excel(paths_to_store: list[Path], store_path: str) -> None:
-    import smbclient.shutil  # noqa: PLC0415
+    import smbclient  # noqa: PLC0415
 
     smbclient.ClientConfig(
         username=os.environ["SMB_USER"], password=os.environ["SMB_PWD"]
@@ -36,20 +64,27 @@ def store_excel(paths_to_store: list[Path], store_path: str) -> None:
         username=os.environ["SMB_USER"],
         password=os.environ["SMB_PWD"],
     )
-    smbclient.makedirs(f"{full_name + store_path}", exist_ok=True)
-    for p in paths_to_store:
-        if p.exists():
-            smbclient.shutil.copy2(str(p), f"{full_name + store_path + p.name}")
-    smbclient.delete_session(server=server_name)
+    try:
+        target_dir = f"{full_name}{store_path}"
+        smbclient.makedirs(target_dir, exist_ok=True)
+        for p in paths_to_store:
+            if p.exists():
+                smbclient.shutil.copy2(str(p), f"{target_dir}{p.name}")
+            else:
+                logger.warning("Skipping missing file: %s", p)
+    finally:
+        smbclient.delete_session(server=server_name)
 
 
 def _set_timestamp(dcm: pydicom.Dataset, timestamp: datetime) -> None:
-    dcm.InstanceCreationDate = timestamp.strftime("%Y%m%d")
-    dcm.InstanceCreationTime = timestamp.strftime("%H%M%S.%f")
-    dcm.SeriesDate = dcm.InstanceCreationDate
-    dcm.SeriesTime = dcm.InstanceCreationTime
-    dcm.ContentDate = dcm.InstanceCreationDate
-    dcm.ContentTime = dcm.InstanceCreationTime
+    date_str = timestamp.strftime("%Y%m%d")
+    time_str = timestamp.strftime("%H%M%S")
+    dcm.InstanceCreationDate = date_str
+    dcm.InstanceCreationTime = time_str
+    dcm.SeriesDate = date_str
+    dcm.SeriesTime = time_str
+    dcm.ContentDate = date_str
+    dcm.ContentTime = time_str
 
 
 def set_dcm_params(
@@ -77,12 +112,14 @@ def set_dcm_params(
             out_dcm.SeriesInstanceUID,
         ]
     )
-    out_dcm.BodyPartExamined = get_dataset_attr(img_dcm, "BodyPartExamined")
+    out_dcm.BodyPartExamined = img_dcm.get("BodyPartExamined")
     out_dcm.file_meta.MediaStorageSOPInstanceUID = out_dcm.SOPInstanceUID
     _set_timestamp(out_dcm, timestamp)
 
 
 def store_dicoms(input_folder: Path, segmentation_folder: Path) -> list[dict[str, Any]]:
+    import subprocess  # noqa: PLC0415
+
     import pydicom_seg  # noqa: PLC0415
     from dicomweb_client.api import DICOMwebClient  # noqa: PLC0415
 
@@ -92,7 +129,10 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> list[dict[str
     start = time()
     output_dcm_info = []
     timestamp = datetime.now()
-    templates = sorted((Path("body_organ_analysis") / "templates").glob("*-meta.json"))
+    template_dir = Path(__file__).resolve().parent.with_name("templates")
+    templates = sorted(template_dir.glob("*-meta.json"))
+    if not templates:
+        raise RuntimeError(f"No segmentation templates found in {template_dir}")
     logger.info("Generating encapsulated PDF...")
     # Write encapsulated PDF DICOM
     pdf2dcm = shutil.which("pdf2dcm")
@@ -166,7 +206,7 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> list[dict[str
         )
         # out_dcm.save_as(segmentation_folder / f"{output_kind}.dcm")
         generated_dicoms.append(out_dcm)
-    if (segmentation_folder / "report.dcm").exists():
+    if (segmentation_folder / "report.dcm").is_file():
         pdf_dcm = pydicom.dcmread(segmentation_folder / "report.dcm")
         pdf_dcm.SeriesDescription = "Body Composition Analysis Report"
         set_dcm_params(
@@ -176,7 +216,19 @@ def store_dicoms(input_folder: Path, segmentation_folder: Path) -> list[dict[str
             output_name="report",
             timestamp=timestamp,
         )
+        output_dcm_info.append(
+            {
+                "name": "report",
+                "study_instance_uid": img_dcm.StudyInstanceUID,
+                "series_instance_uid": pdf_dcm.SeriesInstanceUID,
+                "sop_instance_uid": pdf_dcm.SOPInstanceUID,
+            }
+        )
         generated_dicoms.append(pdf_dcm)
+
+    if not generated_dicoms:
+        logger.warning("No DICOMs generated. Skipping Orthanc DICOM-Web upload.")
+        return output_dcm_info
 
     # Use Orthanc DICOM-Web interface to upload files
     new_session = requests.Session()
@@ -205,7 +257,7 @@ def _load_series_from_disk(working_dir: Path) -> tuple[sitk.Image, list[str]]:
     return image, files
 
 
-def _compute_age(date: datetime, birthdate: datetime) -> int:
+def _compute_age(date: date, birthdate: date) -> int:
     return (
         date.year
         - birthdate.year
@@ -213,127 +265,117 @@ def _compute_age(date: datetime, birthdate: datetime) -> int:
     )
 
 
-def get_dataset_attr(dcm: pydicom.Dataset, name: str) -> Any:
-    return getattr(dcm, name) if hasattr(dcm, name) else None
+def classify_orientation(
+    iop: NDArray[np.float64] | None,
+) -> tuple[str | None, NDArray[np.float_] | None]:
+    if iop is None or len(iop) != 6:
+        return None, None
+    row = np.asarray(iop[:3], dtype=float)
+    col = np.asarray(iop[3:], dtype=float)
+    normal = np.cross(row, col)
+    ax, ay, az = abs(normal[0]), abs(normal[1]), abs(normal[2])
+    if az >= ax and az >= ay:
+        return "axial", normal
+    if ay >= ax and ay >= az:
+        return "coronal", normal
+    return "sagittal", normal
 
 
-def compute_boa(
-    dcm: pydicom.Dataset, num_dicoms: int, minimum_images: int = 10
-) -> tuple[bool, str]:
-    if (
-        get_dataset_attr(dcm, "Modality") is not None
-        and get_dataset_attr(dcm, "Modality") != "CT"
-    ):
-        message = f"The modality is not CT: {get_dataset_attr(dcm, 'Modality')}."
-        logger.warning("The modality is not CT: %s.", get_dataset_attr(dcm, "Modality"))
-        return False, message
-
-    # TODO: Found open source CTs that are SECONDARY, DERIVED, so I have removed the
-    # constraints
-    if get_dataset_attr(dcm, "ImageType") is not None and not all(
-        typ in get_dataset_attr(dcm, "ImageType")
-        for typ in [
-            "AXIAL",  # "PRIMARY", "ORIGINAL"
-        ]
-    ):
-        message = (
-            f"The image type is not 'AXIAL': {get_dataset_attr(dcm, 'ImageType')}."
-        )
-        return False, message
-
+def validate_dicom(
+    dcm: pydicom.Dataset,
+    num_dicoms: int,
+    *,
+    minimum_images: int = 10,
+    axial_normal_z_min: float = 0.85,
+) -> str | None:
+    # How close to "pure" axial we accept. 1.0 = perfectly aligned with Z.
+    # cos(15°) ≈ 0.966; cos(30°) ≈ 0.866. Pick based on how much tilt you tolerate.
     if num_dicoms < minimum_images:
-        message = f"The series has less than {minimum_images} instances: {num_dicoms}."
-        return False, message
+        return f"The series has less than {minimum_images} instances: {num_dicoms}."
 
-    return True, ""
+    modality = dcm.get("Modality")
+    if modality is not None and modality != "CT":
+        return f"The modality is not CT: {modality}"
+
+    iop = dcm.get("ImageOrientationPatient")
+    if iop is not None:
+        plane, normal = classify_orientation(iop)
+        if plane is not None and normal is not None and plane != "axial":
+            return (
+                f"Image plane is {plane}, not axial. "
+                f"IOP={list(iop)}, slice normal={normal.tolist()}"
+            )
+        if normal is not None and abs(normal[2]) < axial_normal_z_min:
+            return (
+                "Axial but tilted beyond tolerance: |normal_z|="
+                f"{abs(normal[2]):.3f} < {axial_normal_z_min}. IOP={list(iop)}"
+            )
+
+    # Secondary sanity check on ImageType — only used to *reject* reformats,
+    # not to require "AXIAL" (many genuine acquisitions don't include it).
+    image_type = set(dcm.get("ImageType") or ())
+    bad_markers = {"LOCALIZER", "REFORMATTED", "DERIVED", "PROJECTION IMAGE"}
+    hits = bad_markers & image_type
+    if hits:
+        return f"ImageType contains disqualifying marker(s) {hits}: {list(image_type)}"
+    return None
 
 
 def get_image_info(
     input_folder: Path, output_folder: Path
 ) -> tuple[Path, list[dict[str, Any]]]:
-    # Add code to communicate with PACS and download the image given study/series uid
     image, dicom_files = _load_series_from_disk(input_folder)
-    # Get the DICOM tags
     dcm = pydicom.dcmread(dicom_files[0], stop_before_pixels=True)
-    compute, message = compute_boa(dcm, len(dicom_files))
-    if not compute:
+
+    message = validate_dicom(dcm, len(dicom_files))
+    if message:
         raise ValueError(message)
 
-    nifti_path = output_folder / "image.nii.gz"
     output_folder.mkdir(parents=True, exist_ok=True)
-    # Convert the file to nifti
-    sitk.WriteImage(image, nifti_path, True)
-    ct_info = []
-    for name in [
-        "StudyInstanceUID",
-        "SeriesInstanceUID",
-        "Date",
-        "AgeYears",
-        "PatientSex",
-        "AccessionNumber",
-        "SeriesNumber",
-        "SeriesDescription",
-        "Modality",
-        "CTDIvol",
-        "ExposureTime",
-        "ExposureTime",
-        "XRayTubeCurrent",
-        "Exposure",
-        "KVP",
-        "SpiralPitchFactor",
-        "ConvolutionKernel",
-        "SliceThickness",
-        "PixelSpacing",
-        "ScanLength",
-    ]:
-        # Change the name
-        new_name = "Gender" if name == "PatientSex" else name
-        value: Any | None = None
-        # Change the value
-        if name == "Date":
-            value = (
-                datetime.strptime(dcm.SeriesDate, "%Y%m%d").strftime("%d.%m.%Y")
-                if get_dataset_attr(dcm, "SeriesDate")
-                else None
-            )
-        elif name == "AgeYears":
-            if get_dataset_attr(dcm, "PatientBirthDate") and get_dataset_attr(
-                dcm, "SeriesDate"
-            ):
-                value = _compute_age(
-                    date=datetime.strptime(dcm.SeriesDate, "%Y%m%d"),
-                    birthdate=datetime.strptime(dcm.PatientBirthDate, "%Y%m%d"),
-                )
-        elif name == "ConvolutionKernel":
-            value = (
-                dcm.ConvolutionKernel[0]
-                if isinstance(
-                    get_dataset_attr(dcm, "ConvolutionKernel"),
-                    pydicom.multival.MultiValue,
-                )
-                else get_dataset_attr(dcm, "ConvolutionKernel")
-            )
-        elif name == "PixelSpacing":
-            if isinstance(
-                get_dataset_attr(dcm, "PixelSpacing"), pydicom.multival.MultiValue
-            ):
-                ct_info.append(
-                    {
-                        "name": "PixelSpacingX",
-                        "value": dcm.PixelSpacing[0],
-                    }
-                )
-                new_name = "PixelSpacingY"
-                value = dcm.PixelSpacing[1]
-            else:
-                value = get_dataset_attr(dcm, "PixelSpacing")
-        else:
-            value = get_dataset_attr(dcm, name)
+    nifti_path = output_folder / "image.nii.gz"
+    sitk.WriteImage(image, str(nifti_path), useCompression=True)
 
-        ct_info.append(
-            {
-                "name": new_name,
-                "value": value,
-            }
-        )
+    series_date = _safe_da(dcm.get("SeriesDate"))
+    birth_date = _safe_da(dcm.get("PatientBirthDate"))
+    pixel_spacing = dcm.get("PixelSpacing")
+
+    # (output_name, value) pairs, in display order
+    ordered: list[tuple[str, Any]] = [
+        ("StudyInstanceUID", dcm.get("StudyInstanceUID")),
+        ("SeriesInstanceUID", dcm.get("SeriesInstanceUID")),
+        ("Date", series_date.strftime("%d.%m.%Y") if series_date else None),
+        (
+            "AgeYears",
+            _compute_age(date=series_date, birthdate=birth_date)
+            if series_date and birth_date
+            else None,
+        ),
+        ("Gender", dcm.get("PatientSex")),
+        ("AccessionNumber", dcm.get("AccessionNumber")),
+        ("SeriesNumber", dcm.get("SeriesNumber")),
+        ("SeriesDescription", dcm.get("SeriesDescription")),
+        ("Modality", dcm.get("Modality")),
+        ("CTDIvol", dcm.get("CTDIvol")),
+        ("ExposureTime", dcm.get("ExposureTime")),
+        ("XRayTubeCurrent", dcm.get("XRayTubeCurrent")),
+        ("Exposure", dcm.get("Exposure")),
+        ("KVP", dcm.get("KVP")),
+        ("SpiralPitchFactor", dcm.get("SpiralPitchFactor")),
+        (
+            "ConvolutionKernel",
+            _first_if_multi(dcm.get("ConvolutionKernel")),
+        ),
+        ("SliceThickness", dcm.get("SliceThickness")),
+    ]
+
+    # PixelSpacing -> split into X / Y if multi-valued
+    if isinstance(pixel_spacing, MultiValue) and len(pixel_spacing) >= 2:
+        ordered.append(("PixelSpacingX", pixel_spacing[0]))
+        ordered.append(("PixelSpacingY", pixel_spacing[1]))
+    else:
+        ordered.append(("PixelSpacing", pixel_spacing))
+
+    ordered.append(("ScanLength", dcm.get("ScanLength")))
+
+    ct_info = [{"name": name, "value": value} for name, value in ordered]
     return nifti_path, ct_info
