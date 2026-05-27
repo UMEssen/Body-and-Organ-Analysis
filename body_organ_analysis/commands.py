@@ -87,7 +87,8 @@ def analyze_ct(
     processed_output_folder.mkdir(parents=True, exist_ok=True)
     with _debug_log_handler(processed_output_folder / "debug_information.txt"):
         os_name = platform.system()
-        logger.info("Operating System: %s", os_name)
+        # TODO maybe just in debug_information.txt instead of logging
+        logger.info("Platform: %s", os_name)
         if (
             os_name == "Darwin"
             and bca_pdf

@@ -1,3 +1,6 @@
+import base64
+
+import cv2
 import numpy as np
 
 ADDITIONAL_MODELS_OUTPUT_NAME: dict[str, str] = {
@@ -29,3 +32,13 @@ def create_mask(region_data: np.ndarray, labels: int | list[int]) -> np.ndarray:
 
 def convert_name(name: str) -> str:
     return "".join(s.capitalize() for s in name.split("_"))
+
+
+def to_png_data_url(image: np.ndarray) -> str:
+    """Encode an RGB ndarray as a base64 PNG data URL for HTML embedding."""
+    if image.dtype != np.uint8:
+        image = np.clip(image, 0, 255).astype(np.uint8)
+    _, encoded = cv2.imencode(
+        ".png", image[..., ::-1], [cv2.IMWRITE_PNG_COMPRESSION, 6]
+    )
+    return "data:image/png;base64," + base64.b64encode(encoded).decode("utf-8")

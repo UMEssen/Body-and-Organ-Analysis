@@ -12,7 +12,8 @@ import pydicom
 import requests
 import SimpleITK as sitk
 from numpy.typing import NDArray
-from pydicom.valuerep import DA, MultiValue
+from pydicom.multival import MultiValue
+from pydicom.valuerep import DA
 
 from body_organ_analysis._version import __githash__, __version__
 from body_organ_analysis.compute.constants import SERIES_DESCRIPTIONS
@@ -54,6 +55,7 @@ def _safe_da(value: Any) -> DA | None:
 
 def store_excel(paths_to_store: list[Path], store_path: str) -> None:
     import smbclient  # noqa: PLC0415
+    import smbclient.shutil  # noqa: PLC0415
 
     smbclient.ClientConfig(
         username=os.environ["SMB_USER"], password=os.environ["SMB_PWD"]

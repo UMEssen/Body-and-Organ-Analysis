@@ -1,5 +1,3 @@
-import base64
-
 import cv2
 import numpy as np
 import pandas as pd
@@ -13,6 +11,7 @@ from body_composition_analysis.report.plots.colors import (
     TOTAL_COLOR_MAP,
 )
 from body_composition_analysis.tissue.definition import Tissue
+from body_organ_analysis.compute.util import to_png_data_url
 
 
 def _central_overlay_image(
@@ -38,15 +37,6 @@ def _central_overlay_image(
         slice_image[..., np.newaxis],
     )
     return composed
-
-
-def _image_to_base64png(image: np.ndarray) -> str:
-    _, encoded_image = cv2.imencode(
-        ".png", image[..., ::-1], [cv2.IMWRITE_PNG_COMPRESSION, 6]
-    )
-    encode = base64.b64encode(encoded_image).decode("utf-8")
-    decoded = f"data:image/png;base64,{encode}"
-    return decoded
 
 
 def create_totalsegmentator_summary(
@@ -93,12 +83,12 @@ def create_tissue_summary(
         horizontal_spacing=0.02,
     )
 
-    source = _image_to_base64png(
+    source = to_png_data_url(
         _central_overlay_image(image, tissue_segmentation, 2, TISSUE_COLOR_MAP)
     )
     trace_image = go.Image(source=source)
 
-    source = _image_to_base64png(
+    source = to_png_data_url(
         _central_overlay_image(image, tissue_segmentation, 1, TISSUE_COLOR_MAP)
     )
     trace_image_cor = go.Image(source=source)

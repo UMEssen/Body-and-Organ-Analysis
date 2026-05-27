@@ -5,7 +5,6 @@ import pathlib
 import tempfile
 from typing import Any
 
-import cv2
 import jinja2
 import numpy as np
 import pandas as pd
@@ -28,6 +27,7 @@ from body_composition_analysis.report.plots.overview import (
 )
 from body_composition_analysis.tissue.definition import BodyRegion, Tissue
 from body_organ_analysis._version import __githash__, __version__
+from body_organ_analysis.compute.util import to_png_data_url
 
 logger = logging.getLogger(__name__)
 
@@ -36,12 +36,6 @@ def _pretty_volume(value: float) -> str:
     if value >= 1000:
         return f"{value / 1000:.3f} L"
     return f"{value:.2f} mL"
-
-
-# TODO use debug_name for testing
-def _to_embedded_image(img: np.ndarray, _debug_name: str | None = None) -> str:
-    _, img_bytes = cv2.imencode(".png", img[..., ::-1])
-    return "data:image/png;base64," + base64.b64encode(img_bytes).decode("utf-8")
 
 
 class AggregatableBodyPart(enum.IntFlag):
@@ -256,9 +250,7 @@ class Builder:
                 tissues=self._tissues,
                 group=(min_z, max_z),
             )
-            overview_image = _to_embedded_image(
-                overview_image, f"aggregation_{name.lower().replace(' ', '-')}"
-            )
+            overview_image = to_png_data_url(overview_image)
 
             result.append(
                 (
@@ -463,30 +455,17 @@ class Builder:
 
         total_summary = (
             [
-                _to_embedded_image(img, f"total_overview_{i}")
-                for i, img in enumerate(
-                    create_totalsegmentator_summary(self._image, total)
-                )
+                to_png_data_url(img)
+                for img in create_totalsegmentator_summary(self._image, total)
             ]
             if total is not None
             else None
         )
         heatmaps = [
-            (
-                x[0],
-                _to_embedded_image(x[1], f"tissue_cor_{x[0].name.lower()}"),
-                _to_embedded_image(x[2], f"tissue_sag_{x[0].name.lower()}"),
-            )
+            (x[0], to_png_data_url(x[1]), to_png_data_url(x[2]))
             for x in create_tissue_heatmaps(self._body_regions, self._tissues)
         ]
 
-        name_mapping = {
-            "First": "q0",
-            "25%": "q1",
-            "Central": "q2",
-            "75%": "q3",
-            "Last": "q4",
-        }
         equidistance_slices_segs = [
             (self._body_regions, BODY_REGION_COLOR_MAP),
             (self._tissues, TISSUE_COLOR_MAP),
@@ -498,11 +477,7 @@ class Builder:
         equidistant_slice_check = [
             [x[0]]
             + [
-                _to_embedded_image(
-                    x[seg_slice_idx + 1],
-                    f"equidistant_check_{seg_names[seg_slice_idx]}_"
-                    f"{name_mapping.get(x[0], x[0].lower())}",
-                )
+                to_png_data_url(x[seg_slice_idx + 1])
                 for seg_slice_idx in range(len(seg_names))
             ]
             for x in create_equidistant_overview(

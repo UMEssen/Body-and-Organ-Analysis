@@ -135,13 +135,13 @@ warn_unused_configs = true
 warn_unreachable = true
 show_error_codes = true
 
-[tool.pytest.ini_options]
-testpaths = [ "tests" ]
-log_level = "INFO"
-log_cli_level = "INFO"
-
 [tool.pyright]
 extraPaths = [ "body_organ_analysis/_external" ]
+
+[tool.pytest]
+ini_options.testpaths = [ "tests" ]
+ini_options.log_level = "INFO"
+ini_options.log_cli_level = "INFO"
 
 [tool.sqlfluff]
 core.dialect = "postgres"
