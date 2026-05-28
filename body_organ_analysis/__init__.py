@@ -4,7 +4,14 @@ import sys
 import warnings
 from pathlib import Path
 
-from dotenv import load_dotenv
+# Preload Homebrew dylibs on macOS BEFORE any transitive `import weasyprint`
+# happens (via body_organ_analysis.commands -> body_composition_analysis).
+# Must run first; otherwise WeasyPrint's module-level cffi.dlopen fails.
+from body_organ_analysis._weasyprint_env import configure_weasyprint_runtime
+
+configure_weasyprint_runtime()
+
+from dotenv import load_dotenv  # noqa: E402
 
 logging.captureWarnings(True)
 # Always emit INFO from BOA loggers; the sinks (console/file) decide visibility.
