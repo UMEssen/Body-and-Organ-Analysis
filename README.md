@@ -29,7 +29,7 @@ The BOA tool can be used to generate full body segmentations of CT scans:
 Additionally, the generated segmentations can be used as input to generate
 realistic images using [Siemens' Cinematic Rendering](https://www.siemens-healthineers.com/digital-health-solutions/cinematic-rendering).
 
-![Cinematic rendering](https://raw.githubusercontent.com/UMEssen/Body-and-Organ-Analysis/main/images/cinematic.svg)
+![Cinematic rendering](https://raw.githubusercontent.com/UMEssen/Body-and-Organ-Analysis/main/images/cinematic.png)
 
 ## Citation
 
