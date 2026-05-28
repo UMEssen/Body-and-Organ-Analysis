@@ -40,6 +40,12 @@ jobs:
       # Pin pre-commit's hook cache to a workspace-local path so the cache
       # location is identical on Linux, macOS, and Windows.
       PRE_COMMIT_HOME: ${{ github.workspace }}/.cache/pre-commit
+      # Force uv to use the Python installed by actions/setup-python rather
+      # than downloading its own managed interpreter. On the self-hosted
+      # macOS runner uv would otherwise pull an x86_64 build (the runner
+      # binary is x86_64 under Rosetta), which breaks arm64-only wheels.
+      UV_PYTHON_PREFERENCE: only-system
+      UV_PYTHON: ${{ matrix.python-version }}
 
     steps:
       - uses: actions/checkout@v6
