@@ -1,48 +1,41 @@
 name: QA
 
-# Controls when the workflow will run
 on:
   push:
     branches:
       - main
-    paths:
-      - "body_organ_analysis/**"
-      - "scripts/**"
-      - "pyproject.toml"
-      - "poetry.lock"
-      - ".pre-commit-config.yaml"
-  pull_request:
-    paths:
-      - "body_organ_analysis/**"
-      - "scripts/**"
-      - "pyproject.toml"
-      - "poetry.lock"
-      - ".pre-commit-config.yaml"
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# Cancel previous workflow runs on the same ref (keeps CI snappy)
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   qa:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: [self-hosted, "${{ matrix.os }}"]
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10"]
+        include:
+          - os: linux
+            python-version: "3.12"
+            upload-coverage: true
+          - os: macos
+            python-version: "3.11"
+            upload-coverage: false
+          - os: windows
+            python-version: "3.12"
+            upload-coverage: false
 
     env:
-      # Keep installs quiet and put the venv inside the repo for easy caching
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
-      POETRY_VIRTUALENVS_CREATE: "true"
-      POETRY_VIRTUALENVS_IN_PROJECT: "true"
+      # Pin pre-commit's hook cache to a workspace-local path so the cache
+      # location is identical on Linux, macOS, and Windows.
+      PRE_COMMIT_HOME: ${{ github.workspace }}/.cache/pre-commit
 
     steps:
       - uses: actions/checkout@v4
@@ -52,31 +45,52 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Cache the .venv created by Poetry (per Python version + lockfile)
-      - name: Cache Poetry virtualenv
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Cache pre-commit hook envs
         uses: actions/cache@v4
         with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+          path: ${{ env.PRE_COMMIT_HOME }}
+          key: precommit-${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('.pre-commit-config.yaml') }}
           restore-keys: |
-            venv-${{ runner.os }}-${{ matrix.python-version }}-
+            precommit-${{ runner.os }}-py${{ matrix.python-version }}-
 
-      # Cache pre-commit hook environments (black/mypy/isort, etc.)
-      - name: Cache pre-commit
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pre-commit
-          key: precommit-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('.pre-commit-config.yaml') }}
-          restore-keys: |
-            precommit-${{ runner.os }}-${{ matrix.python-version }}-
+      - name: Install Python dev dependencies
+        run: uv sync --group dev
 
-      - name: Install Poetry
-        run: |
-          python -m pip install -U pip
-          pip install poetry==1.6.1
-
-      - name: Install dependencies
-        run: poetry install --with dev --no-interaction --no-ansi
+      - name: Install Node dependencies (prettier + plugins)
+        run: npm install
 
       - name: Run pre-commit
-        run: poetry run pre-commit run -a
+        run: uv run pre-commit run -a --show-diff-on-failure
+
+      # `make check` runs sh-check + compose-check + docker-check.
+      # Linux only: the docker-/compose-checks need a working docker daemon.
+      - name: Run make check
+        if: matrix.os == 'linux'
+        run: make check
+
+      - name: Run tests
+        if: ${{ !matrix.upload-coverage }}
+        run: uv run pytest
+
+      - name: Run tests with coverage
+        if: matrix.upload-coverage
+        run: uv run pytest --cov=body_organ_analysis --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        if: success() && matrix.upload-coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: false

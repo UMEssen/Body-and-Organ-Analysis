@@ -1,4 +1,3 @@
-import ctypes.util
 import logging
 import platform
 import warnings
@@ -14,6 +13,7 @@ from boa_contrast import predict
 from body_composition_analysis.body_regions.definition import BodyRegion
 
 from body_organ_analysis._version import __githash__, __version__
+from body_organ_analysis._weasyprint_env import configure_weasyprint_runtime
 from body_organ_analysis.compute.bca_metrics import compute_bca_metrics
 from body_organ_analysis.compute.inference import compute_all_models
 from body_organ_analysis.compute.io import get_image_info
@@ -92,16 +92,8 @@ def analyze_ct(
     with _debug_log_handler(
         processed_output_folder / "debug_information.txt", header=header
     ):
-        if (
-            os_name == "Darwin"
-            and bca_pdf
-            and ctypes.util.find_library("pango-1.0") is None
-        ):
-            logger.warning(
-                "PDF report generation is enabled but the 'pango' library was not "
-                "found. WeasyPrint will fail at runtime. Install it with "
-                "`brew install pango` or pass --bca-no-pdf to skip."
-            )
+        if bca_pdf:
+            configure_weasyprint_runtime()
 
         start_total = time()
         ct_info: list[dict[str, Any]] = []
