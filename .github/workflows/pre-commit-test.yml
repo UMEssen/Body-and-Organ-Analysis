@@ -1,13 +1,14 @@
-name: QA
+name: Lint & Test
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,12 +24,15 @@ jobs:
         include:
           - os: linux
             python-version: "3.12"
+            architecture: x64
             upload-coverage: true
-          - os: macos
+          - os: macOS
             python-version: "3.11"
+            architecture: arm64
             upload-coverage: false
           - os: windows
             python-version: "3.12"
+            architecture: x64
             upload-coverage: false
 
     env:
@@ -38,26 +42,27 @@ jobs:
       PRE_COMMIT_HOME: ${{ github.workspace }}/.cache/pre-commit
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.architecture }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: "npm"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
       - name: Cache pre-commit hook envs
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.PRE_COMMIT_HOME }}
           key: precommit-${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('.pre-commit-config.yaml') }}
