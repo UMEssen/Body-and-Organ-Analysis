@@ -17,7 +17,9 @@ def configure_weasyprint_runtime() -> None:
         )
         return
     brew_lib = "/opt/homebrew/lib"
-    parts = [p for p in os.environ.get("DYLD_FALLBACK_LIBRARY_PATH", "").split(":") if p]
+    parts = [
+        p for p in os.environ.get("DYLD_FALLBACK_LIBRARY_PATH", "").split(":") if p
+    ]
     if brew_lib not in parts:
         parts.insert(0, brew_lib)
     os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = ":".join(parts)

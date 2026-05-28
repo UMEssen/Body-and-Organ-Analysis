@@ -58,6 +58,8 @@ connected-components-3d==3.26.1
     #   boa-contrast
 contourpy==1.3.3
     # via matplotlib
+coverage==7.14.1
+    # via pytest-cov
 cssselect2==0.9.0
     # via weasyprint
 cycler==0.12.1
@@ -294,7 +296,9 @@ platformdirs==4.9.4
 plotly==6.7.0
     # via body-organ-analysis
 pluggy==1.6.0
-    # via pytest
+    # via
+    #   pytest
+    #   pytest-cov
 pox==0.3.7
     # via pathos
 ppft==1.7.8
@@ -323,6 +327,8 @@ pyparsing==3.3.2
 pyphen==0.17.2
     # via weasyprint
 pytest==9.0.3
+    # via pytest-cov
+pytest-cov==7.1.0
 python-dateutil==2.9.0.post0
     # via
     #   matplotlib
@@ -402,6 +408,8 @@ tinycss2==1.5.1
     #   weasyprint
 tinyhtml5==2.1.0
     # via weasyprint
+tomli==2.4.1 ; python_full_version <= '3.11'
+    # via coverage
 torch==2.5.1
     # via
     #   acvl-utils

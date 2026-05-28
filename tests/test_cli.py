@@ -3,7 +3,7 @@ import shutil
 import unittest
 
 import _state
-from _paths import CNR_DICOM_DIR, OUTPUT_GPU_DIR
+from _paths import CNR_DICOM_DIR, CNR_NIFTI_FILE, OUTPUT_CPU_DIR, OUTPUT_GPU_DIR
 
 from body_organ_analysis.cli import run
 
@@ -16,8 +16,8 @@ class TestCLI(unittest.TestCase):
         platform.system() in {"Windows", "Linux"}, "Requires Windows or Linux"
     )
     def test_dicom_inference_gpu(self) -> None:
-        # shutil.rmtree(OUTPUT_GPU_DIR, ignore_errors=True)
-        # OUTPUT_GPU_DIR.mkdir()
+        shutil.rmtree(OUTPUT_GPU_DIR, ignore_errors=True)
+        OUTPUT_GPU_DIR.mkdir()
 
         run(
             [
@@ -38,26 +38,26 @@ class TestCLI(unittest.TestCase):
         _state.mark_complete("test_dicom_inference_gpu")
 
     def test_nifti_inference_cpu(self) -> None:
-        # shutil.rmtree(OUTPUT_CPU_DIR, ignore_errors=True)
-        # OUTPUT_CPU_DIR.mkdir()
+        shutil.rmtree(OUTPUT_CPU_DIR, ignore_errors=True)
+        OUTPUT_CPU_DIR.mkdir()
 
-        # run(
-        #     [
-        #         "-i",
-        #         str(CNR_NIFTI_FILE),
-        #         "-o",
-        #         str(OUTPUT_CPU_DIR),
-        #         "-m",
-        #         "bca",
-        #         "-d",
-        #         "cpu",
-        #         "--fast-bca",
-        #         "--fast-total",
-        #         "--bca-no-pdf",
-        #         "--skip-contrast-information",
-        #         "--verbose",
-        #     ]
-        # )
+        run(
+            [
+                "-i",
+                str(CNR_NIFTI_FILE),
+                "-o",
+                str(OUTPUT_CPU_DIR),
+                "-m",
+                "bca",
+                "-d",
+                "cpu",
+                "--fast-bca",
+                "--fast-total",
+                "--bca-no-pdf",
+                "--skip-contrast-information",
+                "--verbose",
+            ]
+        )
         _state.mark_complete("test_nifti_inference_cpu")
 
     # Not working yet
