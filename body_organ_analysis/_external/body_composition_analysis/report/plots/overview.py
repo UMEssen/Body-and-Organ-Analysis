@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -9,6 +8,11 @@ from body_composition_analysis.report.plots.colors import (
     TISSUE_COLOR_MAP,
     TISSUE_COLOR_SCALE,
     TOTAL_COLOR_MAP,
+)
+from body_composition_analysis.report.plots.overlay import (
+    apply_hu_window,
+    blend_overlay,
+    resize_with_y_scale,
 )
 from body_composition_analysis.tissue.definition import Tissue
 from body_organ_analysis.compute.util import to_png_data_url
@@ -25,18 +29,12 @@ def _central_overlay_image(
     n = np.take(image.shape, axis)
     if chosen_slice is None:
         chosen_slice = n // 2
-    slice_image = (
-        np.clip((np.take(image, chosen_slice, axis=axis) + 150) / 400.0, 0.0, 1.0) * 255
-    )
+    if not 0 <= chosen_slice < n:
+        raise ValueError(f"chosen_slice {chosen_slice} out of range [0, {n})")
+    slice_image = apply_hu_window(np.take(image, chosen_slice, axis=axis))
     slice_seg = np.take(seg, chosen_slice, axis=axis)
-    slice_seg_rgb = colormap[slice_seg]
-
-    composed = np.where(
-        slice_seg[..., np.newaxis] > 0,
-        slice_image[..., np.newaxis] * (1 - opacity) + slice_seg_rgb * opacity,
-        slice_image[..., np.newaxis],
-    )
-    return composed
+    composed = blend_overlay(slice_image, colormap[slice_seg], slice_seg > 0, opacity)
+    return composed.astype(np.uint8)
 
 
 def create_totalsegmentator_summary(
@@ -54,13 +52,7 @@ def create_totalsegmentator_summary(
             overlay = _central_overlay_image(
                 image, total_segmentation, axis, TOTAL_COLOR_MAP, chosen_slice=int(sl)
             )
-            overlay = cv2.resize(
-                overlay[::-1],
-                dsize=None,
-                fx=1,
-                fy=spacing[2] / spacing[1],
-                interpolation=cv2.INTER_NEAREST,
-            )
+            overlay = resize_with_y_scale(overlay[::-1], spacing[2] / spacing[1])
             results.append(overlay)
 
     return results
@@ -70,6 +62,7 @@ def create_tissue_summary(
     image: sitk.Image,
     tissue_segmentation: sitk.Image,
     tissue_measurements: pd.DataFrame,
+    theme: str = "light",
 ) -> go.Figure:
     spacing = image.GetSpacing()
     image = sitk.GetArrayViewFromImage(image)
@@ -84,12 +77,16 @@ def create_tissue_summary(
     )
 
     source = to_png_data_url(
-        _central_overlay_image(image, tissue_segmentation, 2, TISSUE_COLOR_MAP)
+        _central_overlay_image(
+            image, tissue_segmentation, 2, TISSUE_COLOR_MAP, opacity=0.35
+        )
     )
     trace_image = go.Image(source=source)
 
     source = to_png_data_url(
-        _central_overlay_image(image, tissue_segmentation, 1, TISSUE_COLOR_MAP)
+        _central_overlay_image(
+            image, tissue_segmentation, 1, TISSUE_COLOR_MAP, opacity=0.35
+        )
     )
     trace_image_cor = go.Image(source=source)
 
@@ -149,9 +146,15 @@ def create_tissue_summary(
     # Link shared axes
     fig["data"][1].update(yaxis="y2")
 
+    is_dark = theme == "dark"
+    bg_color = "#111827" if is_dark else "#fff"
+    text_color = "#fff" if is_dark else "#000"
+
     fig.update_layout(
-        template="plotly_white",
-        font={"family": "Roboto"},
+        template="plotly_dark" if is_dark else "plotly_white",
+        paper_bgcolor=bg_color,
+        plot_bgcolor=bg_color,
+        font={"family": "Roboto", "color": text_color},
         width=1600,
         height=450 / image.shape[1] * image.shape[0] * spacing[2] / spacing[0] + 30,
         autosize=False,

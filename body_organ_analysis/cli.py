@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import time
 from pathlib import Path
 
@@ -148,6 +149,12 @@ def get_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="",  # TODO
     )
+    parser.add_argument(
+        "--theme",
+        default=None,
+        choices=["dark", "light"],
+        help="",  # TODO
+    )
     return parser
 
 
@@ -175,6 +182,7 @@ def run(argv: list[str] | None = None) -> None:
     device = resolve_device(args.device)
     fast_bca: bool = args.fast_bca or env_bool("FAST_BCA", False)
     fast_total: bool = args.fast_total or env_bool("FAST_TOTAL", False)
+    theme: str = args.theme or os.getenv("THEME", "light")
 
     analyze_ct(
         input_folder=args.input_image,
@@ -194,6 +202,7 @@ def run(argv: list[str] | None = None) -> None:
         fast_bca=fast_bca,
         fast_total=fast_total,
         cnr_adjustment=args.cnr_adjustment,
+        theme=theme,
     )
 
     if args.radiomics:

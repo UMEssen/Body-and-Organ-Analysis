@@ -54,6 +54,7 @@ def _debug_log_handler(path: Path, header: str = "") -> Iterator[None]:
         root.removeHandler(handler)
         handler.close()
 
+
 def analyze_ct(
     input_folder: Path,
     processed_output_folder: Path,
@@ -72,6 +73,7 @@ def analyze_ct(
     fast_bca: bool = False,
     fast_total: bool = False,
     cnr_adjustment: bool = False,
+    theme: str = "light",
 ) -> tuple[Path, dict[str, Any]]:
     processed_output_folder.mkdir(parents=True, exist_ok=True)
     os_name = platform.system()
@@ -82,7 +84,7 @@ def analyze_ct(
         f"Device: {device}\n"
         f"Fast BCA: {fast_bca}\n"
         f"Fast Total: {fast_total}\n"
-        f"Contrast Prediciton: {compute_contrast_information}\n"
+        f"Contrast Prediction: {compute_contrast_information}\n"
         f"PDF generation: {bca_pdf}\n"
         f"Models: {models}\n\n"
     )
@@ -145,6 +147,7 @@ def analyze_ct(
                 "median_filtering": bca_median_filtering,
                 "examined_body_region": bca_examined_body_region,
                 "save_pdf": bca_pdf,
+                "theme": theme,
             },
             recompute=recompute,
             cnr_adjustment=cnr_adjustment,

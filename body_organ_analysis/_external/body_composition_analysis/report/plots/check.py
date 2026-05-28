@@ -1,6 +1,11 @@
 import numpy as np
 import SimpleITK as sitk
 
+from body_composition_analysis.report.plots.overlay import (
+    apply_hu_window,
+    blend_overlay,
+)
+
 
 def create_equidistant_overview(
     image: sitk.Image,
@@ -20,17 +25,12 @@ def create_equidistant_overview(
     names = ["First", "25%", "Central", "75%", "Last"]
     result = []
     for name, slice_idx in zip(names, locations, strict=False):
-        slice_image = np.clip((image_arr[slice_idx, ...] + 150) / 400.0, 0.0, 1.0) * 255
+        slice_image = apply_hu_window(image_arr[slice_idx, ...])
         slices: list[str | np.ndarray] = [name]
         for seg, color_map in segmentations_arr:
             slice_seg = seg[slice_idx, ...]
             slice_seg_rgb = np.asarray(color_map)[slice_seg]
-
-            composed = np.where(
-                slice_seg[..., np.newaxis] > 0,
-                slice_image[..., np.newaxis] * (1 - opacity) + slice_seg_rgb * opacity,
-                slice_image[..., np.newaxis],
-            )
+            composed = blend_overlay(slice_image, slice_seg_rgb, slice_seg > 0, opacity)
             slices.append(composed)
         result.append(slices)
     return result

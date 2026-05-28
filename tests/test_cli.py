@@ -31,6 +31,8 @@ class TestCLI(unittest.TestCase):
                 "gpu:0",
                 "--cnr-adjustment",
                 "--verbose",
+                "--theme",
+                "dark",
             ]
         )
         _state.mark_complete("test_dicom_inference_gpu")

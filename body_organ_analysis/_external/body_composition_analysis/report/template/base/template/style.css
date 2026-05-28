@@ -1,0 +1,275 @@
+/*
+  --ship-pink: #fc8181;
+  --ship-dark-pink: #e17676;
+  --ship-light-pink: #f2acac;
+  --ship-rosa: #f2d8d8;
+  --ship-gray: #9ca0a6;
+  --ship-dark-blue: #2d3748;
+*/
+
+:root {
+  --ship-dark-blue: #2d3748;
+  --ship-pink: #fc8181;
+  --ship-white: #fff;
+  --ship-primary: var(--ship-dark-blue);
+  --ship-secondary: var(--ship-pink);
+  --background-page: var(--ship-white);
+  --background-article: var(--ship-white);
+  --table-header: var(--ship-primary);
+  --table-row-0: var(--ship-white);
+  --table-row-1: #e6eaef;
+  --divider-color: var(--ship-primary);
+  --text-light: var(--ship-white);
+  --text-dark: var(--ship-primary);
+  --text-url: var(--ship-secondary);
+}
+
+[data-theme="dark"] {
+  --ship-primary: #0f172a;
+  --background-page: #0b1220;
+  --background-article: #111827;
+  --table-header: #1d3a5f;
+  --table-row-0: #111827;
+  --table-row-1: #1a2332;
+  --divider-color: #474d59;
+  --text-light: var(--ship-white);
+  --text-dark: var(--ship-white);
+}
+
+@font-face {
+  font-family: OpenSans;
+  font-weight: 400;
+  src: url(fonts/OpenSans-Regular.ttf);
+}
+@font-face {
+  font-family: OpenSans;
+  font-weight: 400;
+  src: url(fonts/OpenSans-Italic.ttf);
+  font-style: italic;
+}
+@font-face {
+  font-family: OpenSans;
+  font-weight: 300;
+  src: url(fonts/OpenSans-Light.ttf);
+}
+@font-face {
+  font-family: OpenSans;
+  font-weight: 300;
+  src: url(fonts/OpenSans-LightItalic.ttf);
+  font-style: italic;
+}
+@font-face {
+  font-family: OpenSans;
+  font-weight: bold;
+  src: url(fonts/OpenSans-Bold.ttf);
+}
+@font-face {
+  font-family: OpenSans;
+  font-weight: bold;
+  src: url(fonts/OpenSans-BoldItalic.ttf);
+  font-style: italic;
+}
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  src: url(fonts/Roboto-Regular.ttf);
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  src: url(fonts/Roboto-Italic.ttf);
+  font-style: italic;
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: 300;
+  src: url(fonts/Roboto-Light.ttf);
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: 300;
+  src: url(fonts/Roboto-LightItalic.ttf);
+  font-style: italic;
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: bold;
+  src: url(fonts/Roboto-Bold.ttf);
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: bold;
+  src: url(fonts/Roboto-BoldItalic.ttf);
+  font-style: italic;
+}
+
+@page {
+  size: A4;
+  margin: 2cm 0cm 2cm 0cm;
+  padding: 0.5cm;
+
+  @top-left {
+    content: "";
+    display: block;
+    width: 50%;
+    height: 100%;
+    margin-left: 0.5cm;
+    background-image: url(ume.svg);
+    background-position: left center;
+    background-repeat: no-repeat;
+    background-size: auto 50%;
+  }
+
+  @top-center {
+    content: "";
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    display: block;
+    background-color: var(--ship-primary);
+  }
+
+  @top-right {
+    content: "";
+    display: block;
+    width: 50%;
+    height: 100%;
+    margin-right: 0.5cm;
+    background-image: url(ship.svg), url(ikim.svg);
+    background-position:
+      right 3.5cm center,
+      right 0 center;
+    background-repeat: no-repeat, no-repeat;
+    background-size:
+      auto 50%,
+      auto 50%;
+  }
+
+  @bottom-left {
+    content: element(footerAppInfo);
+    margin-left: 0.5cm;
+    width: 5cm;
+  }
+
+  @bottom-center {
+    content: "Not for clinical use!";
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    display: block;
+    background-color: var(--ship-primary);
+    color: var(--ship-secondary);
+    font-size: 3em;
+    font-weight: bold;
+  }
+
+  @bottom-right {
+    content: counter(page);
+    width: 1cm;
+    height: 1cm;
+    border-radius: 0.5cm;
+    text-align: center;
+    margin: 0.5cm;
+    font-weight: bold;
+    font-size: 1.25em;
+    background-color: var(--ship-secondary);
+    color: var(--ship-primary);
+  }
+}
+
+#footerAppInfo {
+  position: running(footerAppInfo);
+  color: var(--text-light);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  padding: 0;
+  padding-top: 0cm;
+  padding-bottom: 0.2cm;
+  margin: 0;
+  font-family: Roboto;
+  color: var(--text-dark);
+}
+
+h1 {
+  margin-left: 0.5cm;
+  font-size: 3em;
+}
+
+h2 {
+  border-bottom: 1px solid var(--divider-color);
+}
+
+a {
+  color: var(--text-url);
+}
+
+article,
+section {
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+
+    thead {
+      display: table-header-group;
+
+      tr {
+        background-color: var(--table-header);
+
+        th {
+          color: var(--text-light);
+        }
+      }
+    }
+
+    td div.rotate90 {
+      transform: rotate(-90deg);
+    }
+
+    tbody th {
+      background-color: var(--table-header);
+      color: var(--text-light);
+    }
+
+    tr {
+      background-color: var(--table-row-0);
+    }
+  }
+
+  table.striped tr:nth-child(even) {
+    background-color: var(--table-row-1);
+  }
+}
+
+html {
+  font-family: OpenSans;
+  font-size: 0.6em;
+  background-color: var(--background-page);
+  color: var(--text-dark);
+
+  body {
+    padding: 0;
+    margin: 0;
+
+    article {
+      margin: 0cm;
+      margin-bottom: 0.5cm;
+      padding: 0.5cm;
+      background-color: var(--background-article);
+      box-decoration-break: clone;
+
+      section {
+        margin-top: 0.5cm;
+        margin-left: 0.5cm;
+        margin-right: 0.5cm;
+      }
+    }
+  }
+}

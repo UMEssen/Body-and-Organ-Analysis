@@ -1,0 +1,25 @@
+{
+  "name": "body-and-organ-analysis-tooling",
+  "private": true,
+  "description": "Dev tooling (prettier + plugins) for formatting non-Python files.",
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "prettier-plugin-jinja-template": "^2.1.0"
+  },
+  "prettier": {
+    "plugins": [
+      "prettier-plugin-jinja-template"
+    ],
+    "overrides": [
+      {
+        "files": [
+          "*.html.jinja",
+          "*.jinja"
+        ],
+        "options": {
+          "parser": "jinja-template"
+        }
+      }
+    ]
+  }
+}

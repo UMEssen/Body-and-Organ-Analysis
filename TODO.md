@@ -12,3 +12,4 @@ and check the installation of the homebrew package needed
 an info
 - Excel Slices should be in 2D not 3D calculated
 - Fix this warning: [ WARN:0@228.537] global loadsave.cpp:1329 imencode Unsupported depth image for selected encoder is fallbacked to CV_8U.
+- Chrome installation for Kaaleido should be in the README if using without docker

@@ -81,49 +81,6 @@ def subclassify(
     )
 
 
-def report(
-    input_image: Path,
-    input_body_parts: Path,
-    input_body_regions: Path,
-    input_tissues: Path,
-    output_report: Path,
-    output_measurements: Path,
-    examined_body_region: str | None = None,
-    save_pdf: bool = True,
-) -> None:
-    # Load data
-    image = load_image(input_image)
-    body_parts = load_image(input_body_parts)
-    body_regions = load_image(input_body_regions)
-    tissues = load_image(input_tissues)
-    vertebrae = None
-
-    # Create report
-    builder = Builder(image, body_parts, body_regions, tissues)
-    if examined_body_region:
-        builder.examined_body_part = AggregatableBodyPart[examined_body_region.upper()]
-    else:
-        builder.examined_body_part = AggregatableBodyPart.from_body_regions(
-            body_regions
-        )
-        if builder.examined_body_part == AggregatableBodyPart.NONE:
-            logger.warning("No supported body part detected")
-
-    prepared_data = builder.prepare(vertebrae)
-    if save_pdf:
-        pdf_bytes = builder.create_pdf("report.html.jinja", **prepared_data)
-    json_data = builder.create_json(**prepared_data)
-
-    # Save PDF report
-    if save_pdf:
-        output_report.parent.mkdir(exist_ok=True, parents=True)
-        with output_report.open("wb") as obfile:
-            obfile.write(pdf_bytes)
-    output_measurements.parent.mkdir(exist_ok=True, parents=True)
-    with (output_measurements).open("w") as ofile:
-        json.dump(json_data, ofile, indent=2)
-
-
 def run_pipeline(
     input_image: Path,
     output_dir: Path,
@@ -134,6 +91,7 @@ def run_pipeline(
     force_split: bool = False,
     recompute: bool = True,
     crop_body: bool = False,
+    theme: str = "light",
     totalsegmentator_params: dict[str, Any] | None = None,
 ) -> None:
     totalsegmentator_params = totalsegmentator_params or {}
@@ -195,15 +153,14 @@ def run_pipeline(
 
     vertebrae_info = create_vertebrae_info(total=total, detected_body_part=body_part)
     # Build report
-    builder = Builder(image, body_parts, body_regions, tissues)
+    builder = Builder(image, body_parts, body_regions, tissues, theme)
     builder.examined_body_part = body_part
     prepared_data = builder.prepare(
         vertebrae_info, total=total, total_measurements=total_measurements
     )
     if save_pdf:
         pdf_bytes = builder.create_pdf("report.html.jinja", **prepared_data)
-        with (output_dir / "report.pdf").open("wb") as obfile:
-            obfile.write(pdf_bytes)
+        (output_dir / "report.pdf").write_bytes(pdf_bytes)
     json_data = builder.create_json(**prepared_data)
 
     if vertebrae_info is not None and len(vertebrae_info) > 0:

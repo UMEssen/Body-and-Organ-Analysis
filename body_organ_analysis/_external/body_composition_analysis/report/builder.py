@@ -1,8 +1,8 @@
 import base64
 import enum
 import logging
-import pathlib
 import tempfile
+from pathlib import Path
 from typing import Any
 
 import jinja2
@@ -21,10 +21,7 @@ from body_composition_analysis.report.plots.colors import (
     TOTAL_COLOR_MAP,
 )
 from body_composition_analysis.report.plots.heatmaps import create_tissue_heatmaps
-from body_composition_analysis.report.plots.overview import (
-    create_tissue_summary,
-    create_totalsegmentator_summary,
-)
+from body_composition_analysis.report.plots.overview import create_tissue_summary
 from body_composition_analysis.tissue.definition import BodyRegion, Tissue
 from body_organ_analysis._version import __githash__, __version__
 from body_organ_analysis.compute.util import to_png_data_url
@@ -122,14 +119,13 @@ class Builder:
         body_parts: sitk.Image,
         body_regions: sitk.Image,
         tissues: sitk.Image,
+        theme: str = "light",
     ):
         self._env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(
                 [
-                    str(pathlib.Path(__file__).parent / "template"),
-                    str(
-                        pathlib.Path(__file__).parent / "template" / "base" / "template"
-                    ),
+                    Path(__file__).parent / "template",
+                    Path(__file__).parent / "template" / "base" / "template",
                 ]
             ),
             autoescape=jinja2.select_autoescape(["html", "jinja"]),
@@ -138,6 +134,7 @@ class Builder:
         self._body_parts = body_parts
         self._body_regions = body_regions
         self._tissues = tissues
+        self.theme = theme
         self.examined_body_part = AggregatableBodyPart(0)
 
     def _build_document(self, template_name: str, **kwargs: Any) -> weasyprint.HTML:
@@ -145,19 +142,17 @@ class Builder:
         rendered_content = template.render(
             app_version=f"{__version__} ({__githash__})",
             contact_email="ship-ai@uk-essen.de",
+            theme=self.theme,
             **kwargs,
         )
 
         with tempfile.TemporaryDirectory() as tempdir:
-            html_file = pathlib.Path(tempdir) / "index.html"
-            with html_file.open("w") as ofile:
-                ofile.write(rendered_content)
+            html_file = Path(tempdir) / "index.html"
+            html_file.write_text(rendered_content, "utf-8")
 
             return weasyprint.HTML(
                 filename=html_file,
-                base_url=str(
-                    pathlib.Path(__file__).parent / "template" / "base" / "template"
-                ),
+                base_url=Path(__file__).parent / "template" / "base" / "template",
             ).render()
 
     def create_pdf(self, template_name: str, **kwargs: Any) -> bytes:
@@ -249,6 +244,8 @@ class Builder:
                 body_regions=self._body_regions,
                 tissues=self._tissues,
                 group=(min_z, max_z),
+                opacity=0.35,
+                theme=self.theme,
             )
             overview_image = to_png_data_url(overview_image)
 
@@ -446,21 +443,22 @@ class Builder:
             ["slice_idx", "Bone", "Muscle", "TAT", "IMAT", "SAT", "VAT", "PAT", "EAT"]
         ]
 
-        image_summary = create_tissue_summary(self._image, self._tissues, df).to_image(
-            format="svg"
-        )
+        image_summary = create_tissue_summary(
+            self._image, self._tissues, df, self.theme
+        ).to_image(format="svg")
         image_summary = "data:image/svg+xml;base64," + base64.b64encode(
             image_summary
         ).decode("utf-8")
 
-        total_summary = (
-            [
-                to_png_data_url(img)
-                for img in create_totalsegmentator_summary(self._image, total)
-            ]
-            if total is not None
-            else None
-        )
+        # Not used anymore
+        # total_summary = (
+        #     [
+        #         to_png_data_url(img)
+        #         for img in create_totalsegmentator_summary(self._image, total)
+        #     ]
+        #     if total is not None
+        #     else None
+        # )
         heatmaps = [
             (x[0], to_png_data_url(x[1]), to_png_data_url(x[2]))
             for x in create_tissue_heatmaps(self._body_regions, self._tissues)
@@ -516,7 +514,7 @@ class Builder:
             "slicewise_measurements_no_limbs": df_no_limbs,
             "measurements_total": df_total,
             "tissue_heatmaps": heatmaps,
-            "summary_totalsegmentator": total_summary,
+            "summary_totalsegmentator": None,  # total_summary
         }
 
     def create_json(self, **kwargs: Any) -> dict[str, Any]:
