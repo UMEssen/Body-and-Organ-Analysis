@@ -24,12 +24,12 @@ vessels.The tool also includes functionalities for the following tasks:
 
 The BOA tool can be used to generate full body segmentations of CT scans:
 
-![Segmentation of human body](https://raw.githubusercontent.com/UMEssen/Body-and-Organ-Analysis/main/images/segmentation.png)
+![Segmentation of human body](images/segmentation.png)
 
 Additionally, the generated segmentations can be used as input to generate
 realistic images using [Siemens' Cinematic Rendering](https://www.siemens-healthineers.com/digital-health-solutions/cinematic-rendering).
 
-![Cinematic rendering](https://raw.githubusercontent.com/UMEssen/Body-and-Organ-Analysis/main/images/cinematic.png)
+![Cinematic rendering](images/cinematic.png)
 
 ## Citation
 
@@ -63,9 +63,9 @@ deep learning-based biomedical image segmentation. Nat. Methods.
 
 ## How to run?
 
-- Set up the [environment variables](./documentation/environment_variables.md).
-- Either use the [PACS integration](./documentation/pacs_integration.md) or the
-[command line tool](./documentation/command_line.md).
+- Set up the [environment variables](documentation/environment_variables.md).
+- Either use the [PACS integration](documentation/pacs_integration.md) or the
+[command line tool](documentation/command_line.md).
 
 ### macOS notes
 
