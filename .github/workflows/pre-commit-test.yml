@@ -74,10 +74,14 @@ jobs:
       - name: Run pre-commit
         run: uv run pre-commit run -a --show-diff-on-failure
 
-      # `make check` runs sh-check + compose-check + docker-check.
-      # Linux only: the docker-/compose-checks need a working docker daemon.
-      - name: Run make check
+      # docker-check uses `docker buildx build --check`, which requires
+      # buildx >= 0.15. The self-hosted runner's bundled buildx is older, so
+      # install a current one. Linux only (macOS runner has no Docker daemon).
+      - name: Set up Docker Buildx
         if: matrix.os == 'linux'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Run make check
         run: make check
 
       - name: Run tests

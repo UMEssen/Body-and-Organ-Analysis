@@ -142,6 +142,7 @@ extraPaths = [ "body_organ_analysis/_external" ]
 [tool.pytest]
 ini_options.testpaths = [ "tests" ]
 ini_options.log_level = "INFO"
+ini_options.log_cli = true
 ini_options.log_cli_level = "INFO"
 
 [tool.sqlfluff]
