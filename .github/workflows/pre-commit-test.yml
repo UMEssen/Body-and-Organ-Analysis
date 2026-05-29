@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: linux
+          - os: Linux
             python-version: "3.12"
             architecture: x64
             upload-coverage: true
@@ -31,7 +31,7 @@ jobs:
             architecture: arm64
             upload-coverage: false
           # TODO
-          # - os: windows
+          # - os: Windows
           #   python-version: "3.12"
           #   architecture: x64
           #   upload-coverage: false
