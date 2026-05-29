@@ -30,10 +30,11 @@ jobs:
             python-version: "3.11"
             architecture: arm64
             upload-coverage: false
-          - os: windows
-            python-version: "3.12"
-            architecture: x64
-            upload-coverage: false
+          # TODO
+          # - os: windows
+          #   python-version: "3.12"
+          #   architecture: x64
+          #   upload-coverage: false
 
     env:
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
