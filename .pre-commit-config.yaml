@@ -1,5 +1,13 @@
 exclude: "^body_organ_analysis/_external/(nnunetv2|totalsegmentator)/"
 
+# Pin the Node version for `language: node` hooks (e.g. markdownlint-cli2).
+# Without this, pre-commit uses the runner's "system" Node. On the self-hosted
+# runners that resolves to a stale Node that gets paired with a newer npm,
+# producing "Cannot find module 'node:path'". Pinning makes nodeenv fetch a
+# self-consistent node+npm pair instead.
+default_language_version:
+  node: "20.20.2"
+
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.12
