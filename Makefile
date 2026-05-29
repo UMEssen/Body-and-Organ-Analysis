@@ -21,10 +21,12 @@ sh-check:
 	@for f in $(SH_FILES); do echo "bash -n $$f"; bash -n "$$f"; done
 
 compose-check:
-	@# --no-interpolate validates structure without a populated env: unset vars
-	@# would otherwise collapse volume specs like ${POSTGRES_DATA}:/path into an
-	@# invalid ":/path" ("empty section between colons") and spam warnings.
-	@for f in $(COMPOSE_FILES); do echo "docker compose -f $$f config"; docker compose -f "$$f" config -q --no-interpolate; done
+	@# Validate against the committed sample env so the *interpolated* output is
+	@# checked (and .env_sample is kept in sync with the compose files). With an
+	@# empty env, unset vars would collapse volume specs like ${POSTGRES_DATA}:/p
+	@# into an invalid ":/p", and a literal ${ORTHANC_PORT} in a ports field is
+	@# rejected as "invalid hostPort" by stricter compose versions.
+	@for f in $(COMPOSE_FILES); do echo "docker compose -f $$f config"; docker compose -f "$$f" --env-file .env_sample config -q; done
 
 docker-check:
 	@for f in $(DOCKERFILES); do echo "docker buildx build --check -f $$f ."; docker buildx build --check -f "$$f" .; done
