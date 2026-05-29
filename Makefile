@@ -21,7 +21,10 @@ sh-check:
 	@for f in $(SH_FILES); do echo "bash -n $$f"; bash -n "$$f"; done
 
 compose-check:
-	@for f in $(COMPOSE_FILES); do echo "docker compose -f $$f config"; docker compose -f "$$f" config -q; done
+	@# --no-interpolate validates structure without a populated env: unset vars
+	@# would otherwise collapse volume specs like ${POSTGRES_DATA}:/path into an
+	@# invalid ":/path" ("empty section between colons") and spam warnings.
+	@for f in $(COMPOSE_FILES); do echo "docker compose -f $$f config"; docker compose -f "$$f" config -q --no-interpolate; done
 
 docker-check:
 	@for f in $(DOCKERFILES); do echo "docker buildx build --check -f $$f ."; docker buildx build --check -f "$$f" .; done
