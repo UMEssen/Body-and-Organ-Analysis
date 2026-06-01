@@ -14,7 +14,7 @@ services:
     image: shipai/boa-worker-gpu
     runtime: nvidia
     build:
-      dockerfile: scripts/task_gpu.dockerfile
+      dockerfile: scripts/worker_gpu.dockerfile
       context: .
     environment:
       - NVIDIA_VISIBLE_DEVICES=${NVIDIA_ID}
@@ -69,10 +69,10 @@ services:
     depends_on:
       - rabbitmq
 
-  worker:
-    image: shipai/boa-task
+  worker-cpu:
+    image: shipai/boa-worker-cpu
     build:
-      dockerfile: scripts/task.dockerfile
+      dockerfile: scripts/worker_cpu.dockerfile
       context: .
     environment:
       - DOCKER_USER

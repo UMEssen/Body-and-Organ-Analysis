@@ -1,0 +1,66 @@
+name: Docker Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dockerfile: scripts/cli.dockerfile
+            image: shipai/boa-cli
+        #   - dockerfile: scripts/rabbitmq.dockerfile
+        #     image: shipai/boa-rabbitmq
+        #   - dockerfile: scripts/worker_gpu.dockerfile
+        #     image: shipai/boa-worker-gpu
+        #   - dockerfile: scripts/worker_cpu.dockerfile
+        #     image: shipai/boa-worker-cpu
+        #   - dockerfile: scripts/orthanc.dockerfile
+        #     image: shipai/boa-orthanc
+    steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
+      - name: Check out the repo
+        uses: actions/checkout@v6
+      - name: Setup env vars
+        run: |
+          ./scripts/generate_version.sh
+          PACKAGE_VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
+          echo "GIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          mkdir weights
+      - name: Download DICOM
+        run: |
+          zip_file=./test_images/dicoms.zip
+          dicom_dir=./test_images/dicoms
+
+          curl --fail --show-error --silent --location \
+            --max-time 120 \
+            --get "https://services.cancerimagingarchive.net/nbia-api/services/v1/getImage" \
+            --data-urlencode "SeriesInstanceUID=1.3.6.1.4.1.14519.5.2.1.1427.5885.222751041402610322644964911342" \
+            --data-urlencode "NewFileNames=Yes" \
+            --output "$zip_file"
+          unzip -q "$zip_file" -d "$dicom_dir"
+          rm "$zip_file"
+      - name: Run GPU inference
+        run: |
+          docker run --rm \
+            -v ./test_images/dicoms:/image.nii.gz \
+            -v ./test_images/boa_cli/gpu_cnr:/workspace \
+            -v ~/.totalsegmentator:/app/weights \
+            --runtime=nvidia \
+            --device=cuda:0 \
+            --network host \
+            --user $(id -u):$(id -g) \
+            --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
+            --entrypoint /bin/sh \
+            shipai/boa-cli \
+            -c \
+            "python body_organ_analysis --input-image /image.nii.gz --output-dir /workspace/ --models bca+heartchambers_highres --verbose"

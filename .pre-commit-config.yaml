@@ -21,7 +21,7 @@ repos:
     hooks:
       - id: mypy
         language_version: python3.12
-        additional_dependencies: ["types-pytz", "types-requests"]
+        additional_dependencies: ["types-pytz", "types-requests", "pytest"]
 
   - repo: local
     hooks:

@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import time
+import warnings
 from pathlib import Path
 
 from totalsegmentator.statistics import get_radiomics_features_for_entire_dir
@@ -182,6 +183,20 @@ def run(argv: list[str] | None = None) -> None:
     device = resolve_device(args.device)
     fast_bca: bool = args.fast_bca or env_bool("FAST_BCA", False)
     fast_total: bool = args.fast_total or env_bool("FAST_TOTAL", False)
+
+    # TODO: remove in 1.1.0
+    if "PREDICT_FAST" in os.environ:
+        warnings.warn(
+            "The PREDICT_FAST environment variable is deprecated and will no "
+            "longer have any effect starting with version 1.1.0. Use the "
+            "FAST_BCA and FAST_TOTAL environment variables (or the --fast-bca "
+            "and --fast-total flags) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        fast_bca = True
+        fast_total = True
+
     theme: str = args.theme or os.getenv("THEME", "light")
 
     analyze_ct(

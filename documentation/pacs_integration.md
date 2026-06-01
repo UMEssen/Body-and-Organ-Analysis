@@ -31,8 +31,8 @@ docker pull shipai/boa-orthanc
 docker pull shipai/boa-rabbitmq
 docker pull shipai/boa-worker-gpu
 
-# Only needed if you are using a triton instance for the models
-docker pull shipai/boa-task
+# Only needed if you are using the BOA without GPU or a triton instance
+docker pull shipai/boa-worker-cpu
 ```
 
 or clone the repository and build the images. If you are doing this, please set
@@ -49,9 +49,9 @@ following command
 docker compose up orthanc rabbitmq worker-gpu -d
 ```
 
-with `worker-gpu` if you want to use a local GPU and `worker` if you have Triton
-instance running.  Remove `rabbitmq` in case you already have an instance
-running.
+with `worker-gpu` if you want to use a local GPU and `worker-cpu` if you want to
+use the BOA without GPU or have Triton instance running.  Remove `rabbitmq` in
+case you already have an instance running.
 
 ### !!!IMPORTANT!!! for Windows users
 

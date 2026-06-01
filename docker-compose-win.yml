@@ -13,7 +13,7 @@ services:
   worker-gpu:
     image: shipai/boa-worker-gpu
     build:
-      dockerfile: scripts/task_gpu.dockerfile
+      dockerfile: scripts/worker_gpu.dockerfile
       context: .
     environment:
       - CELERY_BROKER

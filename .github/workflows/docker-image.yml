@@ -17,36 +17,37 @@ jobs:
             image: shipai/boa-cli
           - dockerfile: scripts/rabbitmq.dockerfile
             image: shipai/boa-rabbitmq
-          - dockerfile: scripts/task_gpu.dockerfile
+          - dockerfile: scripts/worker_gpu.dockerfile
             image: shipai/boa-worker-gpu
-          - dockerfile: scripts/task.dockerfile
-            image: shipai/boa-task
+          - dockerfile: scripts/worker_cpu.dockerfile
+            image: shipai/boa-worker-cpu
           - dockerfile: scripts/orthanc.dockerfile
             image: shipai/boa-orthanc
     steps:
       - name: Delete huge unnecessary tools folder
         run: rm -rf /opt/hostedtoolcache
       - name: Check out the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup env vars
         run: |
           ./scripts/generate_version.sh
           PACKAGE_VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
+          echo "GIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           mkdir weights
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Login to NVIDIA NGC (nvcr.io)
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: nvcr.io
           username: $oauthtoken
           password: ${{ secrets.NGC_API_KEY }}
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ${{ matrix.dockerfile }}
