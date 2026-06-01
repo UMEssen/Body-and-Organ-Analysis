@@ -56,7 +56,7 @@ jobs:
             -v ./test_images/boa_cli/gpu_cnr:/workspace \
             -v ~/.totalsegmentator:/app/weights \
             --runtime=nvidia \
-            --device=cuda:0 \
+            --device=cuda:5 \
             --network host \
             --user $(id -u):$(id -g) \
             --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
