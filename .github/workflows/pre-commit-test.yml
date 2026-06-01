@@ -29,17 +29,17 @@ jobs:
         uses: actions/checkout@v6
       - name: Build image
         run: |
-          docker build -t "${{ matrix.image }}:test" -f "${{ matrix.dockerfile }}" .
+          docker build --no-cache -t "${{ matrix.image }}:test" -f "${{ matrix.dockerfile }}" .
       - name: Download DICOM
         run: |
-          zip_file=./test_images/dicoms.zip
-          dicom_dir=./test_images/dicoms
+          zip_file="$GITHUB_WORKSPACE/test_images/dicoms.zip"
+          dicom_dir="$GITHUB_WORKSPACE/test_images/dicoms"
 
           mkdir -p "$dicom_dir"
           curl --fail --show-error --silent --location \
             --max-time 120 \
-            --get "https://services.cancerimagingarchive.net/nbia-api/services/v1/getImage" \
-            --data-urlencode "SeriesInstanceUID=1.3.6.1.4.1.14519.5.2.1.1427.5885.222751041402610322644964911342" \
+            --get ${{ secrets.TCIA_API }} \
+            --data-urlencode "SeriesInstanceUID=${{ secrets.TCIA_UID }}" \
             --data-urlencode "NewFileNames=Yes" \
             --output "$zip_file"
           unzip -q "$zip_file" -d "$dicom_dir"
