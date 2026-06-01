@@ -27,12 +27,6 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v6
-      - name: Setup env vars
-        run: |
-          ./scripts/generate_version.sh
-          PACKAGE_VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
-          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
-          echo "GIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Build image
         run: |
           docker build -t "${{ matrix.image }}:test" -f "${{ matrix.dockerfile }}" .
