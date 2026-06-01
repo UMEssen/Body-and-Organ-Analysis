@@ -46,6 +46,7 @@ jobs:
           rm "$zip_file"
       - name: Run GPU inference
         run: |
+          mkdir -p "$GITHUB_WORKSPACE/test_images/boa_cli"
           docker run --rm \
             -v "$GITHUB_WORKSPACE/test_images/dicoms:/dicoms" \
             -v "$GITHUB_WORKSPACE/test_images/boa_cli/gpu_cnr:/workspace" \
