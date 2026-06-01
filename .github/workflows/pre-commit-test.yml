@@ -1,4 +1,4 @@
-name: Lint & Test
+name: Docker Test
 
 on:
   push:
@@ -7,88 +7,59 @@ on:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: write
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  qa:
-    runs-on: [self-hosted, "${{ matrix.os }}"]
-    timeout-minutes: 20
+  docker:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: Linux
-            python-version: "3.12"
-            architecture: x64
-            upload-coverage: true
-          - os: macOS
-            python-version: "3.11"
-            architecture: arm64
-            upload-coverage: false
-          # TODO
-          # - os: Windows
-          #   python-version: "3.12"
-          #   architecture: x64
-          #   upload-coverage: false
-
-    env:
-      PIP_DISABLE_PIP_VERSION_CHECK: "1"
-      # Force uv to use the Python installed by actions/setup-python rather
-      # than downloading its own managed interpreter. On the self-hosted
-      # macOS runner uv would otherwise pull an x86_64 build (the runner
-      # binary is x86_64 under Rosetta), which breaks arm64-only wheels.
-      UV_PYTHON_PREFERENCE: only-system
-      UV_PYTHON: ${{ matrix.python-version }}
-
+          - dockerfile: scripts/cli.dockerfile
+            image: shipai/boa-cli
+        #   - dockerfile: scripts/rabbitmq.dockerfile
+        #     image: shipai/boa-rabbitmq
+        #   - dockerfile: scripts/worker_gpu.dockerfile
+        #     image: shipai/boa-worker-gpu
+        #   - dockerfile: scripts/worker_cpu.dockerfile
+        #     image: shipai/boa-worker-cpu
+        #   - dockerfile: scripts/orthanc.dockerfile
+        #     image: shipai/boa-orthanc
     steps:
-      - uses: actions/checkout@v6
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
+      - name: Check out the repo
+        uses: actions/checkout@v6
+      - name: Setup env vars
+        run: |
+          ./scripts/generate_version.sh
+          PACKAGE_VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
+          echo "GIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          mkdir weights
+      - name: Download DICOM
+        run: |
+          zip_file=./test_images/dicoms.zip
+          dicom_dir=./test_images/dicoms
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: ${{ matrix.architecture }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-
-      - name: Install Python dev dependencies
-        run: uv sync --frozen --group dev
-
-      - name: Install Node dependencies (prettier + plugins)
-        run: npm install
-
-      - name: Run pre-commit
-        run: uv run pre-commit run -a --show-diff-on-failure
-
-      - name: Run make check
-        run: make check
-
-      - name: Run tests
-        if: ${{ !matrix.upload-coverage }}
-        run: uv run pytest
-
-      - name: Run tests with coverage
-        if: matrix.upload-coverage
-        run: uv run pytest --cov=body_organ_analysis --cov-report=xml --cov-report=term
-
-      - name: Upload coverage to Codecov
-        if: success() && matrix.upload-coverage
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          fail_ci_if_error: false
+          curl --fail --show-error --silent --location \
+            --max-time 120 \
+            --get "https://services.cancerimagingarchive.net/nbia-api/services/v1/getImage" \
+            --data-urlencode "SeriesInstanceUID=1.3.6.1.4.1.14519.5.2.1.1427.5885.222751041402610322644964911342" \
+            --data-urlencode "NewFileNames=Yes" \
+            --output "$zip_file"
+          unzip -q "$zip_file" -d "$dicom_dir"
+          rm "$zip_file"
+      - name: Run GPU inference
+        run: |
+          docker run --rm \
+            -v ./test_images/dicoms:/image.nii.gz \
+            -v ./test_images/boa_cli/gpu_cnr:/workspace \
+            -v ~/.totalsegmentator:/app/weights \
+            --runtime=nvidia \
+            --device=cuda:5 \
+            --user $(id -u):$(id -g) \
+            --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
+            --entrypoint /bin/sh \
+            shipai/boa-cli \
+            -c \
+            "python body_organ_analysis --input-image /image.nii.gz --output-dir /workspace/ --models bca+heartchambers_highres --verbose"
