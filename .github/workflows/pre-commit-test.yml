@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v6
       - name: Build image
         run: |
-          docker build --no-cache -t "${{ matrix.image }}:test" -f "${{ matrix.dockerfile }}" .
+          docker build --no-cache -q -t "${{ matrix.image }}:test" -f "${{ matrix.dockerfile }}" .
       - name: Download DICOM
         run: |
           zip_file="$GITHUB_WORKSPACE/test_images/dicoms.zip"
@@ -49,7 +49,7 @@ jobs:
           docker run --rm \
             -v "$GITHUB_WORKSPACE/test_images/dicoms:/dicoms" \
             -v "$GITHUB_WORKSPACE/test_images/boa_cli/gpu_cnr:/workspace" \
-            -v ~/.totalsegmentator:/app/weights \
+            -v ~/.totalsegmentator/nnunet/results:/app/weights \
             --runtime=nvidia \
             -e NVIDIA_VISIBLE_DEVICES=5 \
             -e DOCKER_USER=$(id -u):$(id -g) \
