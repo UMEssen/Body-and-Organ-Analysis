@@ -5,9 +5,11 @@ DOCKER_USER="${DOCKER_USER:-1000:1000}"
 USER_ID="${DOCKER_USER%:*}"
 GROUP_ID="${DOCKER_USER#*:}"
 
-if [ -d /storage_directory ]; then
-    chown -R "$USER_ID:$GROUP_ID" /storage_directory 2>/dev/null || true
-fi
+for dir in /storage_directory /workspace; do
+    if [ -d "$dir" ]; then
+        chown -R "$USER_ID:$GROUP_ID" "$dir" 2>/dev/null || true
+    fi
+done
 
 if [ -x /opt/nvidia/nvidia_entrypoint.sh ]; then
     exec /opt/nvidia/nvidia_entrypoint.sh gosu "$USER_ID:$GROUP_ID" "$@"

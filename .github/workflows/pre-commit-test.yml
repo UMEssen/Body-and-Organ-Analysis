@@ -52,9 +52,7 @@ jobs:
             -v ~/.totalsegmentator:/app/weights \
             --runtime=nvidia \
             -e NVIDIA_VISIBLE_DEVICES=5 \
-            --user $(id -u):$(id -g) \
+            -e DOCKER_USER=$(id -u):$(id -g) \
             --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
-            --entrypoint /bin/sh \
             "${{ matrix.image }}:test" \
-            -c \
-            "python body_organ_analysis --input-image /dicoms --output-dir /workspace/ --models bca+heartchambers_highres --verbose"
+            python body_organ_analysis --input-image /dicoms --output-dir /workspace/ --models bca+heartchambers_highres --verbose
