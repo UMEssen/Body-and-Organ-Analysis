@@ -27,7 +27,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock README.md /app/
 RUN uv sync --frozen --no-install-project
 
-COPY weights /app/weights
+# COPY weights /app/weights
 COPY body_organ_analysis /app/body_organ_analysis
 RUN uv sync --frozen
 
