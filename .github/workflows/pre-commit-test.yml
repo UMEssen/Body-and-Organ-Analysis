@@ -48,16 +48,13 @@ jobs:
         run: |
           mkdir -p "$GITHUB_WORKSPACE/test_images/boa_cli"
           docker run --rm \
-            -v "$GITHUB_WORKSPACE:/src" \
+            -v "$GITHUB_WORKSPACE/body_organ_analysis:/app/body_organ_analysis" \
             -v "$GITHUB_WORKSPACE/test_images/dicoms:/dicoms" \
             -v "$GITHUB_WORKSPACE/test_images/boa_cli/gpu_cnr:/workspace" \
             -v ~/.totalsegmentator/nnunet/results:/app/weights \
-            -w /src \
             --runtime=nvidia \
             -e NVIDIA_VISIBLE_DEVICES=5 \
             -e DOCKER_USER=$(id -u):$(id -g) \
-            -e HOME=/tmp \
-            -e UV_CACHE_DIR=/tmp/uv-cache \
             --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
             ${{ matrix.image }} \
-            bash -lc 'uv sync --frozen --no-dev && python -m body_organ_analysis -m bca+heartchambers_highres -v --cnr-adjustment --theme dark -l "${{ secrets.LICENSE_NUMBER }}"'
+            python -m body_organ_analysis -m bca+heartchambers_highres -v --cnr-adjustment --theme dark -l "${{ secrets.LICENSE_NUMBER }}"
