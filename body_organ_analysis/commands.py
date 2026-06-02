@@ -1,6 +1,5 @@
 import logging
 import platform
-import warnings
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -20,17 +19,18 @@ from body_organ_analysis.compute.ts_metrics import compute_segmentator_metrics
 from body_organ_analysis.compute.util import ADDITIONAL_MODELS_OUTPUT_NAME
 
 logger = logging.getLogger(__name__)
+# TODO: check if still displayed
 # Suppress PyTorch warnings
-warnings.filterwarnings(
-    "ignore",
-    message=(
-        "torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling."
-    ),
-)
-warnings.filterwarnings(
-    "ignore",
-    message="User provided device_type of 'cuda', but CUDA is not available. Disabling",
-)
+# warnings.filterwarnings(
+#     "ignore",
+#     message=(
+#         "torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling."
+#     ),
+# )
+# warnings.filterwarnings(
+#     "ignore",
+#     message="User provided device_type of 'cuda', but CUDA is not available. Disabling",
+# )
 
 
 @contextmanager
@@ -64,6 +64,7 @@ def analyze_ct(
     nr_thr_resamp: int = 1,
     nr_thr_saving: int = 6,
     device: str = "gpu",
+    license_number: str | None = None,
     bca_median_filtering: bool = False,
     bca_examined_body_region: str | None = None,
     bca_pdf: bool = True,
@@ -123,6 +124,7 @@ def analyze_ct(
             "quiet": False,
             "verbose": nnunet_verbose,
             "device": device,
+            "license_number": license_number,
         }
         ct_stats = compute_all_models(
             ct_path=ct_path,

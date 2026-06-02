@@ -5,30 +5,45 @@ import time
 import warnings
 from pathlib import Path
 
+from totalsegmentator.config import set_license_number
 from totalsegmentator.statistics import get_radiomics_features_for_entire_dir
 
 from body_organ_analysis.commands import analyze_ct
-from body_organ_analysis.compute.config import env_bool, resolve_device, resolve_models
+from body_organ_analysis.compute.config import (
+    env_bool,
+    env_str,
+    resolve_device,
+    resolve_models,
+)
+from body_organ_analysis.compute.constants import ALL_MODELS
 
 logger = logging.getLogger(__name__)
+
+
+def _validate_models(spec: str) -> set[str]:
+    """Resolve a '+'-separated model spec for argparse."""
+    try:
+        return resolve_models(spec, strict=True)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
 
 
 def get_parser() -> argparse.ArgumentParser:
     # TODO: Some variables are currently not accessible via CLI
     parser = argparse.ArgumentParser()
-    # Run complete BCA pipeline
     parser.add_argument(
         "-i",
         "--input-image",
-        required=True,
+        default="/dicoms",
         type=Path,
-        help="Path to the ITK image which contains the CT image",
+        help="Path to the NIfTI file or DICOM directory",
     )
     parser.add_argument(
         "-o",
         "--output-dir",
-        required=True,
+        default="/workspace",
         type=Path,
+        help="Path to the output files from the BOA calculation",
     )
     parser.add_argument(
         "--use-study-prefix",
@@ -40,9 +55,13 @@ def get_parser() -> argparse.ArgumentParser:
         "-m",
         "--models",
         required=True,
-        default="all",
-        help="Plus separated list of models to compute. "
-        "If 'all' is specified, all models will be computed",
+        type=_validate_models,
+        metavar="MODEL[+MODEL...]",
+        help=(
+            "Plus-separated list of models to compute, e.g. 'total+bca'. "
+            "Use 'all' to compute everything. "
+            f"Available: {', '.join(sorted(ALL_MODELS))}."
+        ),
     )
     parser.add_argument(
         "--skip-contrast-information",
@@ -55,51 +74,57 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-nr",
         "--nr_thr_resamp",
+        default=1,
         type=int,
         help="Nr of threads for resampling",
-        default=1,
     )
     parser.add_argument(
         "-p",
         "--preview",
+        default=False,
         action="store_true",
         help="Generate a png preview of segmentation",
-        default=False,
     )
     parser.add_argument(
         "--force-recompute",
+        default=False,
         action="store_true",
         help="Generate all segmentations from scratch, even if they already exist",
-        default=False,
     )
     parser.add_argument(
         "-ns",
         "--nr_thr_saving",
+        default=6,
         type=int,
         help="Nr of threads for saving segmentations",
-        default=6,
     )
     parser.add_argument(
         "-d",
         "--device",
-        type=str,
-        help="",  # TODO
         default=None,
+        type=str,
+        help=(
+            "Device used for inference. Accepts 'gpu', 'cuda', 'gpu:<id>', "
+            "'cuda:<id>', 'cpu' or 'mps'."
+        ),
     )
     parser.add_argument(
         "-r",
         "--radiomics",
+        default=False,
         action="store_true",
         help=(
             "Calc radiomics features. Requires pyradiomics. "
             "Results will be in statistics_radiomics.json"
         ),
-        default=False,
     )
     parser.add_argument(
         "--cnr-adjustment",
         action="store_true",
-        help="",  # TODO
+        help=(
+            "Apply CNR-adjusted measurements for supported TotalSegmentator "
+            "regions and add a dedicated cnr-adjusted Excel sheet."
+        ),
         default=False,
     )
     parser.add_argument(
@@ -108,8 +133,8 @@ def get_parser() -> argparse.ArgumentParser:
         help="URL to the Triton inference server via gRPC",
     )
     parser.add_argument(
-        "--verbose",
         "-v",
+        "--verbose",
         default=False,
         action="store_true",
         help="Print additional information for debugging purposes",
@@ -130,7 +155,9 @@ def get_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
-        "--bca-examined-body-region", choices=["abdomen", "neck", "thorax"]
+        "--bca-examined-body-region",
+        choices=["abdomen", "neck", "thorax"],
+        help="Limit BCA report measurements to the selected body region.",
     )
     parser.add_argument(
         "--bca-no-pdf",
@@ -142,19 +169,29 @@ def get_parser() -> argparse.ArgumentParser:
         "--fast-bca",
         default=None,
         action="store_true",
-        help="",  # TODO
+        help=("Use the one fold BCA model variant instead of 5-fold-cross validation."),
     )
     parser.add_argument(
         "--fast-total",
         default=None,
         action="store_true",
-        help="",  # TODO
+        help=("Use TotalSegmentator's fast mode."),
     )
     parser.add_argument(
         "--theme",
         default=None,
         choices=["dark", "light"],
-        help="",  # TODO
+        help=(
+            "Theme used for generated BCA PDFs. Defaults to the THEME "
+            "environment variable or 'light'."
+        ),
+    )
+    parser.add_argument(
+        "-l",
+        "--license_number",
+        default=None,
+        type=str,
+        help="TotalSegmentator license number",
     )
     return parser
 
@@ -179,10 +216,15 @@ def run(argv: list[str] | None = None) -> None:
     # else:
     #     os.environ["nnUNet_USE_TRITON"] = "0"
 
-    models_to_compute = resolve_models(args.models)
+    models_to_compute = args.models
     device = resolve_device(args.device)
+    theme: str = args.theme or os.getenv("THEME", "light")
+    license_number: str | None = args.license_number or env_str("LICENSE_NUMBER")
     fast_bca: bool = args.fast_bca or env_bool("FAST_BCA", False)
     fast_total: bool = args.fast_total or env_bool("FAST_TOTAL", False)
+
+    if license_number:
+        set_license_number(license_number, skip_validation=False)
 
     # TODO: remove in 1.1.0
     if "PREDICT_FAST" in os.environ:
@@ -197,8 +239,6 @@ def run(argv: list[str] | None = None) -> None:
         fast_bca = True
         fast_total = True
 
-    theme: str = args.theme or os.getenv("THEME", "light")
-
     analyze_ct(
         input_folder=args.input_image,
         processed_output_folder=args.output_dir,
@@ -209,6 +249,7 @@ def run(argv: list[str] | None = None) -> None:
         nr_thr_resamp=args.nr_thr_resamp,
         nr_thr_saving=args.nr_thr_saving,
         device=device,
+        license_number=license_number,
         bca_median_filtering=args.bca_median_filtering,
         bca_examined_body_region=args.bca_examined_body_region,
         bca_pdf=not args.bca_no_pdf,

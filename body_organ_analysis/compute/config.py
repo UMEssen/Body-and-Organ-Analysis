@@ -14,12 +14,25 @@ def env_bool(name: str, default: bool = False) -> bool:
     return raw.strip().lower() in {"1", "true"}
 
 
-def resolve_models(spec: str | None) -> set[str]:
+def env_str(name: str, default: str | None = None) -> str | None:
+    """Parse an environment variable as a string."""
+    raw = os.getenv(name)
+    if raw is None or raw.strip().lower() in {"", "todo"}:
+        return default
+    return raw.strip()
+
+
+def resolve_models(spec: str | None, strict: bool = False) -> set[str]:
     if not spec or spec.lower() == "all":
         return set(ALL_MODELS)
     models = {s.replace("-", "_") for s in spec.split("+")}
     invalid = models - ALL_MODELS
     if invalid:
+        if strict:
+            raise ValueError(
+                f"Unknown model(s): {', '.join(sorted(invalid))}. "
+                f"Available: {', '.join(sorted(ALL_MODELS))}"
+            )
         logger.error(
             "Ignoring invalid model entries: %s. Available models are: %s.",
             invalid,

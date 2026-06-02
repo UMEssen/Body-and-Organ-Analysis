@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v6
       - name: Build image
         run: |
-          docker build --no-cache -q -t "${{ matrix.image }}:test" -f "${{ matrix.dockerfile }}" .
+          docker build --no-cache -q -t ${{ matrix.image }}:test -f "${{ matrix.dockerfile }}" .
       - name: Download DICOM
         run: |
           zip_file="$GITHUB_WORKSPACE/test_images/dicoms.zip"
@@ -44,7 +44,7 @@ jobs:
             --output "$zip_file"
           unzip -q "$zip_file" -d "$dicom_dir"
           rm "$zip_file"
-      - name: Run GPU inference
+      - name: Run GPU inference with parameters
         run: |
           mkdir -p "$GITHUB_WORKSPACE/test_images/boa_cli"
           docker run --rm \
@@ -55,5 +55,5 @@ jobs:
             -e NVIDIA_VISIBLE_DEVICES=5 \
             -e DOCKER_USER=$(id -u):$(id -g) \
             --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
-            "${{ matrix.image }}:test" \
-            python body_organ_analysis --input-image /dicoms --output-dir /workspace/ --models bca+heartchambers_highres --verbose
+            ${{ matrix.image }}:test \
+            python body_organ_analysis -m bca+heartchambers_highres -v --cnr-adjustment --theme dark -l "${{ secrets.LICENSE_NUMBER }}
