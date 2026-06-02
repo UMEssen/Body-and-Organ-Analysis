@@ -56,6 +56,8 @@ jobs:
             --runtime=nvidia \
             -e NVIDIA_VISIBLE_DEVICES=5 \
             -e DOCKER_USER=$(id -u):$(id -g) \
+            -e HOME=/tmp \
+            -e UV_CACHE_DIR=/tmp/uv-cache \
             --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
             ${{ matrix.image }} \
             bash -lc 'uv sync --frozen --no-dev && python -m body_organ_analysis -m bca+heartchambers_highres -v --cnr-adjustment --theme dark -l "${{ secrets.LICENSE_NUMBER }}"'
