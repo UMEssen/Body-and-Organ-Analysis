@@ -14,8 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - dockerfile: scripts/cli.dockerfile
-            image: shipai/boa-cli
+          - image: shipai/boa-cli:test
+            dockerfile: scripts/cli.dockerfile
           #   - dockerfile: scripts/rabbitmq.dockerfile
           #     image: shipai/boa-rabbitmq
           #   - dockerfile: scripts/task_gpu.dockerfile
@@ -27,9 +27,12 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v6
-      - name: Build image
+      # - name: Build image
+      #   run: |
+      #     docker build -q -t ${{ matrix.image }} -f "${{ matrix.dockerfile }}" .
+      - name: Pull image
         run: |
-          docker build --no-cache -q -t ${{ matrix.image }}:test -f "${{ matrix.dockerfile }}" .
+          docker pull ${{ matrix.image }}
       - name: Download DICOM
         run: |
           zip_file="$GITHUB_WORKSPACE/test_images/dicoms.zip"
@@ -48,12 +51,14 @@ jobs:
         run: |
           mkdir -p "$GITHUB_WORKSPACE/test_images/boa_cli"
           docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
             -v "$GITHUB_WORKSPACE/test_images/dicoms:/dicoms" \
             -v "$GITHUB_WORKSPACE/test_images/boa_cli/gpu_cnr:/workspace" \
             -v ~/.totalsegmentator/nnunet/results:/app/weights \
+            -w /src \
             --runtime=nvidia \
             -e NVIDIA_VISIBLE_DEVICES=5 \
             -e DOCKER_USER=$(id -u):$(id -g) \
             --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
-            ${{ matrix.image }}:test \
-            python body_organ_analysis -m bca+heartchambers_highres -v --cnr-adjustment --theme dark -l "${{ secrets.LICENSE_NUMBER }}
+            ${{ matrix.image }} \
+            bash -lc 'uv sync --frozen --no-dev && python -m body_organ_analysis -m bca+heartchambers_highres -v --cnr-adjustment --theme dark -l "${{ secrets.LICENSE_NUMBER }}"'
