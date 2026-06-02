@@ -1,4 +1,4 @@
-name: Docker GPU Test (self-hosted)
+name: Docker GPU Test
 
 on:
   push:
@@ -27,9 +27,9 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v6
-      # - name: Build image
-      #   run: |
-      #     docker build -q -t ${{ matrix.image }} -f "${{ matrix.dockerfile }}" .
+      - name: Build image
+        run: |
+          docker build -q -t ${{ matrix.image }} -f "${{ matrix.dockerfile }}" .
       - name: Download DICOM
         run: |
           zip_file="$GITHUB_WORKSPACE/test_images/dicoms.zip"
@@ -46,7 +46,7 @@ jobs:
           rm "$zip_file"
       - name: Run GPU inference with parameters
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/test_images/boa_cli"
+          mkdir -p "$GITHUB_WORKSPACE/test_images/boa_cli/gpu_cnr"
           docker run --rm \
             -v "$GITHUB_WORKSPACE/body_organ_analysis:/app/body_organ_analysis" \
             -v "$GITHUB_WORKSPACE/test_images/dicoms:/dicoms" \

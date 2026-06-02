@@ -32,6 +32,7 @@ COPY body_organ_analysis /app/body_organ_analysis
 RUN uv sync --frozen --extra triton --extra pacs
 
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
 
 RUN kaleido_get_chrome --path /app/chrome
 ENV BROWSER_PATH=/app/chrome/chrome-linux64/chrome

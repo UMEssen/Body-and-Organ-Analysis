@@ -41,6 +41,7 @@ if multiprocessing.current_process().name == "MainProcess":
     setup_nnunet()
     setup_totalseg()
     set_config_key("send_usage_stats", False)
+    set_config_key("statistics_disclaimer_shown", True)
 
 from body_organ_analysis._version import __githash__, __version__  # noqa: E402
 from body_organ_analysis.commands import analyze_ct  # noqa: E402
