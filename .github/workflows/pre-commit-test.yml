@@ -30,9 +30,6 @@ jobs:
       # - name: Build image
       #   run: |
       #     docker build -q -t ${{ matrix.image }} -f "${{ matrix.dockerfile }}" .
-      - name: Pull image
-        run: |
-          docker pull ${{ matrix.image }}
       - name: Download DICOM
         run: |
           zip_file="$GITHUB_WORKSPACE/test_images/dicoms.zip"
