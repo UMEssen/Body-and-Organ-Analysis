@@ -1,4 +1,4 @@
-name: Docker GPU Test
+name: Docker Test
 
 on:
   push:
@@ -9,64 +9,82 @@ on:
 
 jobs:
   docker:
-    runs-on: [self-hosted, "Linux"]
+    runs-on: ${{ matrix.os.runner }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - image: shipai/boa-cli
+        os:
+          - name: linux
+            runner: [self-hosted, Linux]
+            gpu: true
+            gpu_args: "--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=5"
+          - name: windows
+            runner: [self-hosted, Windows]
+            gpu: true
+            gpu_args: "--gpus all"          # pin a device with: --gpus '\"device=5\"'
+          - name: macos
+            runner: [self-hosted, macOS]
+            gpu: false
+            gpu_args: ""
+        image:
+          - name: shipai/boa-cli
             dockerfile: scripts/cli.dockerfile
-          #   - dockerfile: scripts/rabbitmq.dockerfile
-          #     image: shipai/boa-rabbitmq
-          #   - dockerfile: scripts/task_gpu.dockerfile
-          #     image: shipai/boa-worker-gpu
-          #   - dockerfile: scripts/task.dockerfile
-          #     image: shipai/boa-worker-cpu
-          #   - dockerfile: scripts/orthanc.dockerfile
-          #     image: shipai/boa-orthanc
+          # - name: shipai/boa-rabbitmq
+          #   dockerfile: scripts/rabbitmq.dockerfile
+          # - name: shipai/boa-worker-gpu
+          #   dockerfile: scripts/task_gpu.dockerfile
+          # - name: shipai/boa-worker-cpu
+          #   dockerfile: scripts/task.dockerfile
+          # - name: shipai/boa-orthanc
+          #   dockerfile: scripts/orthanc.dockerfile
+    defaults:
+      run:
+        shell: bash        # Git Bash on Windows, bash on macOS/Linux
+    env:
+      MSYS_NO_PATHCONV: 1  # stop Git Bash from rewriting the -v paths on Windows
     steps:
       - name: Check out the repo
         uses: actions/checkout@v6
-      # - name: Build image GPU
-      #   run: |
-      #     docker build -q -t "${{ matrix.image }}:test-gpu" -f "${{ matrix.dockerfile }}" .
-      # - name: Download DICOM
-      #   run: |
-      #     zip_file="$GITHUB_WORKSPACE/test_images/dicoms.zip"
-      #     dicom_dir="$GITHUB_WORKSPACE/test_images/dicoms"
 
-      #     mkdir -p "$dicom_dir"
-      #     curl --fail --show-error --silent --location \
-      #       --max-time 120 \
-      #       --get ${{ secrets.TCIA_API }} \
-      #       --data-urlencode "SeriesInstanceUID=${{ secrets.TCIA_UID }}" \
-      #       --data-urlencode "NewFileNames=Yes" \
-      #       --output "$zip_file"
-      #     unzip -q "$zip_file" -d "$dicom_dir"
-      #     rm "$zip_file"
-      # - name: Run GPU inference with parameters
-      #   run: |
-      #     mkdir -p "$GITHUB_WORKSPACE/test_images/boa_cli/gpu_cnr"
-      #     docker run --rm \
-      #       -v "$GITHUB_WORKSPACE/body_organ_analysis:/app/body_organ_analysis" \
-      #       -v "$GITHUB_WORKSPACE/test_images/dicoms:/dicoms" \
-      #       -v "$GITHUB_WORKSPACE/test_images/boa_cli/gpu_cnr:/workspace" \
-      #       -v ~/.totalsegmentator/nnunet/results:/app/weights \
-      #       --runtime=nvidia \
-      #       -e NVIDIA_VISIBLE_DEVICES=5 \
-      #       -e DOCKER_USER=$(id -u):$(id -g) \
-      #       -e TQDM_DISABLE=1 \
-      #       --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
-      #       ${{ matrix.image }} \
-      #       python -m body_organ_analysis -m bca+heartchambers_highres -v --cnr-adjustment --theme light -l "${{ secrets.LICENSE_NUMBER }}"
-      - name: Build image CPU
-        env:
-          DEVICE: cpu
-          THEME: dark
-          FAST_BCA: true
-          FAST_TOTAL: 1
+      - name: Download DICOM
         run: |
-          docker build -q -t "${{ matrix.image }}:test-cpu" -f "${{ matrix.dockerfile }}" .
+          zip_file="$GITHUB_WORKSPACE/test_images/dicoms.zip"
+          dicom_dir="$GITHUB_WORKSPACE/test_images/dicoms"
+          mkdir -p "$dicom_dir"
+          curl --fail --show-error --silent --location \
+            --max-time 120 \
+            --get "${{ secrets.TCIA_API }}" \
+            --data-urlencode "SeriesInstanceUID=${{ secrets.TCIA_UID }}" \
+            --data-urlencode "NewFileNames=Yes" \
+            --output "$zip_file"
+          unzip -q "$zip_file" -d "$dicom_dir"
+          rm "$zip_file"
+
+      - name: Build image GPU
+        if: ${{ matrix.os.gpu }}
+        run: |
+          docker build -q -t "${{ matrix.image.name }}:test-gpu" -f "${{ matrix.image.dockerfile }}" .
+
+      - name: Run GPU inference with parameters
+        if: ${{ matrix.os.gpu }}
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/test_images/boa_cli/gpu_cnr"
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/body_organ_analysis:/app/body_organ_analysis" \
+            -v "$GITHUB_WORKSPACE/test_images/dicoms:/dicoms" \
+            -v "$GITHUB_WORKSPACE/test_images/boa_cli/gpu_cnr:/workspace" \
+            -v "$HOME/.totalsegmentator/nnunet/results:/app/weights" \
+            ${{ matrix.os.gpu_args }} \
+            -e DOCKER_USER=$(id -u):$(id -g) \
+            -e TQDM_DISABLE=1 \
+            --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
+            "${{ matrix.image.name }}:test-gpu" \
+            python -m body_organ_analysis -m bca+heartchambers_highres -v --cnr-adjustment --theme light -l "${{ secrets.LICENSE_NUMBER }}"
+
+      - name: Build image CPU
+        run: |
+          docker build -q -t "${{ matrix.image.name }}:test-cpu" -f "${{ matrix.image.dockerfile }}" .
+
       - name: Run CPU inference with .env
         run: |
           mkdir -p "$GITHUB_WORKSPACE/test_images/boa_cli/cpu"
@@ -74,9 +92,13 @@ jobs:
             -v "$GITHUB_WORKSPACE/body_organ_analysis:/app/body_organ_analysis" \
             -v "$GITHUB_WORKSPACE/test_images/dicoms:/dicoms" \
             -v "$GITHUB_WORKSPACE/test_images/boa_cli/cpu:/workspace" \
-            -v ~/.totalsegmentator/nnunet/results:/app/weights \
+            -v "$HOME/.totalsegmentator/nnunet/results:/app/weights" \
             -e DOCKER_USER=$(id -u):$(id -g) \
+            -e DEVICE=cpu \
+            -e THEME=dark \
+            -e FAST_BCA=true \
+            -e FAST_TOTAL=1 \
             -e TQDM_DISABLE=1 \
             --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
-            ${{ matrix.image }} \
+            "${{ matrix.image.name }}:test-cpu" \
             python -m body_organ_analysis -m bca+heartchambers_highres
