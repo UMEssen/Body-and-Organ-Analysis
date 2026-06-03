@@ -76,14 +76,13 @@ jobs:
             -v "$HOME/.totalsegmentator/nnunet/results:/app/weights" \
             ${{ matrix.os.gpu_args }} \
             -e DOCKER_USER=$(id -u):$(id -g) \
-            -e TQDM_DISABLE=1 \
             --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
             "${{ matrix.image.name }}:test-gpu" \
             python -m body_organ_analysis -m bca+heartchambers_highres -v --cnr-adjustment --theme light -l "${{ secrets.LICENSE_NUMBER }}"
 
       - name: Build image CPU
-        run: |
-          docker build -q -t "${{ matrix.image.name }}:test-cpu" -f "${{ matrix.image.dockerfile }}" .
+        run: |  # TODO add -q
+          docker build -t "${{ matrix.image.name }}:test-cpu" -f "${{ matrix.image.dockerfile }}" .
 
       - name: Run CPU inference with .env
         run: |
@@ -98,7 +97,6 @@ jobs:
             -e THEME=dark \
             -e FAST_BCA=true \
             -e FAST_TOTAL=1 \
-            -e TQDM_DISABLE=1 \
             --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
             "${{ matrix.image.name }}:test-cpu" \
-            python -m body_organ_analysis -m bca+heartchambers_highres
+            python -m body_organ_analysis -m bca+total

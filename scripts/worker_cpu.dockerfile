@@ -39,8 +39,10 @@ ENV PYTHONUNBUFFERED=1
 RUN kaleido_get_chrome --path /app/chrome
 ENV BROWSER_PATH=/app/chrome/chrome-linux64/chrome
 
-RUN chmod a+rwx -R /app
+# Only the dirs written at runtime by the non-root user need to be writable.
+# A recursive chmod over all of /app would rewrite the multi-GB venv/CUDA tree
+# into one huge layer (and mark everything world-writable).
+RUN mkdir -p /app/weights /app/configs && chmod -R a+rwX /app/weights /app/configs
 
-COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY --chmod=0755 scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
