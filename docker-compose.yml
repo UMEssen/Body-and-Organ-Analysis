@@ -12,6 +12,7 @@ services:
 
   worker-gpu:
     image: shipai/boa-worker-gpu
+    platform: linux/amd64
     runtime: nvidia
     build:
       dockerfile: scripts/worker_gpu.dockerfile
@@ -71,6 +72,7 @@ services:
 
   worker-cpu:
     image: shipai/boa-worker-cpu
+    platform: linux/amd64
     build:
       dockerfile: scripts/worker_cpu.dockerfile
       context: .

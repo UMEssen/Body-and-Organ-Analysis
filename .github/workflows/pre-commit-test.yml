@@ -21,7 +21,7 @@ jobs:
           - name: windows
             runner: [self-hosted, Windows]
             gpu: true
-            gpu_args: "--gpus all"          # pin a device with: --gpus '\"device=5\"'
+            gpu_args: "--gpus all"  # pin a device with: --gpus '\"device=5\"'
           - name: macos
             runner: [self-hosted, macOS]
             gpu: false

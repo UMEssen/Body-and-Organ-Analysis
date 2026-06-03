@@ -12,6 +12,7 @@ services:
 
   worker-gpu:
     image: shipai/boa-worker-gpu
+    platform: linux/amd64
     build:
       dockerfile: scripts/worker_gpu.dockerfile
       context: .

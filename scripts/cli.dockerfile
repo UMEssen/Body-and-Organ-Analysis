@@ -1,6 +1,6 @@
-FROM nvcr.io/nvidia/pytorch:24.12-py3
+ARG DOCKER_PLATFORM=linux/amd64
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+FROM --platform=${DOCKER_PLATFORM} nvcr.io/nvidia/pytorch:24.12-py3
 
 RUN apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
@@ -9,6 +9,8 @@ RUN apt-get -y update && \
         libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libdrm2 \
         libasound2t64 && \
     rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --no-cache-dir uv
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 
