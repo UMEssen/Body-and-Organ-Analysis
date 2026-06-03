@@ -39,7 +39,7 @@ jobs:
           #   dockerfile: scripts/orthanc.dockerfile
     defaults:
       run:
-        shell: bash        # Git Bash on Windows, bash on macOS/Linux
+        shell: bash  # Git Bash on Windows, bash on macOS/Linux
     env:
       MSYS_NO_PATHCONV: 1  # stop Git Bash from rewriting the -v paths on Windows
     steps:
@@ -62,8 +62,8 @@ jobs:
 
       - name: Build image GPU
         if: ${{ matrix.os.gpu }}
-        run: |
-          docker build -q -t "${{ matrix.image.name }}:test-gpu" -f "${{ matrix.image.dockerfile }}" .
+        run: |  # TODO add -q
+          docker build -t "${{ matrix.image.name }}:test-gpu" -f "${{ matrix.image.dockerfile }}" .
 
       - name: Run GPU inference with parameters
         if: ${{ matrix.os.gpu }}
