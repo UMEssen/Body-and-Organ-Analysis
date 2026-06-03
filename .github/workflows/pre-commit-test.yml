@@ -52,7 +52,7 @@ jobs:
           dicom_dir="$GITHUB_WORKSPACE/test_images/dicoms"
           mkdir -p "$dicom_dir"
           curl --fail --show-error --silent --location \
-            --max-time 120 \
+            --max-time 600 \
             --get "${{ secrets.TCIA_API }}" \
             --data-urlencode "SeriesInstanceUID=${{ secrets.TCIA_UID }}" \
             --data-urlencode "NewFileNames=Yes" \
