@@ -31,7 +31,7 @@ dependencies = [
   "boa-contrast>=0.1.5,<0.2",
   "dataclasses-json>=0.5.7,<1",
   "dynamic-network-architectures>=0.4.3",
-  "fury>=0.8,<1",
+  "fury>=0.12.0,<1",
   "jinja2>=3.0.3,<4",
   "kaleido>=1.3,<2",
   "matplotlib>=3.6.2,<4",
@@ -81,6 +81,11 @@ dev = [
   "pytest>=9.0.3",
   "pytest-cov>=6",
 ]
+
+[tool.uv]
+# Resolver-only override (NOT a declared project dependency): fury 0.12 (its
+# latest release) pins vtk<9.4, but vtk only ships Linux arm64 wheels from 9.5+.
+override-dependencies = [ "vtk>=9.5" ]
 
 [tool.hatch]
 build.targets.wheel.packages = [ "body_organ_analysis" ]

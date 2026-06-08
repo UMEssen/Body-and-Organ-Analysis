@@ -29,6 +29,9 @@ jobs:
         image:
           - name: shipai/boa-cli
             dockerfile: scripts/cli.dockerfile
+            # CPU-only, native-arch image used on the macOS runner (the CUDA
+            # base in dockerfile is x86-64/AVX and only runs emulated on Macs).
+            macos_dockerfile: scripts/cli_macos.dockerfile
           # - name: shipai/boa-rabbitmq
           #   dockerfile: scripts/rabbitmq.dockerfile
           # - name: shipai/boa-worker-gpu
@@ -70,7 +73,6 @@ jobs:
         run: |
           mkdir -p "$GITHUB_WORKSPACE/test_images/boa_cli/gpu_cnr"
           docker run --rm \
-            -v "$GITHUB_WORKSPACE/body_organ_analysis:/app/body_organ_analysis" \
             -v "$GITHUB_WORKSPACE/test_images/dicoms:/dicoms" \
             -v "$GITHUB_WORKSPACE/test_images/boa_cli/gpu_cnr:/workspace" \
             -v "$HOME/.totalsegmentator/nnunet/results:/app/weights" \
@@ -82,13 +84,13 @@ jobs:
 
       - name: Build image CPU
         run: |  # TODO add -q
-          docker build -t "${{ matrix.image.name }}:test-cpu" -f "${{ matrix.image.dockerfile }}" .
+          docker build -t "${{ matrix.image.name }}:test-cpu" \
+            -f "${{ (matrix.os.name == 'macos' && matrix.image.macos_dockerfile) || matrix.image.dockerfile }}" .
 
       - name: Run CPU inference with .env
         run: |
           mkdir -p "$GITHUB_WORKSPACE/test_images/boa_cli/cpu"
           docker run --rm \
-            -v "$GITHUB_WORKSPACE/body_organ_analysis:/app/body_organ_analysis" \
             -v "$GITHUB_WORKSPACE/test_images/dicoms:/dicoms" \
             -v "$GITHUB_WORKSPACE/test_images/boa_cli/cpu:/workspace" \
             -v "$HOME/.totalsegmentator/nnunet/results:/app/weights" \
@@ -97,6 +99,9 @@ jobs:
             -e THEME=dark \
             -e FAST_BCA=true \
             -e FAST_TOTAL=1 \
+            -e VERBOSE=TRUE \
+            -e BCA_NO_PDF=1 \
+            -e SKIP_CONTRAST_INFORMATION=true \
             --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
             "${{ matrix.image.name }}:test-cpu" \
             python -m body_organ_analysis -m bca+total

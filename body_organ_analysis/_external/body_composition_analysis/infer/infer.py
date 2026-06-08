@@ -39,7 +39,10 @@ def inference(
         raise ValueError(f"The task name {task_name} does not exist.")
     task_specific_params = get_task_info(task_name, fast_bca)
     logger.info(
-        "Computing model %s with ID %s...", task_name, task_specific_params["task_id"]
+        "Computing model %s with ID %s using folds %s...",
+        task_name,
+        task_specific_params["task_id"],
+        task_specific_params["folds"],
     )
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / f"{task_name}.nii.gz"

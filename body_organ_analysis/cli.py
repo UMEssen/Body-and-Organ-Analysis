@@ -65,7 +65,7 @@ def get_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--skip-contrast-information",
-        default=False,
+        default=None,
         action="store_true",
         help=(
             "Whether to skip the computation of the IV phase and GIT contrast presence."
@@ -120,12 +120,12 @@ def get_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--cnr-adjustment",
+        default=False,
         action="store_true",
         help=(
             "Apply CNR-adjusted measurements for supported TotalSegmentator "
             "regions and add a dedicated cnr-adjusted Excel sheet."
         ),
-        default=False,
     )
     parser.add_argument(
         "--triton-url",
@@ -135,7 +135,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-v",
         "--verbose",
-        default=False,
+        default=None,
         action="store_true",
         help="Print additional information for debugging purposes",
     )
@@ -161,7 +161,7 @@ def get_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--bca-no-pdf",
-        default=False,
+        default=None,
         action="store_true",
         help="Skip the PDF generation and only create a bca-measurements.json file.",
     )
@@ -205,7 +205,8 @@ def run(argv: list[str] | None = None) -> None:
     # is pinned to INFO in body_organ_analysis/__init__.py; --verbose controls
     # only the console handler so BOA INFO surfaces in the terminal on demand.
     logging.getLogger().setLevel(logging.WARNING)
-    console_level = logging.INFO if args.verbose else logging.WARNING
+    verbose: bool = args.verbose or env_bool("VERBOSE", False)
+    console_level = logging.INFO if verbose else logging.WARNING
     for h in logging.getLogger().handlers:
         h.setLevel(console_level)
 
@@ -222,6 +223,8 @@ def run(argv: list[str] | None = None) -> None:
     license_number: str | None = args.license_number or env_str("LICENSE_NUMBER")
     fast_bca: bool = args.fast_bca or env_bool("FAST_BCA", False)
     fast_total: bool = args.fast_total or env_bool("FAST_TOTAL", False)
+    bca_no_pdf: bool = args.bca_no_pdf or env_bool("BCA_NO_PDF", False)
+    skip_contrast_information: bool = args.skip_contrast_information or env_bool("SKIP_CONTRAST_INFORMATION", False)
 
     if license_number:
         set_license_number(license_number, skip_validation=False)
@@ -244,7 +247,7 @@ def run(argv: list[str] | None = None) -> None:
         processed_output_folder=args.output_dir,
         excel_output_folder=args.output_dir,
         models=models_to_compute,
-        compute_contrast_information=not args.skip_contrast_information,
+        compute_contrast_information=not skip_contrast_information,
         total_preview=args.preview,
         nr_thr_resamp=args.nr_thr_resamp,
         nr_thr_saving=args.nr_thr_saving,
@@ -252,7 +255,7 @@ def run(argv: list[str] | None = None) -> None:
         license_number=license_number,
         bca_median_filtering=args.bca_median_filtering,
         bca_examined_body_region=args.bca_examined_body_region,
-        bca_pdf=not args.bca_no_pdf,
+        bca_pdf=not bca_no_pdf,
         recompute=args.force_recompute,
         nnunet_verbose=args.nnunet_verbose,
         fast_bca=fast_bca,
