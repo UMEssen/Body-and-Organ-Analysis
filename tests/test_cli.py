@@ -8,6 +8,10 @@ from _paths import CNR_DICOM_DIR, CNR_NIFTI_FILE, OUTPUT_CPU_DIR, OUTPUT_GPU_DIR
 
 from body_organ_analysis.cli import run
 
+# Full inference on a downloaded TCIA series: needs a GPU, the model weights,
+# and network access. Excluded from the fast unit run via `-m "not integration"`.
+pytestmark = pytest.mark.integration
+
 
 @pytest.mark.usefixtures("ct_test_data")
 class TestCLI(unittest.TestCase):

@@ -1,0 +1,99 @@
+name: Lint & Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  UV_PYTHON_PREFERENCE: only-system
+  UV_PYTHON: "3.12"
+
+jobs:
+  qa:
+    runs-on: [self-hosted, Linux]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          architecture: x64
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      # The pacs extra is needed so the scripts/ modules (celery_task, util,
+      # on_change_callback) import during the unit tests.
+      - name: Install Python dependencies
+        run: uv sync --frozen --extra pacs --group dev
+
+      - name: Install Node dependencies (prettier + plugins)
+        run: npm install
+
+      - name: Run pre-commit
+        run: uv run pre-commit run -a --show-diff-on-failure
+
+      - name: Run make check
+        run: make check
+
+      - name: Run unit tests with coverage
+        run: uv run pytest -m "not integration" --cov=body_organ_analysis --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        if: success()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: false
+
+  integration:
+    # Heavy end-to-end tests: full inference on a downloaded TCIA series. Run on
+    # the GPU runner on pushes to main and manual dispatch, not on every PR.
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: [self-hosted, Linux]
+    timeout-minutes: 90
+    env:
+      TCIA_API: ${{ secrets.TCIA_API }}
+      TCIA_UID: ${{ secrets.TCIA_UID }}
+      LICENSE_NUMBER: ${{ secrets.LICENSE_NUMBER }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          architecture: x64
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install Python dependencies
+        run: uv sync --frozen --extra pacs --group dev
+
+      - name: Run integration tests
+        run: uv run pytest -m integration

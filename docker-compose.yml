@@ -1,3 +1,9 @@
+# Single, cross-platform stack (Linux + Windows/Docker Desktop).
+#
+# GPU access uses the Compose device-reservation syntax
+# (deploy.resources.reservations.devices), which works on native Linux with the
+# NVIDIA Container Toolkit and on Docker Desktop/WSL2. The GPU is pinned with
+# device_ids: ["${NVIDIA_ID}"]; set NVIDIA_ID in .env to the host GPU index.
 services:
   rabbitmq:
     image: shipai/boa-rabbitmq
@@ -13,12 +19,10 @@ services:
   worker-gpu:
     image: shipai/boa-worker-gpu
     platform: linux/amd64
-    runtime: nvidia
     build:
       dockerfile: scripts/worker_gpu.dockerfile
       context: .
     environment:
-      - NVIDIA_VISIBLE_DEVICES=${NVIDIA_ID}
       - DOCKER_USER
       - CELERY_BROKER
       - ORTHANC_URL
@@ -30,8 +34,9 @@ services:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - POSTGRES_DATABASE
-      - PREDICT_FAST
       - PACS_MODEL
+      - FAST_BCA
+      - FAST_TOTAL
       # Output vars
       - PATIENT_INFO_IN_OUTPUT
       - SMB_DIR_OUTPUT
@@ -45,6 +50,11 @@ services:
       resources:
         limits:
           cpus: "5"
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${NVIDIA_ID}"]
+              capabilities: [gpu]
     shm_size: 1g
     ulimits:
       memlock: -1
@@ -89,7 +99,9 @@ services:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - POSTGRES_DATABASE
-      - PREDICT_FAST
+      - PACS_MODEL
+      - FAST_BCA
+      - FAST_TOTAL
       # Output vars
       - PATIENT_INFO_IN_OUTPUT
       - SEGMENTATION_UPLOAD_URL
@@ -144,7 +156,7 @@ services:
       - "4242:4242"
       - "${ORTHANC_PORT}:8042"
     volumes:
-      - /tmp/orthanc-db/:/var/lib/orthanc/db/
+      - orthanc-db:/var/lib/orthanc/db/
 
   monitoring:
     image: postgres:latest
@@ -158,3 +170,6 @@ services:
     volumes:
       - ${POSTGRES_DATA}:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  orthanc-db:

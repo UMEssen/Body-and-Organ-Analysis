@@ -29,7 +29,9 @@ logger = logging.getLogger(__name__)
 # )
 # warnings.filterwarnings(
 #     "ignore",
-#     message="User provided device_type of 'cuda', but CUDA is not available. Disabling",
+#     message=(
+#         "User provided device_type of 'cuda', but CUDA is not available. Disabling"
+#     ),
 # )
 
 

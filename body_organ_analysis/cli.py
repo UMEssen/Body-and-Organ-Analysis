@@ -224,7 +224,9 @@ def run(argv: list[str] | None = None) -> None:
     fast_bca: bool = args.fast_bca or env_bool("FAST_BCA", False)
     fast_total: bool = args.fast_total or env_bool("FAST_TOTAL", False)
     bca_no_pdf: bool = args.bca_no_pdf or env_bool("BCA_NO_PDF", False)
-    skip_contrast_information: bool = args.skip_contrast_information or env_bool("SKIP_CONTRAST_INFORMATION", False)
+    skip_contrast_information: bool = args.skip_contrast_information or env_bool(
+        "SKIP_CONTRAST_INFORMATION", False
+    )
 
     if license_number:
         set_license_number(license_number, skip_validation=False)

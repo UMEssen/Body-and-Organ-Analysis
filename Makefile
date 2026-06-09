@@ -2,7 +2,7 @@ SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
 
 SH_FILES := $(wildcard scripts/*.sh example_scripts/*.sh)
-COMPOSE_FILES := docker-compose.yml docker-compose-win.yml
+COMPOSE_FILES := docker-compose.yml
 DOCKERFILES := $(wildcard scripts/*.dockerfile)
 
 .PHONY: help sh-check compose-check docker-check pre-commit test check all

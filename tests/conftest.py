@@ -1,18 +1,28 @@
 import io
 import os
 import shutil
+import sys
 import zipfile
+from pathlib import Path
 
 import pytest
 import requests
 import SimpleITK as sitk
 from _paths import CNR_DICOM_DIR, CNR_NIFTI_FILE, OUTPUT_CPU_DIR, OUTPUT_GPU_DIR
 
+# Make the scripts/ modules (util, imports, celery_task, on_change_callback)
+# importable from the unit tests without packaging them.
+_SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
 # A public CT series from The Cancer Imaging Archive (TCIA). It is downloaded
 # fresh for the test session and removed again afterwards -- test_images/ is
-# throwaway, git-ignored data, so nothing is kept on disk between runs.
-_TCIA_GET_IMAGE_URL = (
-    "https://services.cancerimagingarchive.net/nbia-api/services/v1/getImage"
+# throwaway, git-ignored data, so nothing is kept on disk between runs. The
+# endpoint (TCIA_API) and series UID (TCIA_UID) match the CI secrets.
+_TCIA_GET_IMAGE_URL = os.environ.get(
+    "TCIA_API",
+    "https://services.cancerimagingarchive.net/nbia-api/services/v1/getImage",
 )
 
 _MODULE_ORDER = {"test_cli": 0, "test_results": 2}
@@ -44,7 +54,7 @@ def ct_test_data(request: pytest.FixtureRequest) -> None:
     resp = requests.get(
         _TCIA_GET_IMAGE_URL,
         params={
-            "SeriesInstanceUID": os.environ["TCIA_SERIES_UID"],
+            "SeriesInstanceUID": os.environ["TCIA_UID"],
             "NewFileNames": "Yes",
         },
         timeout=120,

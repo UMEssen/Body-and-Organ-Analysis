@@ -21,30 +21,15 @@ jobs:
           - name: windows
             runner: [self-hosted, Windows]
             gpu: true
-            gpu_args: "--gpus all"  # pin a device with: --gpus '\"device=5\"'
-          - name: macos
-            runner: [self-hosted, macOS]
-            gpu: false
-            gpu_args: ""
+            gpu_args: "--gpus all" # pin a device with: --gpus '\"device=5\"'
         image:
           - name: shipai/boa-cli
             dockerfile: scripts/cli.dockerfile
-            # CPU-only, native-arch image used on the macOS runner (the CUDA
-            # base in dockerfile is x86-64/AVX and only runs emulated on Macs).
-            macos_dockerfile: scripts/cli_macos.dockerfile
-          # - name: shipai/boa-rabbitmq
-          #   dockerfile: scripts/rabbitmq.dockerfile
-          # - name: shipai/boa-worker-gpu
-          #   dockerfile: scripts/task_gpu.dockerfile
-          # - name: shipai/boa-worker-cpu
-          #   dockerfile: scripts/task.dockerfile
-          # - name: shipai/boa-orthanc
-          #   dockerfile: scripts/orthanc.dockerfile
     defaults:
       run:
-        shell: bash  # Git Bash on Windows, bash on macOS/Linux
+        shell: bash # Git Bash on Windows, bash on Linux
     env:
-      MSYS_NO_PATHCONV: 1  # stop Git Bash from rewriting the -v paths on Windows
+      MSYS_NO_PATHCONV: 1 # stop Git Bash from rewriting the -v paths on Windows
     steps:
       - name: Check out the repo
         uses: actions/checkout@v6
@@ -65,7 +50,7 @@ jobs:
 
       - name: Build image GPU
         if: ${{ matrix.os.gpu }}
-        run: |  # TODO add -q
+        run: |
           docker build -t "${{ matrix.image.name }}:test-gpu" -f "${{ matrix.image.dockerfile }}" .
 
       - name: Run GPU inference with parameters
@@ -83,9 +68,8 @@ jobs:
             python -m body_organ_analysis -m bca+heartchambers_highres -v --cnr-adjustment --theme light -l "${{ secrets.LICENSE_NUMBER }}"
 
       - name: Build image CPU
-        run: |  # TODO add -q
-          docker build -t "${{ matrix.image.name }}:test-cpu" \
-            -f "${{ (matrix.os.name == 'macos' && matrix.image.macos_dockerfile) || matrix.image.dockerfile }}" .
+        run: |
+          docker build -t "${{ matrix.image.name }}:test-cpu" -f "${{ matrix.image.dockerfile }}" .
 
       - name: Run CPU inference with .env
         run: |
