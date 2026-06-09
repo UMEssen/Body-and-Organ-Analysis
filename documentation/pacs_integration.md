@@ -36,7 +36,7 @@ docker pull shipai/boa-orthanc
 docker pull shipai/boa-rabbitmq
 docker pull shipai/boa-worker-gpu
 
-# Only needed for CPU/Triton inference
+# Only needed for CPU-only inference (no GPU)
 docker pull shipai/boa-worker-cpu
 ```
 
@@ -72,8 +72,10 @@ the SMB / DicomWeb variables).
 docker compose up -d orthanc rabbitmq worker-gpu
 ```
 
-Use `worker-cpu` instead of `worker-gpu` if you do not have a local GPU and run
-a Triton inference server. Drop `rabbitmq` if you already operate your own
+Use `worker-cpu` instead of `worker-gpu` if you do not have a local GPU; it runs
+the same segmentations on the CPU (slower) — enabling the fast modes
+(`FAST_TOTAL=true` / `FAST_BCA=true`) is strongly recommended there. Drop
+`rabbitmq` if you already operate your own
 broker (see [Notes on RabbitMQ](#notes-on-rabbitmq)).
 
 To additionally enable the monitoring database, start it as well:
@@ -123,7 +125,7 @@ Booleans accept `1`/`true` (case-insensitive); empty values and the literal
 | `FAST_TOTAL` | `False` | Run TotalSegmentator in fast mode. |
 | `PATIENT_INFO_IN_OUTPUT` | `False` | Insert a `PatientName_PatientBirthDate` layer into the output folder path. **Privacy-sensitive** (see below). |
 | `CELERY_BROKER` | `amqp://TODO:TODO@rabbitmq/` | AMQP URL. Substitute the two `TODO`s with `RABBITMQ_USERNAME` / `RABBITMQ_PASSWORD`. |
-| `TRITON_URL` | (unset) | gRPC URL of a Triton inference server. The CPU worker (`worker-cpu`) runs with `nnUNet_USE_TRITON=1` and reads this. |
+| `TRITON_URL` | (unset) | gRPC URL of a Triton inference server. **Triton is not available yet**; `worker-cpu` runs plain CPU inference regardless of this value. |
 
 > The deprecated `PREDICT_FAST` variable no longer has any effect on the worker
 > — use `FAST_BCA` / `FAST_TOTAL` instead.

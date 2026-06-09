@@ -28,8 +28,8 @@ BOA can be used in two ways:
   automatically, and pushes the results back to your infrastructure.
 
 > **Platform support.** BOA inference runs on **Linux** and **Windows**
-> (Docker Desktop / WSL2) with an NVIDIA GPU, or CPU-only via a Triton
-> inference server. macOS is **not** supported for inference at this time.
+> (Docker Desktop / WSL2), either with an NVIDIA GPU or **CPU-only** (no GPU
+> required, just slower). macOS is **not** supported for inference at this time.
 
 ## Example segmentations
 
@@ -48,8 +48,10 @@ realistic renderings with
 - [Docker](https://docs.docker.com/get-docker/) with Compose v2.
 - An NVIDIA GPU with the
   [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
-  for GPU inference (≥ 16 GB GPU memory is sufficient for our tests). CPU-only
-  inference is possible through a Triton inference server.
+  for GPU inference (≥ 16 GB GPU memory is sufficient for our tests). A GPU is
+  recommended but **not required** — BOA also runs **CPU-only**, just
+  considerably slower. (Triton-based CPU acceleration is planned but not
+  available yet.)
 - Some of the advanced models require a free
   [TotalSegmentator license](https://backend.totalsegmentator.com/license-academic/)
   (see [Models](#models)).
@@ -103,9 +105,9 @@ docker run --rm \
 - `$OUTPUT_DIR` is where the results are written.
 - On Linux you may use `--runtime=nvidia` instead of `--gpus all`; to pin a
   specific GPU use `--gpus '"device=0"'`.
-- For **CPU-only** runs pass `-e DEVICE=cpu` (and `--fast-bca`/`--fast-total`
-  to keep runtimes reasonable). A Triton inference server is recommended for
-  CPU inference.
+- For **CPU-only** runs drop `--gpus all` and pass `-e DEVICE=cpu`. The
+  `--fast-bca`/`--fast-total` modes are **strongly recommended** on CPU to keep
+  runtimes reasonable; even so, expect considerably longer runtimes than on a GPU.
 
 ### Useful CLI options
 
@@ -165,8 +167,10 @@ docker compose build orthanc rabbitmq worker-gpu
 docker compose up -d orthanc rabbitmq worker-gpu monitoring
 ```
 
-Use `worker-cpu` instead of `worker-gpu` if you do not have a local GPU and run
-a Triton inference server.
+Use `worker-cpu` instead of `worker-gpu` if you do not have a local GPU; it runs
+the same segmentations on the CPU (slower). On CPU, enabling the fast modes
+(`FAST_TOTAL=true` / `FAST_BCA=true`) is strongly recommended to keep runtimes
+reasonable.
 
 ## Models
 
