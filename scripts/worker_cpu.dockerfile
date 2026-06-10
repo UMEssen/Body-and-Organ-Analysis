@@ -4,7 +4,7 @@ FROM --platform=${DOCKER_PLATFORM} python:3.12-slim-bookworm
 
 RUN apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
-        curl ffmpeg libsm6 libxext6 libpangocairo-1.0-0 dcmtk xvfb libjemalloc2 \
+        curl ffmpeg libsm6 libxext6 libpangocairo-1.0-0 xvfb libjemalloc2 \
         gosu libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
         libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 \
         libdrm2 libasound2t64 && \

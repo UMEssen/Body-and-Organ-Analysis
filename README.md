@@ -1,6 +1,13 @@
 # BOA: Body and Organ Analysis
 
 ![BOA](images/BOA-banner.png)
+[![DOI](https://img.shields.io/badge/DOI-10.1097%2FRLI.0000000000001040-0277BD?style=for-the-badge&logo=academia&logoColor=white)](https://doi.org/10.1097/RLI.0000000000001040)
+[![Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-009688?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
+[![Python >=3.11](https://img.shields.io/badge/Python-%3E%3D3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![uv](https://img.shields.io/badge/package%20manager-uv-DE5FE9?style=for-the-badge&logo=python&logoColor=111111)](https://docs.astral.sh/uv/)
+[![v1.0.0](https://img.shields.io/badge/version-1.0.0-555555?style=for-the-badge)](https://github.com/UMEssen/Body-and-Organ-Analysis/releases)
+
+---
 
 BOA is a tool for segmentation of CT scans developed by the [SHIP.AI group at
 the Institute for Artificial Intelligence in Medicine
