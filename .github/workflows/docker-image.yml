@@ -3,11 +3,13 @@ name: Upload to Docker
 on:
   release:
     types: [published]
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   docker:
+    # Skip weight-only releases (e.g. tag v1.0.0-weights). On workflow_dispatch
+    # there is no release payload, so the condition is true and the job still runs.
+    if: ${{ !endsWith(github.event.release.tag_name, '-weights') }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

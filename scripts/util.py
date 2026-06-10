@@ -108,7 +108,6 @@ def collect_auth() -> tuple[str, str]:
         )
 
 
-# TODO contextmanager
 def get_db_connection() -> Any | None:
     missing_vars = [
         var
@@ -212,7 +211,10 @@ def build_excel(
         input_folder=input_data_folder,
         processed_output_folder=output_folder,
         excel_output_folder=output_folder,
-        models=resolve_models(os.environ.get("PACS_MODEL")),
+        models=resolve_models(
+            os.environ.get("PACS_MODEL"),
+            license_number=os.environ.get("LICENSE_NUMBER"),
+        ),
         device=resolve_device(),
         fast_bca=fast_bca,
         fast_total=fast_total,
@@ -241,7 +243,7 @@ def save_data_persistent(
 ) -> None:
     if all(
         # Envs need to exist and not be TODO or empty
-        env in os.environ and os.environ[env] not in {"", "TODO"}
+        env in os.environ and os.environ[env].upper() not in {"", "TODO"}
         for env in ["UPLOAD_USER", "UPLOAD_PWD", "SEGMENTATION_UPLOAD_URL"]
     ):
         try:

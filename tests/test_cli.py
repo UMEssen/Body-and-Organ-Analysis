@@ -18,7 +18,9 @@ class TestCLI(unittest.TestCase):
     def setUp(self) -> None:
         _state.mark_attempted("TestCLI")
 
-    @unittest.skipUnless(platform.system() == "Linux", "Requires Windows or Linux")
+    @unittest.skipUnless(
+        platform.system() in {"Linux", "Windows"}, "Requires Windows or Linux"
+    )
     def test_dicom_inference_gpu(self) -> None:
         shutil.rmtree(OUTPUT_GPU_DIR, ignore_errors=True)
         OUTPUT_GPU_DIR.mkdir()
@@ -41,7 +43,9 @@ class TestCLI(unittest.TestCase):
         )
         _state.mark_complete("test_dicom_inference_gpu")
 
-    @unittest.skipUnless(platform.system() == "Linux", "Requires Windows or Linux")
+    @unittest.skipUnless(
+        platform.system() in {"Linux", "Windows"}, "Requires Windows or Linux"
+    )
     def test_nifti_inference_cpu(self) -> None:
         shutil.rmtree(OUTPUT_CPU_DIR, ignore_errors=True)
         OUTPUT_CPU_DIR.mkdir()

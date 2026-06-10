@@ -15,17 +15,22 @@ from body_organ_analysis.compute.config import (
     resolve_device,
     resolve_models,
 )
-from body_organ_analysis.compute.constants import ALL_MODELS
+from body_organ_analysis.compute.constants import AVAILABLE_MODELS
 
 logger = logging.getLogger(__name__)
 
 
-def _validate_models(spec: str) -> set[str]:
-    """Resolve a '+'-separated model spec for argparse."""
+def _validate_models(spec: str) -> str:
+    """Validate a '+'-separated model spec for argparse, returning it unchanged.
+
+    The final resolution happens in ``run`` once the license number is known,
+    since a valid license unlocks the opt-in ``heartchambers_highres`` model.
+    """
     try:
-        return resolve_models(spec, strict=True)
+        resolve_models(spec, strict=True)
     except ValueError as exc:
         raise argparse.ArgumentTypeError(str(exc)) from exc
+    return spec
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -59,8 +64,9 @@ def get_parser() -> argparse.ArgumentParser:
         metavar="MODEL[+MODEL...]",
         help=(
             "Plus-separated list of models to compute, e.g. 'total+bca'. "
-            "Use 'all' to compute everything. "
-            f"Available: {', '.join(sorted(ALL_MODELS))}."
+            "Use 'all' to compute every model except license-only ones "
+            "(e.g. heartchambers_highres, which must be requested explicitly). "
+            f"Available: {', '.join(sorted(AVAILABLE_MODELS))}."
         ),
     )
     parser.add_argument(
@@ -217,7 +223,6 @@ def run(argv: list[str] | None = None) -> None:
     # else:
     #     os.environ["nnUNet_USE_TRITON"] = "0"
 
-    models_to_compute = args.models
     device = resolve_device(args.device)
     theme: str = args.theme or os.getenv("THEME", "light")
     license_number: str | None = args.license_number or env_str("LICENSE_NUMBER")
@@ -230,6 +235,10 @@ def run(argv: list[str] | None = None) -> None:
 
     if license_number:
         set_license_number(license_number, skip_validation=False)
+
+    # Resolve here (not at argparse time): a valid license adds the opt-in
+    # heartchambers_highres model when 'all' is requested.
+    models_to_compute = resolve_models(args.models, license_number=license_number)
 
     # TODO: remove in 1.1.0
     if "PREDICT_FAST" in os.environ:

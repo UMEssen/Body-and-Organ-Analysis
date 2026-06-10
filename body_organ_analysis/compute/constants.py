@@ -19,11 +19,17 @@ ALL_MODELS = {
     "bca",
     "body_parts",
     "cerebral_bleed",
-    "heartchambers_highres",
     "hip_implant",
-    "liver_segments",
     "liver_vessels",
     "lung_vessels",
     "pleural_pericard_effusion",
     "total",
 }
+
+LICENSE_MODELS = {
+    "heartchambers_highres",
+}
+
+# Selectable on the CLI / PACS, but excluded from the "all" shortcut: the
+# license-only models are opt-in and must be requested by name.
+AVAILABLE_MODELS = ALL_MODELS | LICENSE_MODELS

@@ -1,5 +1,6 @@
 import logging
 import platform
+import sys
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -81,6 +82,7 @@ def analyze_ct(
     os_name = platform.system()
     header = (
         f"Platform: {os_name}\n"
+        f"Python version: {sys.version}"
         f"BOA version: {__version__}\n"
         f"BOA githash: {__githash__}\n"
         f"Device: {device}\n"
@@ -94,6 +96,13 @@ def analyze_ct(
     with _debug_log_handler(
         processed_output_folder / "debug_information.txt", header=header
     ):
+        if cnr_adjustment and "heartchambers_highres" not in models:
+            logger.warning(
+                "--cnr-adjustment is enabled but 'heartchambers_highres' is not "
+                "among the selected models: the CNR-adjusted pulmonary artery "
+                "measurement will not be computed. The aorta and autochthon "
+                "measurements (from 'total') are unaffected."
+            )
         start_total = time()
         ct_info: list[dict[str, Any]] = []
         if input_folder.is_file() and ".nii" in input_folder.name.lower():

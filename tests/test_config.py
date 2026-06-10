@@ -8,7 +8,7 @@ from body_organ_analysis.compute.config import (
     resolve_device,
     resolve_models,
 )
-from body_organ_analysis.compute.constants import ALL_MODELS
+from body_organ_analysis.compute.constants import ALL_MODELS, LICENSE_MODELS
 
 
 class TestResolveModels(unittest.TestCase):
@@ -36,6 +36,46 @@ class TestResolveModels(unittest.TestCase):
     def test_invalid_raises_when_strict(self) -> None:
         with self.assertRaises(ValueError):
             resolve_models("body+total", strict=True)
+
+    def test_all_excludes_heartchambers_without_license(self) -> None:
+        # Without a license, heartchambers_highres is not part of "all".
+        self.assertEqual(resolve_models("all"), set(ALL_MODELS))
+        self.assertNotIn("heartchambers_highres", resolve_models("all"))
+
+    def test_all_with_valid_license_adds_heartchambers(self) -> None:
+        with mock.patch("totalsegmentator.config.is_valid_license", return_value=True):
+            self.assertEqual(
+                resolve_models("all", license_number="123456789012345678"),
+                set(ALL_MODELS) | LICENSE_MODELS,
+            )
+
+    def test_all_with_invalid_license_keeps_default(self) -> None:
+        with mock.patch("totalsegmentator.config.is_valid_license", return_value=False):
+            self.assertEqual(
+                resolve_models("all", license_number="bad"), set(ALL_MODELS)
+            )
+
+    def test_explicit_spec_ignores_license(self) -> None:
+        # A valid license only augments "all"; explicit specs are untouched.
+        with mock.patch(
+            "totalsegmentator.config.is_valid_license", return_value=True
+        ) as is_valid:
+            self.assertEqual(
+                resolve_models("total", license_number="123456789012345678"),
+                {"total"},
+            )
+            is_valid.assert_not_called()
+
+    def test_heartchambers_is_selectable(self) -> None:
+        # It is valid when requested explicitly, in both lenient and strict mode.
+        self.assertEqual(
+            resolve_models("total+heartchambers_highres"),
+            {"total", "heartchambers_highres"},
+        )
+        self.assertEqual(
+            resolve_models("total+heartchambers_highres", strict=True),
+            {"total", "heartchambers_highres"},
+        )
 
 
 class TestResolveDevice(unittest.TestCase):

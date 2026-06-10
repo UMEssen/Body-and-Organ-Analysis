@@ -4,6 +4,8 @@ from typing import Any
 
 import nibabel
 import SimpleITK as sitk
+from totalsegmentator.config import get_weights_dir
+from totalsegmentator.libs import download_url_and_unpack
 from totalsegmentator.nnunet import nnUNet_predict_image
 from totalsegmentator.python_api import select_device
 
@@ -18,10 +20,20 @@ from body_composition_analysis.tasks import get_task_info
 
 logger = logging.getLogger(__name__)
 
-BCA_TASKS = {
-    "body_regions",
-    "body_parts",
-}
+
+def download_bca_weights(task_id: int) -> None:
+    config_dir = get_weights_dir()
+    if task_id == 542:
+        weights_path = config_dir / "Dataset542_BCA_inference"
+        weights_url = "https://github.com/UMEssen/Body-and-Organ-Analysis/releases/download/v1.0.0-weights/Dataset542_BCA_inference.zip"
+    elif task_id == 543:
+        weights_path = config_dir / "Dataset543_BCA_body_parts"
+        weights_url = "https://github.com/UMEssen/Body-and-Organ-Analysis/releases/download/v1.0.0-weights/Dataset543_BCA_body_parts.zip"
+    else:
+        raise ValueError(f"For BCA task_id {task_id} no download path was found.")
+
+    if not weights_path.is_dir():
+        download_url_and_unpack(weights_url, config_dir)
 
 
 def inference(
@@ -35,8 +47,6 @@ def inference(
     totalsegmentator_params: dict[str, Any] | None = None,
 ) -> nibabel.Nifti1Image:
     totalsegmentator_params = totalsegmentator_params or {}
-    if task_name not in BCA_TASKS:
-        raise ValueError(f"The task name {task_name} does not exist.")
     task_specific_params = get_task_info(task_name, fast_bca)
     logger.info(
         "Computing model %s with ID %s using folds %s...",
@@ -49,6 +59,8 @@ def inference(
     if not recompute and (output_file).is_file():
         logger.info("Loading already computed %s...", task_name)
         return nibabel.load(output_file)
+
+    download_bca_weights(task_specific_params["task_id"])
 
     task_specific_params["crop"] = crop
 

@@ -25,7 +25,7 @@ _TCIA_GET_IMAGE_URL = os.environ.get(
     "https://services.cancerimagingarchive.net/nbia-api/services/v1/getImage",
 )
 
-_MODULE_ORDER = {"test_cli": 0, "test_results": 2}
+_MODULE_ORDER = {"test_cli": 0, "test_results": 2, "test_generated_files": 2}
 
 
 def _cleanup_test_data() -> None:
@@ -72,7 +72,7 @@ def ct_test_data(request: pytest.FixtureRequest) -> None:
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
-    """Pin test_cli before everything else and test_results last (cross-module deps)."""
+    """Pin test_cli first and the post-inference modules last (cross-module deps)."""
     del config
 
     def order(item: pytest.Item) -> int:

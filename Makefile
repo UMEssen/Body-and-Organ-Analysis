@@ -32,7 +32,7 @@ docker-check:
 	@for f in $(DOCKERFILES); do echo "docker buildx build --check -f $$f ."; docker buildx build --check -f "$$f" .; done
 
 pre-commit:
-	pre-commit run --all-files
+	pre-commit run -a
 
 test:
 	pytest

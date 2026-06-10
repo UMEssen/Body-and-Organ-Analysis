@@ -129,7 +129,7 @@ Run `python -m body_organ_analysis --help` for the full list. The most common:
 | `--fast-bca` | Use the single-fold BCA variant instead of the 5-fold ensemble. |
 | `--bca-no-pdf` | Skip the PDF report; still write the `bca-measurements.json`. |
 | `--bca-examined-body-region` | Limit the BCA report to `abdomen`, `neck`, or `thorax`. |
-| `--cnr-adjustment` | Add a CNR-adjusted Excel sheet for supported regions. |
+| `--cnr-adjustment` | Add a CNR-adjusted Excel sheet for supported regions (aorta + autochthon from `total`). The pulmonary artery measurement additionally requires `heartchambers_highres`; without it, that one column is skipped and a warning is logged. |
 | `--skip-contrast-information` | Skip IV-phase / GIT-contrast prediction. |
 | `--theme` | `light` (default) or `dark` for the BCA PDF. |
 | `-p`, `--preview` | Generate a PNG preview of the TotalSegmentator output. |
@@ -184,7 +184,11 @@ reasonable.
 Select models with `--models` (CLI) or the `PACS_MODEL` environment variable
 (PACS stack), as a `+`-separated list or `all`. Unknown names are rejected on
 the CLI and dropped with a warning in the PACS stack. Requesting `bca`
-automatically adds `total`, because BCA depends on it.
+automatically adds `total`, because BCA depends on it. `all` runs every model in
+the table below; `heartchambers_highres` is licensed and is included in `all`
+**only when a valid license** (`-l`/`--license_number` or `LICENSE_NUMBER`) is
+supplied — otherwise request it explicitly by name (e.g.
+`total+heartchambers_highres`).
 
 | Model | Output | Notes |
 | --- | --- | --- |
@@ -197,7 +201,7 @@ automatically adds `total`, because BCA depends on it.
 | `liver_segments` | `liver_segments.nii.gz` | Couinaud liver segments. |
 | `liver_vessels` | `liver_vessels.nii.gz` | Liver vessels and tumor. |
 | `pleural_pericard_effusion` | `pleural_pericard_effusion.nii.gz` | Pleural / pericardial effusion. |
-| `heartchambers_highres` | `heartchambers_highres.nii.gz` | High-resolution heart chambers. |
+| `heartchambers_highres` | `heartchambers_highres.nii.gz` | High-resolution heart chambers. Added to `all` only with a valid license; otherwise request explicitly. Needed for the pulmonary artery column of the `--cnr-adjustment` sheet. |
 
 Several of the specialized models (e.g. `heartchambers_highres`,
 `liver_vessels`, `lung_vessels`, `pleural_pericard_effusion`) require a
