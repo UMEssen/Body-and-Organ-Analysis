@@ -166,11 +166,12 @@
 
   @bottom-right {
     content: counter(page);
-    width: 1cm;
-    height: 1cm;
+    width: 0.75cm;
+    height: 0.75cm;
     border-radius: 0.5cm;
     text-align: center;
-    margin: 0.5cm;
+    vertical-align: middle;
+    margin: auto 0.5cm auto 0;
     font-weight: bold;
     font-size: 1.25em;
     background-color: var(--ship-secondary);

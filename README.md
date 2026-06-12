@@ -1,6 +1,6 @@
 # BOA: Body and Organ Analysis
 
-![BOA](images/BOA-banner.png)
+![BOA](images/boa_banner.png)
 [![DOI](https://img.shields.io/badge/DOI-10.1097%2FRLI.0000000000001040-0277BD?style=for-the-badge&logo=academia&logoColor=white)](https://doi.org/10.1097/RLI.0000000000001040)
 [![Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-009688?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
 [![Python >=3.11](https://img.shields.io/badge/Python-%3E%3D3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
@@ -42,7 +42,9 @@ BOA can be used in two ways:
 
 BOA can generate full-body segmentations of CT scans:
 
-![Segmentation of human body](images/segmentation.png)
+![Segmentation of human body](images/segmentation.gif)
+
+*Generated from study `s0763` of the [TotalSegmentator dataset](https://zenodo.org/records/10047263) (J. Wasserthal / University Hospital Basel), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).*
 
 The generated segmentations can additionally be used as input to produce
 realistic renderings with
