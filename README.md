@@ -86,6 +86,19 @@ source scripts/generate_version.sh
 docker build -t shipai/boa-cli --file scripts/cli.dockerfile .
 ```
 
+> **Faster rebuilds (optional).** Pass `--build-arg BUILD_CACHE=1` to keep a
+> persistent uv download/build cache that survives even `--no-cache` rebuilds,
+> so dependencies are not re-downloaded every time:
+>
+> ```bash
+> DOCKER_BUILDKIT=1 docker build --build-arg BUILD_CACHE=1 \
+>     -t shipai/boa-cli --file scripts/cli.dockerfile .
+> ```
+>
+> It is **off by default** (the build behaves exactly as without it) and
+> requires BuildKit. The cache lives on the build host and never ends up in the
+> image, so image size is unaffected.
+
 Then run it. The image bind-mounts an input (NIfTI file **or** a DICOM
 directory), an output directory, and a host directory for the model weights so
 they are cached between runs. Ownership of the outputs is controlled by
@@ -175,6 +188,18 @@ cp .env_sample .env
 docker compose build orthanc rabbitmq worker-gpu
 docker compose up -d orthanc rabbitmq worker-gpu monitoring
 ```
+
+> **Faster rebuilds (optional).** The `orthanc`, `worker-gpu`, and `worker-cpu`
+> images accept a `BUILD_CACHE` build arg (default `0`, off) that keeps a
+> persistent pip/uv cache surviving even `--no-cache` rebuilds. Enable it by
+> setting `BUILD_CACHE=1` for the build — e.g. in `.env` or inline:
+>
+> ```bash
+> BUILD_CACHE=1 docker compose build orthanc rabbitmq worker-gpu
+> ```
+>
+> It requires BuildKit (Compose v2 uses it by default) and the cache stays on
+> the build host, so the resulting images are unchanged.
 
 Use `worker-cpu` instead of `worker-gpu` if you do not have a local GPU; it runs
 the same segmentations on the CPU (slower). On CPU, enabling the fast modes

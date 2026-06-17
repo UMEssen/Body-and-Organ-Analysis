@@ -22,6 +22,8 @@ services:
     build:
       dockerfile: scripts/worker_gpu.dockerfile
       context: .
+      args:
+        BUILD_CACHE: "${BUILD_CACHE:-0}"
     environment:
       - DOCKER_USER
       - CELERY_BROKER
@@ -86,6 +88,8 @@ services:
     build:
       dockerfile: scripts/worker_cpu.dockerfile
       context: .
+      args:
+        BUILD_CACHE: "${BUILD_CACHE:-0}"
     environment:
       - DOCKER_USER
       - CELERY_BROKER
@@ -141,6 +145,8 @@ services:
     build:
       dockerfile: scripts/orthanc.dockerfile
       context: .
+      args:
+        BUILD_CACHE: "${BUILD_CACHE:-0}"
     environment:
       - CELERY_BROKER
       - POSTGRES_HOST

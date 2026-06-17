@@ -1,6 +1,10 @@
+# syntax=docker/dockerfile:1
 ARG DOCKER_PLATFORM=linux/amd64
 
 FROM --platform=${DOCKER_PLATFORM} nvcr.io/nvidia/pytorch:24.12-py3
+
+# BUILD_CACHE=1 to reuse uv's and pip's download/build cache across builds
+ARG BUILD_CACHE=0
 
 RUN apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
@@ -27,12 +31,14 @@ ENV UV_LINK_MODE=copy \
 WORKDIR /app
 
 COPY pyproject.toml uv.lock README.md /app/
-RUN uv sync --frozen --no-install-project --extra pacs
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project --extra pacs $( [ "$BUILD_CACHE" = "1" ] || echo --no-cache )
 
-COPY weights /app/weights
+# COPY weights /app/weights
 COPY scripts/*.py /app/
 COPY body_organ_analysis /app/body_organ_analysis
-RUN uv sync --frozen --extra pacs
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --extra pacs $( [ "$BUILD_CACHE" = "1" ] || echo --no-cache )
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
