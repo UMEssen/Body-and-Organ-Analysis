@@ -59,7 +59,6 @@ jobs:
           docker run --rm \
             -v "$GITHUB_WORKSPACE/test_images/dicoms:/dicoms" \
             -v "$GITHUB_WORKSPACE/test_images/boa_cli/gpu_cnr:/workspace" \
-            -v "$HOME/.totalsegmentator/nnunet/results:/app/weights" \
             ${{ matrix.os.gpu_args }} \
             -e DOCKER_USER=$(id -u):$(id -g) \
             --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
@@ -72,7 +71,6 @@ jobs:
           docker run --rm \
             -v "$GITHUB_WORKSPACE/test_images/dicoms:/dicoms" \
             -v "$GITHUB_WORKSPACE/test_images/boa_cli/cpu:/workspace" \
-            -v "$HOME/.totalsegmentator/nnunet/results:/app/weights" \
             -e DOCKER_USER=$(id -u):$(id -g) \
             -e DEVICE=cpu \
             -e THEME=dark \

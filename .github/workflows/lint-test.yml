@@ -24,6 +24,9 @@ jobs:
           - { os: Windows, python: "3.11" }
     runs-on: [self-hosted, "${{ matrix.os }}"]
     timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash # Git Bash on Windows, bash on Linux
     env:
       TCIA_API: ${{ secrets.TCIA_API }}
       TCIA_UID: ${{ secrets.TCIA_UID }}
