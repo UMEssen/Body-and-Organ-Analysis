@@ -43,8 +43,6 @@ cfgv==3.5.0
     # via pre-commit
 charset-normalizer==3.4.5
     # via requests
-choreographer==1.3.0
-    # via kaleido
 click==8.3.1
     # via typer
 colorama==0.4.6 ; sys_platform == 'win32'
@@ -137,7 +135,7 @@ jinja2==3.1.6
     #   torch
 joblib==1.5.3
     # via scikit-learn
-kaleido==1.3.0
+kaleido==0.2.1
     # via body-organ-analysis
 kiwisolver==1.5.0
     # via matplotlib
@@ -147,10 +145,6 @@ lazy-loader==0.5
     #   scikit-image
 linecache2==1.0.0
     # via traceback2
-logistro==2.0.1
-    # via
-    #   choreographer
-    #   kaleido
 markdown-it-py==4.0.0
     # via rich
 markupsafe==3.0.3
@@ -251,15 +245,12 @@ nvidia-nvtx-cu12==12.4.127 ; platform_machine == 'x86_64' and sys_platform == 'l
 opencv-python==4.11.0.86
     # via boa-contrast
 openpyxl==3.1.5
-orjson==3.11.9
-    # via kaleido
 p-tqdm==1.4.2
     # via body-organ-analysis
 packaging==26.0
     # via
     #   fury
     #   huggingface-hub
-    #   kaleido
     #   lazy-loader
     #   marshmallow
     #   matplotlib
@@ -286,7 +277,6 @@ pillow==12.1.1
     #   weasyprint
 platformdirs==4.9.4
     # via
-    #   choreographer
     #   python-discovery
     #   virtualenv
 plotly==6.7.0
@@ -374,8 +364,6 @@ simpleitk==2.5.3
     #   acvl-utils
     #   boa-contrast
     #   body-organ-analysis
-simplejson==4.1.1
-    # via choreographer
 six==1.17.0
     # via
     #   p-tqdm

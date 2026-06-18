@@ -42,9 +42,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
-RUN kaleido_get_chrome --path /app/chrome
-ENV BROWSER_PATH=/app/chrome/chrome-linux64/chrome
-
 # Only the dirs written at runtime by the non-root user need to be writable.
 # A recursive chmod over all of /app would rewrite the multi-GB venv/CUDA tree
 # into one huge layer (and mark everything world-writable).
