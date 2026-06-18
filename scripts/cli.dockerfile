@@ -34,7 +34,7 @@ COPY pyproject.toml uv.lock README.md /app/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project $( [ "$BUILD_CACHE" = "1" ] || echo --no-cache )
 
-COPY weights /app/weights
+COPY --chmod=0777 weights /app/weights
 COPY body_organ_analysis /app/body_organ_analysis
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen $( [ "$BUILD_CACHE" = "1" ] || echo --no-cache )
@@ -42,10 +42,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
-# Only the dirs written at runtime by the non-root user need to be writable.
-# A recursive chmod over all of /app would rewrite the multi-GB venv/CUDA tree
-# into one huge layer (and mark everything world-writable).
-RUN mkdir -p /app/weights /app/configs && chmod -R a+rwX /app/weights /app/configs
+RUN mkdir -p /app/configs && chmod -R a+rwX /app/configs
 
 COPY --chmod=0755 scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
