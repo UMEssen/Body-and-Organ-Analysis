@@ -8,6 +8,7 @@ from pathlib import Path
 from totalsegmentator.config import set_license_number
 from totalsegmentator.statistics import get_radiomics_features_for_entire_dir
 
+from body_organ_analysis.banner import print_banner
 from body_organ_analysis.commands import analyze_ct
 from body_organ_analysis.compute.config import (
     env_bool,
@@ -203,6 +204,7 @@ def get_parser() -> argparse.ArgumentParser:
 
 
 def run(argv: list[str] | None = None) -> None:
+    print_banner()
     parser = get_parser()
     args = parser.parse_args(argv)
 

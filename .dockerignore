@@ -1,6 +1,7 @@
-# Ignore everything by default; only re-include what the Dockerfiles COPY.
+# Ignore everything by default
 *
 
+# Keep
 !advanced.config
 !orthanc.json
 !pyproject.toml
@@ -9,7 +10,6 @@
 !scripts
 !body_organ_analysis
 
-weights/.gitkeep
-# Drop caches that live inside the re-included dirs.
+# Drop cache
 **/__pycache__
 *.pyc

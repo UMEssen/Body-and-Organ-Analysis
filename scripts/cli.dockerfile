@@ -34,13 +34,17 @@ COPY pyproject.toml uv.lock README.md /app/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project $( [ "$BUILD_CACHE" = "1" ] || echo --no-cache )
 
-COPY --chmod=0777 weights /app/weights
 COPY body_organ_analysis /app/body_organ_analysis
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen $( [ "$BUILD_CACHE" = "1" ] || echo --no-cache )
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
+
+COPY scripts/download_weights.py /app/download_weights.py
+RUN mkdir -p /app/weights && \
+    python /app/download_weights.py && \
+    chmod -R a+rwX /app/weights
 
 RUN mkdir -p /app/configs && chmod -R a+rwX /app/configs
 

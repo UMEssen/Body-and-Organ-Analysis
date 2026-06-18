@@ -225,5 +225,3 @@ __marimo__/
 # Custom
 body_organ_analysis/_githash.py
 test_images/
-weights/*
-!weights/.gitkeep
