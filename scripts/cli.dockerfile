@@ -34,7 +34,7 @@ COPY pyproject.toml uv.lock README.md /app/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project $( [ "$BUILD_CACHE" = "1" ] || echo --no-cache )
 
-# COPY weights /app/weights
+COPY weights /app/weights
 COPY body_organ_analysis /app/body_organ_analysis
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen $( [ "$BUILD_CACHE" = "1" ] || echo --no-cache )

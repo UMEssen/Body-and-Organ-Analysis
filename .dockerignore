@@ -6,10 +6,10 @@
 !pyproject.toml
 !uv.lock
 !README.md
-!weights
 !scripts
 !body_organ_analysis
 
+weights/.gitkeep
 # Drop caches that live inside the re-included dirs.
 **/__pycache__
 *.pyc
