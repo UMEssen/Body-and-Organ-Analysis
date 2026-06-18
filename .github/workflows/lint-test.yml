@@ -42,12 +42,13 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: uv sync --frozen --extra pacs --group dev
 
-      # Lint runs on both runners.
-      - uses: actions/setup-node@v6
+      - if: matrix.os == 'Linux'
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: "npm"
-      - run: |
+      - if: matrix.os == 'Linux'
+        run: |
           npm install
           make check
           uv run pre-commit run -a --show-diff-on-failure
