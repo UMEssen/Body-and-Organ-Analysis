@@ -1,24 +1,23 @@
 import logging
-import pathlib
+from pathlib import Path
 
 import nibabel
 import numpy as np
 import SimpleITK as sitk
-from totalsegmentator.alignment import load_nibabel_image_with_axcodes
 
 logger = logging.getLogger(__name__)
 
 
 def nib_to_sitk(image: nibabel.spatialimages.SpatialImage) -> sitk.Image:
     # From https://github.com/Kimerth/torchio/blob/19639037a530d31e8ba487e0945152ca765b8b8a/transforms/transform.py#L50-L62
-    FLIP_XY = np.diag((-1, -1, 1))
+    flip_xy = np.diag((-1, -1, 1))
     data = np.asanyarray(image.dataobj)
     affine = image.affine
-    origin = np.dot(FLIP_XY, affine[:3, 3]).astype(np.float64)
-    RZS = affine[:3, :3]
-    spacing = np.sqrt(np.sum(RZS * RZS, axis=0))
-    R = RZS / spacing
-    direction = np.dot(FLIP_XY, R).flatten()
+    origin = np.dot(flip_xy, affine[:3, 3]).astype(np.float64)
+    rzs = affine[:3, :3]
+    spacing = np.sqrt(np.sum(rzs * rzs, axis=0))
+    r = rzs / spacing
+    direction = np.dot(flip_xy, r).flatten()
     image = sitk.GetImageFromArray(data.transpose())
     image.SetOrigin(origin)
     image.SetSpacing(spacing)
@@ -28,11 +27,11 @@ def nib_to_sitk(image: nibabel.spatialimages.SpatialImage) -> sitk.Image:
 
 def make_affine(image: sitk.Image) -> np.ndarray:
     # get affine transform in LPS
-    c = [
+    points = [
         image.TransformContinuousIndexToPhysicalPoint(p)
         for p in ((1, 0, 0), (0, 1, 0), (0, 0, 1), (0, 0, 0))
     ]
-    c = np.array(c)
+    c = np.array(points)
     affine = np.concatenate(
         [np.concatenate([c[0:3] - c[3:], c[3:]], axis=0), [[0.0], [0.0], [0.0], [1.0]]],
         axis=1,
@@ -45,7 +44,10 @@ def make_affine(image: sitk.Image) -> np.ndarray:
 
 def sitk_to_nib(image: sitk.Image) -> nibabel.spatialimages.SpatialImage:
     # https://niftynet.readthedocs.io/en/v0.2.1/_modules/niftynet/io/simple_itk_as_nibabel.html
-    assert isinstance(image, sitk.Image)
+    if not isinstance(image, sitk.Image):
+        raise TypeError(
+            f"'image' must be of type sitk.Image, got {type(image).__name__}"
+        )
     return nibabel.Nifti1Image(
         sitk.GetArrayFromImage(image).transpose(), make_affine(image)
     )
@@ -75,25 +77,38 @@ def resample_to_thickness(image: sitk.Image, thickness: float) -> sitk.Image:
 
 def process_image(
     img: nibabel.Nifti1Image,
-    resample_thickness: float = None,
+    resample_thickness: float | None = None,
 ) -> sitk.Image:
     image = nib_to_sitk(load_nibabel_image_with_axcodes(img, axcodes="LPS"))
     slice_thickness = image.GetSpacing()[2]
     if resample_thickness is not None and not np.isclose(
         slice_thickness, resample_thickness
     ):
-        # logger.warning(
-        #     f"Unexpected slice thickness found in input image: got "
-        #     f"{slice_thickness:.2f}mm, expected 5.00mm. Resampling to expected slice "
-        #     "thickness"
-        # )
         image = resample_to_thickness(image, resample_thickness)
-
     return image
 
 
-def load_image(path: pathlib.Path, resample_thickness: float = None) -> sitk.Image:
+def load_image(path: Path, resample_thickness: float | None = None) -> sitk.Image:
     return process_image(
         nibabel.load(path),
         resample_thickness=resample_thickness,
     )
+
+
+def load_nibabel_image_with_axcodes(
+    image: nibabel.spatialimages.SpatialImage, axcodes: str = "RAS"
+) -> nibabel.spatialimages.SpatialImage:
+    input_axcodes = "".join(nibabel.aff2axcodes(image.affine))
+    axcodes = "".join(axcodes)
+    if input_axcodes != axcodes:
+        logger.debug(
+            "Input image does not match the required axcodes: got %s, "
+            "expected %s. Automatically reorienting the image volume.",
+            input_axcodes,
+            axcodes,
+        )
+        input_ornt = nibabel.orientations.axcodes2ornt(input_axcodes)
+        expected_ornt = nibabel.orientations.axcodes2ornt(axcodes)
+        transform = nibabel.orientations.ornt_transform(input_ornt, expected_ornt)
+        return image.as_reoriented(transform)
+    return image

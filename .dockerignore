@@ -1,0 +1,15 @@
+# Ignore everything by default
+*
+
+# Keep
+!advanced.config
+!orthanc.json
+!pyproject.toml
+!uv.lock
+!README.md
+!scripts
+!body_organ_analysis
+
+# Drop cache
+**/__pycache__
+*.pyc

@@ -1,14 +1,16 @@
-FROM osimis/orthanc:23.2.0
-
-ARG PACKAGE_VERSION
-ARG GIT_VERSION
+# syntax=docker/dockerfile:1
+FROM orthancteam/orthanc:26.4.2
 
 ENV VERBOSE_ENABLED=true
 ENV VERBOSE_STARTUP=true
-ENV BOA_VERSION=$PACKAGE_VERSION
-ENV BOA_GITHASH=$GIT_VERSION
 
-RUN pip3 install celery==5.2.7 unidecode==1.3.6 requests==2.31.0 psycopg2-binary==2.9.9
+# BUILD_CACHE=1 to reuse uv's and pip's download/build cache across builds
+ARG BUILD_CACHE=0
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python3 -m pip install --break-system-packages \
+    $( [ "$BUILD_CACHE" = "1" ] || echo --no-cache-dir ) \
+    celery==5.6.3 unidecode==1.4.0 requests==2.34.0 psycopg2-binary==2.9.12
 
 COPY scripts/*.py /
 

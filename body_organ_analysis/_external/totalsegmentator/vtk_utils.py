@@ -31,18 +31,8 @@ def set_input(vtk_object, inp):
     return vtk_object
 
 
-def plot_mask(
-    renderer,
-    mask_data,
-    affine,
-    x_current,
-    y_current,
-    orientation="axial",
-    smoothing=10,
-    brain_mask=None,
-    color=[1, 0.27, 0.18],
-    opacity=1,
-):
+def plot_mask(renderer, mask_data, affine, x_current, y_current, orientation="axial",
+              smoothing=10, brain_mask=None, color=[1, .27, .18], opacity=1):
     """
     color: default is red
     """
@@ -54,14 +44,14 @@ def plot_mask(
         mask = mask.transpose(2, 1, 0)
         mask = mask[::-1, :, :]
 
-    cont_actor = contour_from_roi_smooth(
-        mask, affine=affine, color=color, opacity=opacity, smoothing=smoothing
-    )
+    cont_actor = contour_from_roi_smooth(mask, affine=affine,
+                                         color=color, opacity=opacity, smoothing=smoothing)
     cont_actor.SetPosition(x_current, y_current, 0)
     return cont_actor
 
 
-def label(text="Origin", pos=(0, 0, 0), scale=(0.2, 0.2, 0.2), color=(1, 1, 1)):
+def label(text='Origin', pos=(0, 0, 0), scale=(0.2, 0.2, 0.2),
+                  color=(1, 1, 1)):
 
     atext = vtk.vtkVectorText()
     atext.SetText(text)
@@ -79,9 +69,7 @@ def label(text="Origin", pos=(0, 0, 0), scale=(0.2, 0.2, 0.2), color=(1, 1, 1)):
     return texta
 
 
-def contour_from_roi_smooth(
-    data, affine=None, color=np.array([1, 0, 0]), opacity=1, smoothing=0
-):
+def contour_from_roi_smooth(data, affine=None, color=np.array([1, 0, 0]), opacity=1, smoothing=0):
     """Generates surface actor from a binary ROI.
     Code from dipy, but added awesome smoothing!
 
@@ -108,20 +96,20 @@ def contour_from_roi_smooth(
     major_version = vtk.vtkVersion.GetVTKMajorVersion()
 
     if data.ndim != 3:
-        raise ValueError("Only 3D arrays are currently supported.")
+        raise ValueError('Only 3D arrays are currently supported.')
     else:
         nb_components = 1
 
     data = (data > 0) * 1
     vol = np.interp(data, xp=[data.min(), data.max()], fp=[0, 255])
-    vol = vol.astype("uint8")
+    vol = vol.astype('uint8')
 
     im = vtk.vtkImageData()
     if major_version <= 5:
         im.SetScalarTypeToUnsignedChar()
     di, dj, dk = vol.shape[:3]
     im.SetDimensions(di, dj, dk)
-    voxsz = (1.0, 1.0, 1.0)
+    voxsz = (1., 1., 1.)
     # im.SetOrigin(0,0,0)
     im.SetSpacing(voxsz[2], voxsz[0], voxsz[1])
     if major_version <= 5:
@@ -148,26 +136,11 @@ def contour_from_roi_smooth(
     # Set the transform (identity if none given)
     transform = vtk.vtkTransform()
     transform_matrix = vtk.vtkMatrix4x4()
-    transform_matrix.DeepCopy(
-        (
-            affine[0][0],
-            affine[0][1],
-            affine[0][2],
-            affine[0][3],
-            affine[1][0],
-            affine[1][1],
-            affine[1][2],
-            affine[1][3],
-            affine[2][0],
-            affine[2][1],
-            affine[2][2],
-            affine[2][3],
-            affine[3][0],
-            affine[3][1],
-            affine[3][2],
-            affine[3][3],
-        )
-    )
+    transform_matrix.DeepCopy((
+        affine[0][0], affine[0][1], affine[0][2], affine[0][3],
+        affine[1][0], affine[1][1], affine[1][2], affine[1][3],
+        affine[2][0], affine[2][1], affine[2][2], affine[2][3],
+        affine[3][0], affine[3][1], affine[3][2], affine[3][3]))
     transform.SetMatrix(transform_matrix)
     transform.Inverse()
 

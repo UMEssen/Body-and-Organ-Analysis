@@ -2,24 +2,45 @@ import time
 from pathlib import Path
 import numpy as np
 import nibabel as nib
+from tqdm import tqdm
 
 from scipy.ndimage import binary_dilation, binary_erosion, binary_closing
 from scipy import ndimage
-import logging
-import SimpleITK as sitk
 
-logger = logging.getLogger(__name__)
+from totalsegmentator.map_to_binary import class_map
 
 
 def keep_largest_blob(data, debug=False):
-    blob_map, _ = ndimage.label(data)
-    counts = list(np.bincount(blob_map.flatten()))  # number of pixels in each blob
-    if len(counts) <= 1:
-        return data  # no foreground
-    if debug:
-        logger.info(f"size of second largest blob: {sorted(counts)[-2]}")
-    key_second = counts.index(sorted(counts)[-2])
-    return (blob_map == key_second).astype(np.uint8)
+    blob_map, nr_of_blobs = ndimage.label(data)
+    # Get number of pixels in each blob
+    # counts = list(np.bincount(blob_map.flatten()))  # this will also count background -> bug
+    counts = [np.sum(blob_map == i) for i in range(1, nr_of_blobs + 1)]  # this will not count background
+    if len(counts) == 0: return data  # no foreground
+    largest_blob_label = np.argmax(counts) + 1  # +1 because labels start from 1
+    if debug: print(f"size of largest blob: {np.max(counts)}")
+    return (blob_map == largest_blob_label).astype(np.uint8)
+
+
+def keep_largest_blob_multilabel(data, class_map, rois, debug=False, quiet=False):
+    """
+    Keep the largest blob for the classes defined in rois.
+
+    data: multilabel image (np.array)
+    class_map: class map {label_idx: label_name}
+    rois: list of labels where to filter for the largest blob
+
+    return multilabel image (np.array)
+    """
+    st = time.time()
+    class_map_inv = {v: k for k, v in class_map.items()}
+    for roi in tqdm(rois, disable=quiet):
+        idx = class_map_inv[roi]
+        data_roi = data == idx
+        cleaned_roi = keep_largest_blob(data_roi, debug) > 0.5
+        data[data_roi] = 0   # Clear the original ROI in data
+        data[cleaned_roi] = idx   # Write back the cleaned ROI into data
+    # print(f"  keep_largest_blob_multilabel took {time.time() - st:.2f}s")
+    return data
 
 
 def remove_small_blobs(img: np.ndarray, interval=[10, 30], debug=False) -> np.ndarray:
@@ -34,13 +55,11 @@ def remove_small_blobs(img: np.ndarray, interval=[10, 30], debug=False) -> np.nd
         Detected blobs.
     """
     mask, number_of_blobs = ndimage.label(img)
-    if debug:
-        logger.info(f"Number of blobs before: {number_of_blobs}")
+    if debug: print('Number of blobs before: ' + str(number_of_blobs))
     counts = np.bincount(mask.flatten())  # number of pixels in each blob
 
     # If only one blob (only background) abort because nothing to remove
-    if len(counts) <= 1:
-        return img
+    if len(counts) <= 1: return img
 
     remove = np.where((counts <= interval[0]) | (counts > interval[1]), True, False)
     remove_idx = np.nonzero(remove)[0]
@@ -48,26 +67,68 @@ def remove_small_blobs(img: np.ndarray, interval=[10, 30], debug=False) -> np.nd
     mask[mask > 0] = 1  # set everything else to 1
 
     if debug:
-        logger.info(f"counts: {sorted(counts)[::-1]}")
+        print(f"counts: {sorted(counts)[::-1]}")
         _, number_of_blobs_after = ndimage.label(mask)
-        logger.info(f"Number of blobs after: {number_of_blobs_after}")
+        print('Number of blobs after: ' + str(number_of_blobs_after))
 
     return mask
+
+
+def remove_small_blobs_multilabel(data, class_map, rois, interval=[10, 30], debug=False, quiet=False):
+    """
+    Remove small blobs for the classes defined in rois.
+
+    data: multilabel image (np.array)
+    class_map: class map {label_idx: label_name}
+    rois: list of labels where to filter for the largest blob
+
+    return multilabel image (np.array)
+    """
+    st = time.time()
+    class_map_inv = {v: k for k, v in class_map.items()}
+
+    for roi in tqdm(rois, disable=quiet):
+        idx = class_map_inv[roi]
+        data_roi = (data == idx)
+        cleaned_roi = remove_small_blobs(data_roi, interval, debug) > 0.5  # Remove small blobs from this ROI
+        data[data_roi] = 0  # Clear the original ROI in data
+        data[cleaned_roi] = idx  # Write back the cleaned ROI into data
+
+    # print(f"  remove_small_blobs_multilabel took {time.time() - st:.2f}s")
+    return data
 
 
 def remove_outside_of_mask(seg_path, mask_path, addon=1):
     """
     Remove all segmentations outside of mask.
 
-    seg_path: path to nifti file
-    mask_path: path to nifti file
+    seg_path: path to nifti file or numpy array
+    mask_path: path to nifti file or numpy array
+
+    return: numpy array
     """
-    seg_img = nib.load(seg_path)
-    seg = seg_img.get_fdata()
-    mask = nib.load(mask_path).get_fdata()
+
+    # Read segmentation
+    if isinstance(seg_path, (str, Path)):
+        seg_img = nib.load(seg_path)
+        seg = seg_img.get_fdata()
+    else:
+        seg = seg_path
+
+    # Read mask
+    if isinstance(mask_path, (str, Path)):
+        mask = nib.load(mask_path).get_fdata()
+    else:
+        mask = mask_path
+
     mask = binary_dilation(mask, iterations=addon)
     seg[mask == 0] = 0
-    nib.save(nib.Nifti1Image(seg.astype(np.uint8), seg_img.affine), seg_path)
+
+    # Save
+    if isinstance(seg_path, (str, Path)):
+        nib.save(nib.Nifti1Image(seg.astype(np.uint8), seg_img.affine), seg_path)
+    else:
+        return seg
 
 
 def extract_skin(ct_img, body_img):
@@ -83,9 +144,7 @@ def extract_skin(ct_img, body_img):
     body = body_img.get_fdata()
 
     # Select skin region
-    body = binary_dilation(body, iterations=1).astype(
-        np.uint8
-    )  # add 1 voxel margin at the outside
+    body = binary_dilation(body, iterations=1).astype(np.uint8)  # add 1 voxel margin at the outside
     body_inner = binary_erosion(body, iterations=3).astype(np.uint8)
     skin = body - body_inner
 
@@ -100,23 +159,20 @@ def extract_skin(ct_img, body_img):
     # skin = binary_dilation(skin, iterations=1)  # not good
 
     # Removing blobs
-    skin = remove_small_blobs(skin > 0.5, interval=[5, 1e10])
+    skin = remove_small_blobs(skin>0.5, interval=[5,1e10])
 
     return nib.Nifti1Image(skin.astype(np.uint8), ct_img.affine)
 
 
-def postprocess_lung_vessels(segmentation_output: Path) -> None:
-    vessels_path = segmentation_output / "lung_vessels.nii.gz"
-    airways_path = segmentation_output / "lung_trachea_bronchia.nii.gz"
-    vessels_img = sitk.ReadImage(str(vessels_path))
-    airways_img = sitk.ReadImage(str(airways_path))
-    vessels = sitk.GetArrayViewFromImage(vessels_img).astype(bool)
-    airways = sitk.GetArrayViewFromImage(airways_img).astype(bool)
-    full_img = np.zeros(vessels.shape, dtype=np.uint8)
-    full_img[vessels] = 1
-    full_img[airways] = 2
-    combined = sitk.GetImageFromArray(full_img)
-    combined.CopyInformation(vessels_img)  # type: ignore
-    sitk.WriteImage(
-        combined, str(segmentation_output / "lung_vessels_airways.nii.gz"), True
-    )
+def remove_auxiliary_labels(img, task_name):
+    task_name_aux = task_name + "_auxiliary"
+    if task_name_aux in class_map:
+        class_map_aux = class_map[task_name_aux]
+        data = img.get_fdata()
+        # remove auxiliary labels
+        for idx in class_map_aux.keys():
+            data[data == idx] = 0
+        return nib.Nifti1Image(data.astype(np.uint8), img.affine)
+    else:
+        return img
+

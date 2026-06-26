@@ -3,9 +3,6 @@ import sys
 import numpy as np
 import nibabel as nib
 import nibabel.processing
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 def as_closest_canonical(img_in):
@@ -55,26 +52,3 @@ def undo_canonical_nifti(path_in_can, path_in_orig, path_out):
     img_out = undo_canonical(img_can, img_orig)
     nib.save(img_out, path_out)
 
-
-def load_nibabel_image_with_axcodes(image, axcodes="RAS"):
-    input_axcodes = "".join(nibabel.aff2axcodes(image.affine))
-    axcodes = "".join(axcodes)
-    if input_axcodes != axcodes:
-        logger.debug(
-            f"Input image does not match the required axcodes: got {input_axcodes}, "
-            f"expected {axcodes}. Automatically reorienting the image volume."
-        )
-        input_ornt = nibabel.orientations.axcodes2ornt(input_axcodes)
-        expected_ornt = nibabel.orientations.axcodes2ornt(axcodes)
-        transform = nibabel.orientations.ornt_transform(input_ornt, expected_ornt)
-        return image.as_reoriented(transform)
-    return image
-
-
-def convert_nibabel_to_orginal_with_axcodes(
-    image_transformed, image_original, transformed_axcodes="RAS"
-):
-    img_ornt = nibabel.orientations.io_orientation(image_original.affine)
-    ras_ornt = nibabel.orientations.axcodes2ornt(transformed_axcodes)
-    from_canonical = nibabel.orientations.ornt_transform(ras_ornt, img_ornt)
-    return image_transformed.as_reoriented(from_canonical)

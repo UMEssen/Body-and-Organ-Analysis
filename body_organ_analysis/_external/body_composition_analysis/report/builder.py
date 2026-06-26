@@ -1,49 +1,38 @@
 import base64
 import enum
 import logging
-import pathlib
 import tempfile
-from typing import Any, Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Any
 
-import cv2
 import jinja2
 import numpy as np
 import pandas as pd
 import SimpleITK as sitk
 import skimage.measure
 import weasyprint
-from body_composition_analysis import debug_mode_enabled, get_debug_dir
+
 from body_composition_analysis.body_parts.definition import BodyParts
 from body_composition_analysis.report.plots.aggregation import create_aggregation_image
 from body_composition_analysis.report.plots.check import create_equidistant_overview
-from body_composition_analysis.report.plots.heatmaps import create_tissue_heatmaps
-from body_composition_analysis.report.plots.overview import (
-    create_tissue_summary,
-    create_totalsegmentator_summary,
-)
-from body_composition_analysis.tissue.definition import BodyRegion, Tissue
 from body_composition_analysis.report.plots.colors import (
     BODY_REGION_COLOR_MAP,
     TISSUE_COLOR_MAP,
     TOTAL_COLOR_MAP,
 )
+from body_composition_analysis.report.plots.heatmaps import create_tissue_heatmaps
+from body_composition_analysis.report.plots.overview import create_tissue_summary
+from body_composition_analysis.tissue.definition import BodyRegion, Tissue
 from body_organ_analysis._version import __githash__, __version__
+from body_organ_analysis.compute.util import to_png_data_url
 
 logger = logging.getLogger(__name__)
 
 
 def _pretty_volume(value: float) -> str:
     if value >= 1000:
-        return f"{value/1000:.3f} L"
+        return f"{value / 1000:.3f} L"
     return f"{value:.2f} mL"
-
-
-def _to_embedded_image(img: np.ndarray, debug_name: Optional[str] = None) -> str:
-    _, img_bytes = cv2.imencode(".png", img[..., ::-1])
-    if debug_mode_enabled() and debug_name is not None:
-        with (get_debug_dir() / f"report_{debug_name}.png").open("wb") as ofile:
-            ofile.write(img_bytes)
-    return "data:image/png;base64," + base64.b64encode(img_bytes).decode("utf-8")
 
 
 class AggregatableBodyPart(enum.IntFlag):
@@ -73,7 +62,8 @@ class AggregatableBodyPart(enum.IntFlag):
         if num_abdomen_slices * slice_thickness >= min_abdomen_length:
             result |= AggregatableBodyPart.ABDOMEN
             logger.info(
-                f"Found abdomen with length of {num_abdomen_slices * slice_thickness} mm"
+                "Found abdomen with length of %s mm",
+                num_abdomen_slices * slice_thickness,
             )
 
         # Detect neck
@@ -88,7 +78,8 @@ class AggregatableBodyPart(enum.IntFlag):
         if num_slices_above_mediastinum * slice_thickness >= min_neck_length:
             result |= AggregatableBodyPart.NECK
             logger.info(
-                f"Found neck with length of {num_slices_above_mediastinum * slice_thickness} mm"
+                "Found neck with length of %s mm",
+                num_slices_above_mediastinum * slice_thickness,
             )
 
         # Detect thorax
@@ -114,7 +105,8 @@ class AggregatableBodyPart(enum.IntFlag):
         ):
             result |= AggregatableBodyPart.THORAX
             logger.info(
-                f"Found thorax with length of {num_thorax_slices * slice_thickness} mm"
+                "Found thorax with length of %s mm",
+                num_thorax_slices * slice_thickness,
             )
 
         return result
@@ -127,21 +119,22 @@ class Builder:
         body_parts: sitk.Image,
         body_regions: sitk.Image,
         tissues: sitk.Image,
+        theme: str = "light",
     ):
         self._env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(
                 [
-                    str(pathlib.Path(__file__).parent / "template"),
-                    str(
-                        pathlib.Path(__file__).parent / "template" / "base" / "template"
-                    ),
+                    Path(__file__).parent / "template",
+                    Path(__file__).parent / "template" / "base" / "template",
                 ]
-            )
+            ),
+            autoescape=jinja2.select_autoescape(["html", "jinja"]),
         )
         self._image = image
         self._body_parts = body_parts
         self._body_regions = body_regions
         self._tissues = tissues
+        self.theme = theme
         self.examined_body_part = AggregatableBodyPart(0)
 
     def _build_document(self, template_name: str, **kwargs: Any) -> weasyprint.HTML:
@@ -149,45 +142,30 @@ class Builder:
         rendered_content = template.render(
             app_version=f"{__version__} ({__githash__})",
             contact_email="ship-ai@uk-essen.de",
+            theme=self.theme,
             **kwargs,
         )
 
         with tempfile.TemporaryDirectory() as tempdir:
-            html_file = pathlib.Path(tempdir) / "index.html"
-            with html_file.open("w") as ofile:
-                ofile.write(rendered_content)
+            html_file = Path(tempdir) / "index.html"
+            html_file.write_text(rendered_content, "utf-8")
 
             return weasyprint.HTML(
                 filename=html_file,
-                base_url=str(
-                    pathlib.Path(__file__).parent / "template" / "base" / "template"
-                ),
+                base_url=Path(__file__).parent / "template" / "base" / "template",
             ).render()
 
     def create_pdf(self, template_name: str, **kwargs: Any) -> bytes:
         document = self._build_document(template_name, **kwargs)
-        if debug_mode_enabled():
-            for idx, page in enumerate(document.pages):
-                png_bytes, _, _ = document.copy([page]).write_png(resolution=300)
-                with (get_debug_dir() / f"report_page_{idx:02d}.png").open(
-                    "wb"
-                ) as ofile:
-                    ofile.write(png_bytes)
         pdf_data: bytes = document.write_pdf()
         return pdf_data
-
-    def create_png(self, template_name: str, **kwargs: Any) -> List[bytes]:
-        document = self._build_document(template_name, **kwargs)
-        return [document.copy([page]).write_png()[0] for page in document.pages]
 
     def generate_aggregated_measurements(
         self,
         slice_measurements: pd.DataFrame,
         slice_measurements_no_limbs: pd.DataFrame,
-        vertebrae: Optional[Dict[str, Tuple[int, int]]],
+        vertebrae: dict[str, tuple[int, int]] | None,
     ) -> pd.DataFrame:
-        _, _, slice_thickness = self._image.GetSpacing()
-
         # Find relevant regions for aggregation
         groups = [("Whole Scan", 0, self._image.GetDepth())]
         region_data = sitk.GetArrayViewFromImage(self._body_regions)
@@ -220,8 +198,10 @@ class Builder:
             AggregatableBodyPart.ABDOMEN in self.examined_body_part
             and AggregatableBodyPart.THORAX in self.examined_body_part
         ):
-            assert groups[1][0] == "Abdominal Cavity"
-            assert groups[2][0] == "Thoracic Cavity"
+            if groups[1][0] != "Abdominal Cavity":
+                raise ValueError("Something went wrong for Abdominal Cavity")
+            if groups[2][0] != "Thoracic Cavity":
+                raise ValueError("Something went wrong for Thoracic Cavity")
             groups.insert(1, ("Ventral Cavity", groups[1][1], groups[2][2]))
 
         # If provided add the vertebrae to the aggregation groups
@@ -231,14 +211,14 @@ class Builder:
 
         logger.info("Aggregation groups:")
         for name, min_idx, max_idx in groups:
-            logger.info(f' - "{name}" from slice index {min_idx} to {max_idx}')
+            logger.info(' - "%s" from slice index %s to %s', name, min_idx, max_idx)
 
         # Aggregate measurements
         result = []
         image_data = sitk.GetArrayViewFromImage(self._image)
         body_parts_data = sitk.GetArrayViewFromImage(self._body_parts)
         tissue_data = sitk.GetArrayViewFromImage(self._tissues)
-        no_extremity_mask = body_parts_data == BodyParts.TRUNC
+        no_extremity_mask = body_parts_data == BodyParts.TORSO
         for name, min_z, max_z in groups:
             image_region = image_data[min_z:max_z]
             tissue_region = tissue_data[min_z:max_z]
@@ -264,10 +244,10 @@ class Builder:
                 body_regions=self._body_regions,
                 tissues=self._tissues,
                 group=(min_z, max_z),
+                opacity=0.35,
+                theme=self.theme,
             )
-            overview_image = _to_embedded_image(
-                overview_image, f"aggregation_{name.lower().replace(' ', '-')}"
-            )
+            overview_image = to_png_data_url(overview_image)
 
             result.append(
                 (
@@ -300,7 +280,7 @@ class Builder:
         ]
         measurements.loc["Total"] = slicewise_measurements.sum()
         # Compute the Mean of the Housfield Units per tissue
-        # Get the portion of the image data beloging to the current region
+        # Get the portion of the image data belonging to the current region
         for tissue in Tissue:
             # Create a mask for the current tissue to select the original pixels
             tissue_mask = np.equal(tissue_data, tissue)
@@ -326,7 +306,7 @@ class Builder:
 
         return measurements.replace({np.nan: None})
 
-    def generate_secondary_findings(self) -> List[str]:
+    def generate_secondary_findings(self) -> list[str]:
         result = []
         region_data = sitk.GetArrayViewFromImage(self._body_regions)
         mid_index = region_data.shape[1] // 2
@@ -337,12 +317,13 @@ class Builder:
                 * ml_per_voxel
             )
             result.append(
-                f"Total volume of the abdominal cavity is {_pretty_volume(abdominal_cavity_vol)}"
+                "Total volume of the abdominal cavity "
+                f"is {_pretty_volume(abdominal_cavity_vol)}"
             )
 
         if AggregatableBodyPart.THORAX in self.examined_body_part:
-            # Compute total volume of the thoracic cavity, which consists of three individual
-            # labels from the multi class segmentation
+            # Compute total volume of the thoracic cavity, which consists of three
+            # individual labels from the multi class segmentation
             thoracic_cavity_vol = (
                 np.isin(
                     region_data,
@@ -358,7 +339,7 @@ class Builder:
                 f"Volume of thoracic cavity is {_pretty_volume(thoracic_cavity_vol)}"
             )
 
-            # Compute total volume of the mediastinum, which consists of two individual labels
+            # Compute total volume of the mediastinum, which consists of two labels
             thoracic_cavity_vol = (
                 np.isin(
                     region_data,
@@ -375,7 +356,8 @@ class Builder:
                 np.equal(region_data, BodyRegion.PERICARDIUM).sum() * ml_per_voxel
             )
             result.append(
-                f"Volume enclosed by the pericardial sack is {_pretty_volume(pericardium_vol)}"
+                "Volume enclosed by the pericardial sack is "
+                f"{_pretty_volume(pericardium_vol)}"
             )
 
             # Check for presence of breast implants
@@ -395,14 +377,17 @@ class Builder:
 
                     if len(measurements) == 1:
                         result.append(
-                            f"Patient has a single breast implant on the {measurements[0][0]} side "
-                            f"with volume of {_pretty_volume(measurements[0][1])}"
+                            "Patient has a single breast implant on the "
+                            f"{measurements[0][0]} side with volume of "
+                            f"{_pretty_volume(measurements[0][1])}"
                         )
                     elif len(measurements) == 2:
                         result.append(
                             f"Patient has two breast implants with volume of "
-                            f"{_pretty_volume(measurements[0][1])} ({measurements[0][0]}) and "
-                            f"{_pretty_volume(measurements[1][1])} ({measurements[1][0]})"
+                            f"{_pretty_volume(measurements[0][1])} ("
+                            f"{measurements[0][0]}) and "
+                            f"{_pretty_volume(measurements[1][1])} "
+                            f"({measurements[1][0]})"
                         )
                     else:
                         logger.error("More than two breast implant segments found")
@@ -411,11 +396,10 @@ class Builder:
 
     def prepare(
         self,
-        vertebrae: Optional[Dict[str, Tuple[int, int]]] = None,
-        bmd: Optional = None,
-        total: Optional[sitk.Image] = None,
-        total_measurements: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        vertebrae: dict[str, tuple[int, int]] | None = None,
+        total: sitk.Image | None = None,
+        total_measurements: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         ml_per_voxel = np.prod(self._image.GetSpacing()) / 1000.0
         tissue_data = sitk.GetArrayViewFromImage(self._tissues)
 
@@ -434,9 +418,9 @@ class Builder:
             ["slice_idx", "Bone", "Muscle", "TAT", "IMAT", "SAT", "VAT", "PAT", "EAT"]
         ]
 
-        # Create slice-wise measurements without extremeties
+        # Create slice-wise measurements without extremities
         part_data = sitk.GetArrayViewFromImage(self._body_parts)
-        no_extremity_mask = part_data == BodyParts.TRUNC
+        no_extremity_mask = part_data == BodyParts.TORSO
         data = {
             tissue.name.capitalize()
             if tissue in {Tissue.BONE, Tissue.MUSCLE}
@@ -459,58 +443,39 @@ class Builder:
             ["slice_idx", "Bone", "Muscle", "TAT", "IMAT", "SAT", "VAT", "PAT", "EAT"]
         ]
 
-        image_summary = create_tissue_summary(self._image, self._tissues, df).to_image(
-            format="svg"
-        )
-        if debug_mode_enabled():
-            with (get_debug_dir() / "report_tissue_summary.svg").open("wb") as ofile:
-                ofile.write(image_summary)
+        image_summary = create_tissue_summary(
+            self._image, self._tissues, df, self.theme
+        ).to_image(format="svg")
         image_summary = "data:image/svg+xml;base64," + base64.b64encode(
             image_summary
         ).decode("utf-8")
 
-        total_summary = (
-            [
-                _to_embedded_image(img, f"total_overview_{i}")
-                for i, img in enumerate(
-                    create_totalsegmentator_summary(self._image, total)
-                )
-            ]
-            if total is not None
-            else None
-        )
+        # Not used anymore
+        # total_summary = (
+        #     [
+        #         to_png_data_url(img)
+        #         for img in create_totalsegmentator_summary(self._image, total)
+        #     ]
+        #     if total is not None
+        #     else None
+        # )
         heatmaps = [
-            (
-                x[0],
-                _to_embedded_image(x[1], f"tissue_cor_{x[0].name.lower()}"),
-                _to_embedded_image(x[2], f"tissue_sag_{x[0].name.lower()}"),
-            )
+            (x[0], to_png_data_url(x[1]), to_png_data_url(x[2]))
             for x in create_tissue_heatmaps(self._body_regions, self._tissues)
         ]
 
-        name_mapping = {
-            "First": "q0",
-            "25%": "q1",
-            "Central": "q2",
-            "75%": "q3",
-            "Last": "q4",
-        }
         equidistance_slices_segs = [
             (self._body_regions, BODY_REGION_COLOR_MAP),
             (self._tissues, TISSUE_COLOR_MAP),
         ]
-        seg_names = ["body-regions", "tissues"]
+        seg_names = ["body_regions", "tissues"]
         if total is not None:
             equidistance_slices_segs.append((total, TOTAL_COLOR_MAP))
             seg_names.append("total")
         equidistant_slice_check = [
             [x[0]]
             + [
-                _to_embedded_image(
-                    x[seg_slice_idx + 1],
-                    f"equidistant_check_{seg_names[seg_slice_idx]}_"
-                    f"{name_mapping.get(x[0], x[0].lower())}",
-                )
+                to_png_data_url(x[seg_slice_idx + 1])
                 for seg_slice_idx in range(len(seg_names))
             ]
             for x in create_equidistant_overview(
@@ -520,8 +485,6 @@ class Builder:
         ]
 
         aggregations = self.generate_aggregated_measurements(df, df_no_limbs, vertebrae)
-
-        bmd_measurements = None
 
         if (
             total_measurements is None
@@ -542,20 +505,19 @@ class Builder:
                 inplace=True,
             )
 
-        return dict(
-            aggregated_measurements=aggregations,
-            equidistant_slice_check=equidistant_slice_check,
-            image_summary=image_summary,
-            other_findings=self.generate_secondary_findings(),
-            slicewise_measurements=df,
-            slicewise_measurements_no_limbs=df_no_limbs,
-            measurements_total=df_total,
-            tissue_heatmaps=heatmaps,
-            bmd_measurements=bmd_measurements,
-            summary_totalsegmentator=total_summary,
-        )
+        return {
+            "aggregated_measurements": aggregations,
+            "equidistant_slice_check": equidistant_slice_check,
+            "image_summary": image_summary,
+            "other_findings": self.generate_secondary_findings(),
+            "slicewise_measurements": df,
+            "slicewise_measurements_no_limbs": df_no_limbs,
+            "measurements_total": df_total,
+            "tissue_heatmaps": heatmaps,
+            "summary_totalsegmentator": None,  # total_summary
+        }
 
-    def create_json(self, **kwargs: Any) -> Dict[str, Any]:
+    def create_json(self, **kwargs: Any) -> dict[str, Any]:
         return {
             "slices": (
                 kwargs["slicewise_measurements"]
@@ -581,9 +543,7 @@ class Builder:
                 .to_dict("records")
             ),
             "aggregated": {
-                name.lower()
-                .replace(" ", "_")
-                .replace("-", "_"): {
+                name.lower().replace(" ", "_").replace("-", "_"): {
                     "num_slices": int(max_z - min_z),
                     "min_slice_idx": int(min_z),
                     "max_slice_idx": int(max_z),
@@ -634,9 +594,5 @@ class Builder:
                 "abdomen": AggregatableBodyPart.ABDOMEN in self.examined_body_part,
                 "neck": AggregatableBodyPart.NECK in self.examined_body_part,
                 "thorax": AggregatableBodyPart.THORAX in self.examined_body_part,
-            },
-            "bmd": {
-                x[0]: x[2].to_dict() if x[2] is not None else {"error": x[3]}
-                for x in kwargs["bmd_measurements"] or []
             },
         }

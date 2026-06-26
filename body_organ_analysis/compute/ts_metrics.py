@@ -1,16 +1,16 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import SimpleITK as sitk
-from body_composition_analysis.io import load_image
 from scipy import spatial
-from totalsegmentator.map_to_binary import reverse_class_map_complete
+from totalsegmentator.map_to_binary import class_map
 
+from body_organ_analysis._external.body_composition_analysis.io import load_image
 from body_organ_analysis.compute.geometry import find_axes
 from body_organ_analysis.compute.util import (
     ADDITIONAL_MODELS_OUTPUT_NAME,
@@ -20,13 +20,21 @@ from body_organ_analysis.compute.util import (
 
 logger = logging.getLogger(__name__)
 
+# TODO
+reverse_class_map = {
+    val: {v: k for k, v in class_map[val].items()} for val in class_map
+}
+reverse_class_map_complete = {
+    f"{val}_{v}": k for val in class_map for k, v in class_map[val].items()
+}
+
 
 def major_minor_axis(
     l3_mask: np.ndarray,
     body_mask: np.ndarray,
     img_spacing: np.ndarray,
-    plot_axes: Optional[Path] = None,
-) -> Tuple[Optional[float], Optional[float]]:
+    plot_axes: Path | None = None,
+) -> tuple[float | None, float | None]:
     if np.sum(l3_mask) == 0 or np.sum(body_mask) == 0:
         return None, None
     slices = np.where(l3_mask.any(axis=(1, 2)))[0]
@@ -36,7 +44,7 @@ def major_minor_axis(
         return None, None
     major_p1, major_p2, minor_p1, minor_p2 = find_axes(middle_slice)
     if plot_axes is not None:
-        fig, ax = plt.subplots(1, 1)
+        _, ax = plt.subplots(1, 1)
         ax.imshow(middle_slice, cmap="gray")
         ax.plot((major_p1.x, major_p2.x), (major_p1.y, major_p2.y), "-g", linewidth=2.5)
         ax.plot((minor_p1.x, minor_p2.x), (minor_p1.y, minor_p2.y), "-b", linewidth=2.5)
@@ -53,7 +61,7 @@ def major_minor_axis(
     )
 
 
-def get_cnr_for_region(measurements: Dict[str, Any], region: str) -> Any:
+def get_cnr_for_region(measurements: dict[str, Any], region: str) -> Any:
     if measurements["segmentations"]["total"][region]["present"]:
         return measurements["segmentations"]["total"][region]["cnr"]
     return None
@@ -63,7 +71,7 @@ def compute_segmentator_metrics(
     ct_path: Path,
     segmentation_folder: Path,
     store_axes: bool = False,
-) -> Tuple[List[Dict[str, Any]], pd.DataFrame, pd.DataFrame]:
+) -> tuple[list[dict[str, Any]], pd.DataFrame, pd.DataFrame]:
     measurements_path = segmentation_folder / "total-measurements.json"
     with measurements_path.open("r") as of:
         json_measurements = json.load(of)
@@ -77,11 +85,11 @@ def compute_segmentator_metrics(
     image_info = load_image(ct_path)
     major_axis, minor_axis, mean_axis = None, None, None
     if (segmentation_folder / "total.nii.gz").exists() and (
-        segmentation_folder / "body-parts.nii.gz"
+        segmentation_folder / "body_parts.nii.gz"
     ).exists():
         region_image = load_image(segmentation_folder / "total.nii.gz")
         region_data = sitk.GetArrayViewFromImage(region_image)
-        body_image = load_image(segmentation_folder / "body-parts.nii.gz")
+        body_image = load_image(segmentation_folder / "body_parts.nii.gz")
         body_data = sitk.GetArrayViewFromImage(body_image)
         major_axis, minor_axis = major_minor_axis(
             l3_mask=create_mask(
@@ -96,9 +104,10 @@ def compute_segmentator_metrics(
         minor_axis /= 10
         mean_axis = (major_axis + minor_axis) / 2
 
-    records: List[Dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
     for model_name in json_measurements["segmentations"]:
         for region in json_measurements["segmentations"][model_name]:
+            # TODO make name conversion better
             base_dict = {
                 "ModelName": convert_name(model_name),
                 "BodyRegion": convert_name(region),
@@ -109,32 +118,34 @@ def compute_segmentator_metrics(
                 new_key = convert_name(key)
                 if "Hu" in new_key:
                     new_key = new_key.replace("Hu", "HU")
-                elif "Cnr" == new_key:
+                elif new_key == "Cnr":
                     new_key = "CNR"
                 base_dict[new_key] = val
             records.append(base_dict)
     cnr_records = []
 
-    for region in (
-        "aorta",
-        "pulmonary_artery",
-        "autochthon",
-        "autochthon_left",
-        "autochthon_right",
-    ):
-        if region not in json_measurements["cnr_adjusted"]:
-            continue
-        base_dict = {
-            "BodyRegion": convert_name(region),
-        }
-        for key, val in json_measurements["cnr_adjusted"][region].items():
-            new_key = convert_name(key)
-            if "Hu" in new_key:
-                new_key = new_key.replace("Hu", "HU")
-            elif "Cnr" == new_key:
-                new_key = "CNR"
-            base_dict[new_key] = val
-        cnr_records.append(base_dict)
+    cnr_adjusted = json_measurements.get("cnr_adjusted")
+    if cnr_adjusted:
+        for region in (
+            "aorta",
+            "pulmonary_artery",
+            "autochthon",
+            "autochthon_left",
+            "autochthon_right",
+        ):
+            if region not in json_measurements["cnr_adjusted"]:
+                continue
+            base_dict = {
+                "BodyRegion": convert_name(region),
+            }
+            for key, val in json_measurements["cnr_adjusted"][region].items():
+                new_key = convert_name(key)
+                if "Hu" in new_key:
+                    new_key = new_key.replace("Hu", "HU")
+                elif new_key == "Cnr":
+                    new_key = "CNR"
+                base_dict[new_key] = val
+            cnr_records.append(base_dict)
 
     for model_name, filename in ADDITIONAL_MODELS_OUTPUT_NAME.items():
         model_path = segmentation_folder / f"{filename}.nii.gz"

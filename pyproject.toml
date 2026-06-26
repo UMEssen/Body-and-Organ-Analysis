@@ -1,96 +1,116 @@
 [build-system]
-build-backend = "poetry.core.masonry.api"
+build-backend = "hatchling.build"
+requires = [ "hatchling>=1.29" ]
 
-requires = [ "poetry-core>=1" ]
-
-[tool.poetry]
+[project]
 name = "body-organ-analysis"
-version = "0.1.5"
-license = "Apache-2.0"
-description = "BOA is a tool for segmentation of CT scans developed by the SHIP-AI group at the Institute for Artificial Intelligence in Medicine (https://ship-ai.ikim.nrw/). Combining the TotalSegmentator and the Body Composition Analysis, this tool is capable of analyzing medical images and identifying the different structures within the human body, including bones, muscles, organs, and blood vessels."
-authors = [ "Jannis Straus <jannis.straus@uk-essen.de>" ]
+description = """\
+  BOA is a tool for segmentation of CT scans developed by the SHIP-AI group at the Institute for Artificial \
+  Intelligence in Medicine (https://ship-ai.ikim.nrw/). Combining the TotalSegmentator and the Body Composition \
+  Analysis, this tool is capable of analyzing medical images and identifying the different structures within the human \
+  body, including bones, muscles, organs, and blood vessels.\
+  """
 readme = "README.md"
-repository = "https://github.com/UMEssen/Body-and-Organ-Analyzer"
-keywords = [ "python", "segmentation", "nnunet", "boa", "body composition analysis" ]
-packages = [
-  { include = "body_organ_analysis" },
+keywords = [ "boa", "body composition analysis", "nnunet", "python", "segmentation" ]
+license = "Apache-2.0"
+authors = [
+  { name = "Jannis Straus", email = "jannis.straus@uk-essen.de" },
+]
+requires-python = ">=3.11,<3.13"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dynamic = [ "version" ]
+dependencies = [
+  "acvl-utils>=0.2.5",
+  # "totalsegmentator==2.12.0",
+  # "nnunetv2==2.6.4",
+  "batchgeneratorsv2>=0.3",
+  "boa-contrast>=0.1.5,<0.2",
+  "dataclasses-json>=0.5.7,<1",
+  "dynamic-network-architectures>=0.4.3",
+  "fury>=0.12,<1",
+  "jinja2>=3.0.3,<4",
+  "kaleido==0.2.1",                       # v0 bundles a self-contained headless Chromium
+  "matplotlib>=3.6.2,<4",
+  "nibabel>=5.1,<6",
+  "numpy>=1.24,<2",
+  "p-tqdm>=1.4,<2",
+  "pandas>=2,<3",
+  "plotly>=6.1.1,<7",
+  "pydicom>=3,<4",
+  "python-dotenv>=1.2.2",
+  "requests>=2.28.2,<3",
+  "scikit-image<=0.28",                   # binary_erosion -> erosion, with different results for kernel 6
+  "scikit-learn==1.3",                    # BOA-Contrast
+  "seaborn>=0.13.2",
+  "simpleitk>=2.0.1,<3",
+  "tqdm>=4.45,<5",
+  "unidecode>=1.3.6,<2",
+  "weasyprint>=60,<70",
+  "xlsxwriter>=3.1.2,<4",
+  "xvfbwrapper>=0.2.9,<1",
+]
+optional-dependencies.pacs = [
+  "celery==5.6.3",
+  "dicomweb-client>=0.59,<1",
+  "psycopg2-binary>=2.9.9,<3",
+  "pydicom-seg>=0.4.1,<0.5",
+  "smbprotocol>=1.10.1,<2",
+]
+optional-dependencies.storage = [
+  "dicomweb-client>=0.59,<1",
+  "pydicom-seg>=0.4.1,<0.5",
+  "smbprotocol>=1.10.1,<2",
+]
+optional-dependencies.triton = [
+  "tritonclient[grpc]>=2.5,<3",
+]
+urls.Repository = "https://github.com/UMEssen/Body-and-Organ-Analyzer"
+scripts.body_organ_analysis = "body_organ_analysis.cli:run"
+
+[dependency-groups]
+dev = [
+  "openpyxl>=3.1.5",
+  "pre-commit>=4.5.1,<5",
+  "pytest>=9.0.3",
+  "pytest-cov>=6",
 ]
 
-[tool.poetry.scripts]
-body_organ_analyzer = "body_organ_analyzer.cli:run"
-
-[tool.poetry.dependencies]
-python = "^3.9,<3.11"
-requests = "^2.28.2"
-numpy = "^1.24.0"
-pydicom = "^2.3.1"
-unidecode = "^1.3.6"
-nibabel = "^5.1.0"
-tqdm = "^4.45.0"
-p-tqdm = "^1.4.0"
-xvfbwrapper = "^0.2.9"
-fury = "^0.8.0"
-medpy = "^0.4.0"
-matplotlib = "^3.6.2"
-batchgenerators = "0.21"
-psutil = "^5.9.4"
-Jinja2 = "^3.0.3"
-plotly = "^5.3.1"
-SimpleITK = "^2.0.1"
-WeasyPrint = "^52.5"
-kaleido = "0.2.1"
-pywavelets = "^1.1.1"
-dataclasses-json = "^0.5.7"
-xlsxwriter = "^3.1.2"
-# Fix version of scikitlearn for the models
-boa-contrast = "^0.1.4"
-scikit-learn = "1.3.0"
-# Only need this for the pacs
-celery = { version = "5.2.7", optional = true }
-dicomweb-client = { version = "^0.59.0", optional = true }
-smbprotocol = { version = "^1.10.1", optional = true }
-pydicom-seg = { version = "^0.4.1", optional = true }
-# Only need this if together with triton
-tritonclient = { extras = [ "grpc" ], version = "^2.5.0", optional = true }
-psycopg2-binary = { version = "^2.9.9", optional = true }
-
-[tool.poetry.extras]
-triton = [ "tritonclient" ]
-pacs = [ "celery", "dicomweb-client", "smbprotocol", "pydicom-seg", "psycopg2-binary" ]
-storage = [ "dicomweb-client", "smbprotocol", "pydicom-seg" ]
-
-[tool.poetry.group.dev]
-optional = true
-
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^4.2.0"
+[tool.hatch]
+version.path = "body_organ_analysis/_version.py"
+build.targets.wheel.packages = [ "body_organ_analysis" ]
 
 [tool.ruff]
+target-version = "py312"
 # Same as Black
 line-length = 88
 lint.select = [
+  "ARG",  # Unused arguments
   "B",    # flake8-bugbear
   "C",    # flake8-comprehensions
   "D401", # First line of docstring should be in imperative mood
   "E",    # pycodestyle errors
   "EXE",  # flake8-executable
   "F",    # pyflakes
+  "G",    # flake8-logging-format
   "I",    # isort
+  "N",    # Naming conventions
+  "PERF", # perflint
   "PL",   # pylint
+  "PTH",  # pathlib usage
   "RUF",  # ruff
+  "S",    # flake8-bandit (security)
+  "SIM",  # flake8-simplify
+  "UP",   # PyUpgrade
   "W",    # pycodestyle warnings
 ]
 lint.ignore = [
-  "C901",    # Is too complex
-  "D100",    # Missing docstring in public module
-  "D101",    # Missing docstring in public class
-  "D104",    # Missing docstring in public package
-  "D105",    # Missing docstring in magic method
-  "E501",    # line too long, handled by black
-  "PLR0912", # Too many branches
-  "PLR0913", # Too many arguments in function definition
-  "PLR0915", # Too many statements
-  "PLR2004", # Magic value used in comparison
+  "C901", # Too complex
+  "N813", # Camelcase imported as lowercase
+  "PLR",  # pylint refactoring
 ]
 lint.unfixable = [
   "F401", # Do not fix unused imports, it's annoying during development
@@ -98,28 +118,35 @@ lint.unfixable = [
 lint.pydocstyle.convention = "google"
 
 [tool.mypy]
-# Ensure full coverage
-check_untyped_defs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-disallow_untyped_decorators = true
-
 # Restrict dynamic typing
 disallow_any_generics = true
 disallow_subclassing_any = true
-warn_return_any = true
-
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+# Ensure full coverage
+check_untyped_defs = true
+disallow_untyped_decorators = true
 # Know exactly what you're doing
 warn_redundant_casts = true
 warn_unused_ignores = true
-warn_unused_configs = true
+warn_return_any = true
 warn_unreachable = true
+warn_unused_configs = true
 show_error_codes = true
 
-[tool.pymarkdown]
-plugins.md013.code_blocks = false
-plugins.md013.line_length = 80
+[tool.pyright]
+extraPaths = [ "body_organ_analysis/_external" ]
 
-[virtualenvs]
-create = true
-in-project = true
+[tool.pytest]
+ini_options.testpaths = [ "tests" ]
+ini_options.markers = [
+  "integration: heavy end-to-end test needing a GPU, model weights and a TCIA download",
+]
+ini_options.log_level = "INFO"
+ini_options.log_cli = true
+ini_options.log_cli_level = "INFO"
+
+[tool.sqlfluff]
+core.dialect = "postgres"
+rules.capitalisation.keywords.capitalisation_policy = "upper"
+rules.capitalisation.types.extended_capitalisation_policy = "upper"

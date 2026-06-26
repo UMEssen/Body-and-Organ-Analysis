@@ -3,6 +3,7 @@ import pathlib
 import numpy as np
 import scipy.ndimage
 import SimpleITK as sitk
+
 from body_composition_analysis.tissue.definition import TISSUE_DERIVATION_RULES, HURange
 
 
@@ -11,7 +12,7 @@ def subclassify_tissues(
     body_regions: sitk.Image,
     output_dir: pathlib.Path,
     median_filtering: bool = False,
-    orientation: str = None,
+    orientation: str | None = None,
 ) -> sitk.Image:
     image_data = sitk.GetArrayFromImage(image)
     seg_data = sitk.GetArrayFromImage(body_regions)
@@ -20,7 +21,8 @@ def subclassify_tissues(
     # should be better to only filter in-plane with a 2D kernel.
     if median_filtering:
         # TODO: Do this better, maybe with the body_regions.GetDirections()?
-        assert orientation is not None
+        if orientation is None:
+            raise ValueError("Orientation must be set")
         if "I" in orientation:
             slice_position = orientation[::-1].index("I")
         elif "S" in orientation:
@@ -57,5 +59,5 @@ def subclassify_tissues(
 
     result = sitk.GetImageFromArray(tissue_data)
     result.CopyInformation(body_regions)
-    sitk.WriteImage(result, str(output_path))
+    sitk.WriteImage(result, output_path)
     return result

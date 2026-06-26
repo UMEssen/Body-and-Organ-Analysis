@@ -1,3 +1,3 @@
-FROM rabbitmq:3.11.13-management
+FROM rabbitmq:4.3.0-management
 
 COPY advanced.config /etc/rabbitmq/advanced.config

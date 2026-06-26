@@ -1,4 +1,9 @@
-version: "3.3"
+# Single, cross-platform stack (Linux + Windows/Docker Desktop).
+#
+# GPU access uses the Compose device-reservation syntax
+# (deploy.resources.reservations.devices), which works on native Linux with the
+# NVIDIA Container Toolkit and on Docker Desktop/WSL2. The GPU is pinned with
+# device_ids: ["${NVIDIA_ID}"]; set NVIDIA_ID in .env to the host GPU index.
 services:
   rabbitmq:
     image: shipai/boa-rabbitmq
@@ -12,16 +17,15 @@ services:
       - "15672:15672"
 
   worker-gpu:
-    image: shipai/boa-task-gpu
-    runtime: nvidia
+    image: shipai/boa-worker-gpu
+    platform: linux/amd64
     build:
-      dockerfile: scripts/task_gpu.dockerfile
+      dockerfile: scripts/worker_gpu.dockerfile
       context: .
       args:
-        - GIT_VERSION=${GIT_VERSION}
-        - PACKAGE_VERSION=${PACKAGE_VERSION}
+        BUILD_CACHE: "${BUILD_CACHE:-0}"
     environment:
-      - NVIDIA_VISIBLE_DEVICES=${NVIDIA_ID}
+      - DOCKER_USER
       - CELERY_BROKER
       - ORTHANC_URL
       - ORTHANC_PORT
@@ -32,8 +36,9 @@ services:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - POSTGRES_DATABASE
-      - PREDICT_FAST
       - PACS_MODEL
+      - FAST_BCA
+      - FAST_TOTAL
       # Output vars
       - PATIENT_INFO_IN_OUTPUT
       - SMB_DIR_OUTPUT
@@ -43,18 +48,20 @@ services:
       - UPLOAD_USER
       - UPLOAD_PWD
     restart: always
-    user: ${DOCKER_USER}
     deploy:
       resources:
         limits:
           cpus: "5"
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${NVIDIA_ID}"]
+              capabilities: [gpu]
     shm_size: 1g
     ulimits:
       memlock: -1
       stack: 67108864
     volumes:
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/group:/etc/group:ro
       - ${SEGMENTATION_DIR}:/storage_directory
       - ${LOCAL_WEIGHTS_PATH}:/app/weights
     command:
@@ -69,19 +76,22 @@ services:
         "--loglevel=INFO",
         "-P",
         "threads",
+        "--without-mingle",
+        "--without-gossip",
       ]
     depends_on:
       - rabbitmq
 
-  worker:
-    image: shipai/boa-task
+  worker-cpu:
+    image: shipai/boa-worker-cpu
+    platform: linux/amd64
     build:
-      dockerfile: scripts/task.dockerfile
+      dockerfile: scripts/worker_cpu.dockerfile
       context: .
       args:
-        - GIT_VERSION=${GIT_VERSION}
-        - PACKAGE_VERSION=${PACKAGE_VERSION}
+        BUILD_CACHE: "${BUILD_CACHE:-0}"
     environment:
+      - DOCKER_USER
       - CELERY_BROKER
       - ORTHANC_URL
       - ORTHANC_PORT
@@ -93,7 +103,9 @@ services:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - POSTGRES_DATABASE
-      - PREDICT_FAST
+      - PACS_MODEL
+      - FAST_BCA
+      - FAST_TOTAL
       # Output vars
       - PATIENT_INFO_IN_OUTPUT
       - SEGMENTATION_UPLOAD_URL
@@ -103,14 +115,11 @@ services:
       - SMB_USER
       - SMB_PWD
     restart: always
-    user: ${DOCKER_USER}
     deploy:
       resources:
         limits:
           cpus: "5"
     volumes:
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/group:/etc/group:ro
       - ${SEGMENTATION_DIR}:/storage_directory
       - ${LOCAL_WEIGHTS_PATH}:/app/weights
     command:
@@ -125,6 +134,8 @@ services:
         "--loglevel=INFO",
         "-P",
         "threads",
+        "--without-mingle",
+        "--without-gossip",
       ]
     depends_on:
       - rabbitmq
@@ -135,8 +146,7 @@ services:
       dockerfile: scripts/orthanc.dockerfile
       context: .
       args:
-        - GIT_VERSION=${GIT_VERSION}
-        - PACKAGE_VERSION=${PACKAGE_VERSION}
+        BUILD_CACHE: "${BUILD_CACHE:-0}"
     environment:
       - CELERY_BROKER
       - POSTGRES_HOST
@@ -152,7 +162,7 @@ services:
       - "4242:4242"
       - "${ORTHANC_PORT}:8042"
     volumes:
-      - /tmp/orthanc-db/:/var/lib/orthanc/db/
+      - orthanc-db:/var/lib/orthanc/db/
 
   monitoring:
     image: postgres:latest
@@ -166,3 +176,6 @@ services:
     volumes:
       - ${POSTGRES_DATA}:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  orthanc-db:

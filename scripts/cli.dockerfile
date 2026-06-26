@@ -1,36 +1,52 @@
-FROM python:3.9 as poetry2requirements
-COPY pyproject.toml poetry.lock README.md /
-ENV POETRY_HOME=/etc/poetry
-RUN pip3 install poetry==1.6.1
-RUN python3 -m poetry export -E "triton pacs" --without-hashes -f requirements.txt > /Requirements.txt
+# syntax=docker/dockerfile:1
+ARG DOCKER_PLATFORM=linux/amd64
 
-FROM nvcr.io/nvidia/pytorch:24.10-py3
+FROM --platform=${DOCKER_PLATFORM} nvcr.io/nvidia/pytorch:24.12-py3
 
-# Install app dependencies
-COPY --from=poetry2requirements /Requirements.txt /tmp
-RUN apt-get -y update; DEBIAN_FRONTEND=noninteractive apt-get -y install \
-    curl ffmpeg libsm6 libxext6 libpangocairo-1.0-0 dcmtk xvfb libjemalloc2 && rm -rf /var/lib/apt/lists/*
+# BUILD_CACHE=1 to reuse uv's and pip's download/build cache across builds
+ARG BUILD_CACHE=0
 
-ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+RUN apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
+        curl ffmpeg libsm6 libxext6 libpangocairo-1.0-0 xvfb libjemalloc2 \
+        gosu libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libxkbcommon0 \
+        libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libdrm2 \
+        libasound2t64 && \
+    rm -rf /var/lib/apt/lists/*
 
-ARG PACKAGE_VERSION
-ARG GIT_VERSION
-ENV BOA_VERSION=$PACKAGE_VERSION
-ENV BOA_GITHASH=$GIT_VERSION
-WORKDIR /app
+RUN python3 -m pip install --no-cache-dir uv
 
-ENV TOTALSEG_WEIGHTS_PATH="/app/weights"
-ENV MPLCONFIGDIR = "/app/configs"
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+
+ENV TOTALSEG_WEIGHTS_PATH=/app/weights
+ENV MPLCONFIGDIR=/app/configs
 ENV nnUNet_USE_TRITON=0
 
-COPY weights /app/weights
+ENV UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_PYTHON=python3.12 \
+    UV_PROJECT_ENVIRONMENT=/app/.venv
 
-COPY pyproject.toml README.md /app/
+WORKDIR /app
+
+COPY pyproject.toml uv.lock README.md /app/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project $( [ "$BUILD_CACHE" = "1" ] || echo --no-cache )
+
 COPY body_organ_analysis /app/body_organ_analysis
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen $( [ "$BUILD_CACHE" = "1" ] || echo --no-cache )
 
-RUN chmod a+rwx -R /app && \
-    pip3 install -U pip && \
-    pip3 install -r /tmp/Requirements.txt && \
-    rm /tmp/Requirements.txt && \
-    pip install pyradiomics && \
-    pip install .
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
+
+COPY scripts/download_weights.py /app/download_weights.py
+RUN mkdir -p /app/weights && \
+    python /app/download_weights.py && \
+    chmod -R a+rwX /app/weights
+
+RUN mkdir -p /app/configs && chmod -R a+rwX /app/configs
+
+COPY --chmod=0755 scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

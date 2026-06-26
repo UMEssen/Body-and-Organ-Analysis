@@ -1,0 +1,64 @@
+name: Lint & Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: Linux, python: "3.12" }
+          - { os: Windows, python: "3.11" }
+    runs-on: [self-hosted, "${{ matrix.os }}"]
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash # Git Bash on Windows, bash on Linux
+    env:
+      TCIA_API: ${{ secrets.TCIA_API }}
+      TCIA_UID: ${{ secrets.TCIA_UID }}
+      LICENSE_NUMBER: ${{ secrets.LICENSE_NUMBER }}
+      # Heavy integration runs on push and on the weekly schedule; every other
+      # event (pull_request, workflow_dispatch) runs the fast unit tests instead.
+      HEAVY: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python }}
+      - run: uv sync --frozen --extra pacs --group dev
+
+      - if: matrix.os == 'Linux'
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: "npm"
+      - if: matrix.os == 'Linux'
+        run: |
+          npm install
+          make check
+          uv run pre-commit run -a --show-diff-on-failure
+
+      - if: env.HEAVY == 'true'
+        run: uv run pytest -m integration --cov=body_organ_analysis --cov-report=xml
+      - if: env.HEAVY != 'true'
+        run: uv run pytest -m "not integration"
+      - if: matrix.os == 'Linux' && env.HEAVY == 'true'
+        uses: codecov/codecov-action@v7
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false

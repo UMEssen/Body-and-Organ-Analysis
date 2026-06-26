@@ -1,6 +1,7 @@
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any, List, Sequence, Tuple
+from typing import Any
 
 import cv2 as cv
 import numpy as np
@@ -12,7 +13,7 @@ class Point:
     x: float
     y: float
 
-    def to_list(self) -> List[float]:
+    def to_list(self) -> list[float]:
         return [self.x, self.y]
 
 
@@ -21,7 +22,7 @@ def find_minor_point(
     mid_point: Point,
     rotated_point: Point,
     length: int,
-    target_size: Tuple[int, ...],
+    target_size: tuple[int, ...],
 ) -> Point:
     # Rotate the vector 90 degrees by swapping x and y, and inverting one of them
     point = Point(
@@ -45,7 +46,7 @@ def find_minor_point(
     return Point(p_options[1][0], p_options[0][0])
 
 
-def find_axes(middle_slice: np.ndarray) -> Tuple[Point, Point, Point, Point]:
+def find_axes(middle_slice: np.ndarray) -> tuple[Point, Point, Point, Point]:
     # Get all points where the shape is
     points = np.flip(np.transpose(np.where(middle_slice)))
     hull_points = points[spatial.ConvexHull(points).vertices]

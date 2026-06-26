@@ -1,0 +1,17 @@
+# Normalize line endings. Shell scripts must stay LF so they run inside Linux
+# containers even when the repo is checked out on a Windows runner (where
+# git's core.autocrlf would otherwise convert them to CRLF and break the
+# `#!/bin/bash` shebang at exec time).
+* text=auto eol=lf
+*.sh text eol=lf
+
+# Binary assets: never touch.
+*.pth binary
+*.zip binary
+*.nii binary
+*.nii.gz binary
+*.dcm binary
+*.jpg binary
+*.pdf binary
+*.png binary
+*.svg binary

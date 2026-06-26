@@ -1,6 +1,7 @@
 import numpy as np
 import SimpleITK as sitk
 import skimage.measure
+
 from body_composition_analysis.body_regions.definition import BodyRegion
 
 
