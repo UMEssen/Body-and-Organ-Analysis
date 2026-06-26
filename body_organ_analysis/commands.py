@@ -9,6 +9,7 @@ from typing import Any
 
 import pandas as pd
 import SimpleITK as sitk
+import torch
 from boa_contrast import predict
 from body_composition_analysis.body_regions.definition import BodyRegion
 
@@ -80,11 +81,13 @@ def analyze_ct(
 ) -> tuple[Path, dict[str, Any]]:
     processed_output_folder.mkdir(parents=True, exist_ok=True)
     os_name = platform.system()
+    cuda_version = torch.version.cuda if torch.cuda.is_available() else "N/A"
     header = (
         f"Platform: {os_name}\n"
-        f"Python version: {sys.version}"
+        f"Python version: {sys.version}\n"
         f"BOA version: {__version__}\n"
         f"BOA githash: {__githash__}\n"
+        f"CUDA version: {cuda_version}\n"
         f"Device: {device}\n"
         f"Fast BCA: {fast_bca}\n"
         f"Fast Total: {fast_total}\n"

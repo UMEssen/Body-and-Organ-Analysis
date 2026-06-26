@@ -61,7 +61,7 @@ realistic renderings with
   recommended but **not required** — BOA also runs **CPU-only**, just
   considerably slower. (Triton-based CPU acceleration is planned but not
   available yet.)
-- Some of the advanced models require a free
+- Some of the advanced models require a
   [TotalSegmentator license](https://backend.totalsegmentator.com/license-academic/)
   (see [Models](#models)).
 
@@ -133,7 +133,7 @@ docker run --rm \
 
 ### Useful CLI options
 
-Run `python -m body_organ_analysis --help` for the full list. The most common:
+Run `body_organ_analysis --help` for the full list. The most common:
 
 | Option | Purpose |
 | --- | --- |

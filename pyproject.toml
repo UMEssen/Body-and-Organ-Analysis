@@ -4,7 +4,6 @@ requires = [ "hatchling>=1.29" ]
 
 [project]
 name = "body-organ-analysis"
-version = "1.0.0"
 description = """\
   BOA is a tool for segmentation of CT scans developed by the SHIP-AI group at the Institute for Artificial \
   Intelligence in Medicine (https://ship-ai.ikim.nrw/). Combining the TotalSegmentator and the Body Composition \
@@ -23,6 +22,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
 ]
+dynamic = [ "version" ]
 dependencies = [
   "acvl-utils>=0.2.5",
   # "totalsegmentator==2.12.0",
@@ -69,7 +69,7 @@ optional-dependencies.triton = [
   "tritonclient[grpc]>=2.5,<3",
 ]
 urls.Repository = "https://github.com/UMEssen/Body-and-Organ-Analyzer"
-scripts.body_organ_analyzer = "body_organ_analyzer.cli:run"
+scripts.body_organ_analysis = "body_organ_analysis.cli:run"
 
 [dependency-groups]
 dev = [
@@ -80,6 +80,7 @@ dev = [
 ]
 
 [tool.hatch]
+version.path = "body_organ_analysis/_version.py"
 build.targets.wheel.packages = [ "body_organ_analysis" ]
 
 [tool.ruff]
@@ -149,7 +150,3 @@ ini_options.log_cli_level = "INFO"
 core.dialect = "postgres"
 rules.capitalisation.keywords.capitalisation_policy = "upper"
 rules.capitalisation.types.extended_capitalisation_policy = "upper"
-
-[virtualenvs]
-create = true
-in-project = true

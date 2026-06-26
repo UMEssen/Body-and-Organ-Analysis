@@ -63,7 +63,7 @@ jobs:
             -e DOCKER_USER=$(id -u):$(id -g) \
             --shm-size=8g --ulimit memlock=-1 --ulimit stack=67108864 \
             "${{ matrix.image.name }}:test" \
-            python -m body_organ_analysis -m bca+heartchambers_highres -v --cnr-adjustment --theme light -l "${{ secrets.LICENSE_NUMBER }}"
+            body_organ_analysis -m bca+heartchambers_highres -v --cnr-adjustment --theme light -l "${{ secrets.LICENSE_NUMBER }}"
 
       - name: Run CPU inference with .env
         run: |

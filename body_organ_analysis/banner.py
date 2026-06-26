@@ -2,7 +2,7 @@ import os
 import sys
 from typing import TextIO
 
-from body_organ_analysis._version import __version__
+from body_organ_analysis import __version__
 
 
 def _supports_color(stream: TextIO) -> bool:
