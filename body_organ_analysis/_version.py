@@ -1,4 +1,4 @@
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 try:
     from body_organ_analysis._githash import __githash__
