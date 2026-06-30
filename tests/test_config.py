@@ -10,15 +10,26 @@ from body_organ_analysis.compute.config import (
 )
 from body_organ_analysis.compute.constants import ALL_MODELS, LICENSE_MODELS
 
+ALL_RESOLVED = set(ALL_MODELS) - {"body_parts", "body_regions"}
+
 
 class TestResolveModels(unittest.TestCase):
     def test_none_returns_all(self) -> None:
-        self.assertEqual(resolve_models(None), set(ALL_MODELS))
+        self.assertEqual(resolve_models(None), ALL_RESOLVED)
 
     def test_all_keyword(self) -> None:
-        self.assertEqual(resolve_models("all"), set(ALL_MODELS))
-        self.assertEqual(resolve_models("ALL"), set(ALL_MODELS))
-        self.assertEqual(resolve_models(""), set(ALL_MODELS))
+        self.assertEqual(resolve_models("all"), ALL_RESOLVED)
+        self.assertEqual(resolve_models("ALL"), ALL_RESOLVED)
+        self.assertEqual(resolve_models(""), ALL_RESOLVED)
+
+    def test_all_excludes_bca_submodels(self) -> None:
+        # bca is in "all"; its run_pipeline computes body_parts/body_regions
+        # internally, so they must be dropped to avoid running them twice.
+        resolved = resolve_models("all")
+        self.assertIn("bca", resolved)
+        self.assertIn("total", resolved)
+        self.assertNotIn("body_parts", resolved)
+        self.assertNotIn("body_regions", resolved)
 
     def test_plus_split(self) -> None:
         self.assertEqual(resolve_models("total+body_parts"), {"total", "body_parts"})
@@ -39,21 +50,19 @@ class TestResolveModels(unittest.TestCase):
 
     def test_all_excludes_heartchambers_without_license(self) -> None:
         # Without a license, heartchambers_highres is not part of "all".
-        self.assertEqual(resolve_models("all"), set(ALL_MODELS))
+        self.assertEqual(resolve_models("all"), ALL_RESOLVED)
         self.assertNotIn("heartchambers_highres", resolve_models("all"))
 
     def test_all_with_valid_license_adds_heartchambers(self) -> None:
         with mock.patch("totalsegmentator.config.is_valid_license", return_value=True):
             self.assertEqual(
                 resolve_models("all", license_number="123456789012345678"),
-                set(ALL_MODELS) | LICENSE_MODELS,
+                ALL_RESOLVED | LICENSE_MODELS,
             )
 
     def test_all_with_invalid_license_keeps_default(self) -> None:
         with mock.patch("totalsegmentator.config.is_valid_license", return_value=False):
-            self.assertEqual(
-                resolve_models("all", license_number="bad"), set(ALL_MODELS)
-            )
+            self.assertEqual(resolve_models("all", license_number="bad"), ALL_RESOLVED)
 
     def test_explicit_spec_ignores_license(self) -> None:
         # A valid license only augments "all"; explicit specs are untouched.
@@ -75,6 +84,19 @@ class TestResolveModels(unittest.TestCase):
         self.assertEqual(
             resolve_models("total+heartchambers_highres", strict=True),
             {"total", "heartchambers_highres"},
+        )
+
+    def test_bca_with_submodels(self) -> None:
+        self.assertEqual(
+            resolve_models("bca+body_regions+body_parts"),
+            {"bca", "total"},
+        )
+
+    def test_submodels_kept_without_bca(self) -> None:
+        # Without bca the submodels are run directly, so the dedup must not strip them.
+        self.assertEqual(
+            resolve_models("body_regions+body_parts"),
+            {"body_regions", "body_parts"},
         )
 
 

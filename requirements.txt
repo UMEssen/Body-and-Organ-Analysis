@@ -4,7 +4,7 @@ acvl-utils==0.2.5
     # via body-organ-analysis
 aiohappyeyeballs==2.6.2
     # via aiohttp
-aiohttp==3.14.0
+aiohttp==3.14.1
     # via fury
 aiosignal==1.4.0
     # via aiohttp
@@ -266,7 +266,7 @@ pandas==2.3.3
     #   seaborn
 pathos==0.3.5
     # via p-tqdm
-pillow==12.1.1
+pillow==12.2.0
     # via
     #   batchgenerators
     #   fury
@@ -328,7 +328,7 @@ pyyaml==6.0.3
     #   huggingface-hub
     #   pre-commit
     #   timm
-requests==2.32.5
+requests==2.34.2
     # via
     #   blosc2
     #   body-organ-analysis
@@ -393,12 +393,15 @@ torch==2.5.1
     #   acvl-utils
     #   batchgeneratorsv2
     #   boa-contrast
+    #   body-organ-analysis
     #   dynamic-network-architectures
     #   fft-conv-pytorch
     #   timm
     #   torchvision
 torchvision==0.20.1
-    # via timm
+    # via
+    #   body-organ-analysis
+    #   timm
 tqdm==4.67.3
     # via
     #   body-organ-analysis
@@ -427,7 +430,7 @@ unidecode==1.4.0
     # via body-organ-analysis
 unittest2==1.1.0
     # via batchgenerators
-urllib3==2.6.3
+urllib3==2.7.0
     # via requests
 virtualenv==21.2.0
     # via pre-commit

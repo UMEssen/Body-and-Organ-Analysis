@@ -95,7 +95,7 @@ def render_banner(color: bool, margin_left: int = 3) -> str:
         f"{spaces_left}{a}{spaces_left}{b}{spaces_left}{c}"
         for a, b, c in zip(boa_art, ship_art, ikim_art, strict=True)
     )
-    subtitle = f"{spaces_left}BOA-MR  |  v{__version__}"
+    subtitle = f"{spaces_left}Body and Organ Analysis  |  v{__version__}"
     cite = f"{spaces_left}If you use this tool please cite: {doi_url}"
     if not color:
         return "\n".join(["", *ascii_art, "", subtitle, cite, ""])

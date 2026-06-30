@@ -36,23 +36,23 @@ def resolve_models(
 
             if is_valid_license(license_number):
                 models |= LICENSE_MODELS
-        return models
-    models = {s.replace("-", "_") for s in spec.split("+")}
-    invalid = models - AVAILABLE_MODELS
-    if invalid:
-        if strict:
-            raise ValueError(
-                f"Unknown model(s): {', '.join(sorted(invalid))}. "
-                f"Available: {', '.join(sorted(AVAILABLE_MODELS))}"
+    else:
+        models = {s.replace("-", "_") for s in spec.split("+")}
+        invalid = models - AVAILABLE_MODELS
+        if invalid:
+            if strict:
+                raise ValueError(
+                    f"Unknown model(s): {', '.join(sorted(invalid))}. "
+                    f"Available: {', '.join(sorted(AVAILABLE_MODELS))}"
+                )
+            logger.error(
+                "Ignoring invalid model entries: %s. Available models are: %s.",
+                invalid,
+                sorted(AVAILABLE_MODELS),
             )
-        logger.error(
-            "Ignoring invalid model entries: %s. Available models are: %s.",
-            invalid,
-            sorted(AVAILABLE_MODELS),
-        )
-        models -= invalid
+            models -= invalid
     if "bca" in models:
-        models.add("total")
+        models = (models | {"total"}) - {"body_regions", "body_parts"}
     return models
 
 

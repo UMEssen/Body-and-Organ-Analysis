@@ -11,6 +11,7 @@ from body_composition_analysis.infer.infer import inference
 from body_composition_analysis.io import load_nibabel_image_with_axcodes
 from totalsegmentator.python_api import totalsegmentator
 
+from body_organ_analysis.compute.constants import BASE_MODELS
 from body_organ_analysis.compute.measurements import compute_measurements
 from body_organ_analysis.compute.util import convert_resampling_slices
 
@@ -64,9 +65,7 @@ def compute_all_models(
         del totalsegmentator_params["preview"]
 
     shape, spacing = print_and_collect_image_info(ct_path)
-    measurement_models = [
-        m for m in models_to_compute if m not in {"bca", "body_parts"}
-    ]
+    measurement_models = [m for m in models_to_compute if m not in BASE_MODELS]
     stats = {
         "num_voxels": shape[0] * shape[1] * shape[2],
         "num_slices": shape[2],
@@ -91,7 +90,6 @@ def compute_all_models(
             **totalsegmentator_params,
         )
 
-    # TODO move to the place where the file is read
     measurement_file = segmentation_folder / "total-measurements.json"
     if measurement_models and (recompute or not measurement_file.is_file()):
         json_data = compute_measurements(
@@ -106,7 +104,8 @@ def compute_all_models(
     else:
         logger.info("The total measurements were already computed, skipping...")
 
-    if "bca" in models_to_compute:
+    boa_models_to_compute = BASE_MODELS & set(models_to_compute)
+    for boa_task in boa_models_to_compute:
         resampling_bca = convert_resampling_slices(
             slices=shape[-1],
             current_sampling=spacing[-1],
@@ -121,38 +120,25 @@ def compute_all_models(
                 resampling_bca,
                 force_split_threshold,
             )
-        run_pipeline(
-            input_image=ct_path,
-            output_dir=segmentation_folder,
-            fast_bca=fast_bca,
-            force_split=resampling_bca > force_split_threshold,
-            crop_body=False,
-            recompute=recompute,
-            totalsegmentator_params=totalsegmentator_params,
-            **bca_params,
-        )
-    elif "body_parts" in models_to_compute:
-        resampling_bca = convert_resampling_slices(
-            slices=shape[-1],
-            current_sampling=spacing[-1],
-            target_resampling=5.0,
-        )
-        if resampling_bca > force_split_threshold:
-            logger.info(
-                (
-                    "Splitting the image into parts as the "
-                    "number of slices %s is more than %s"
-                ),
-                resampling_bca,
-                force_split_threshold,
+        if boa_task == "bca":
+            run_pipeline(
+                input_image=ct_path,
+                output_dir=segmentation_folder,
+                fast_bca=fast_bca,
+                force_split=resampling_bca > force_split_threshold,
+                crop_body=False,
+                recompute=recompute,
+                totalsegmentator_params=totalsegmentator_params,
+                **bca_params,
             )
-        inference(
-            ct_path=ct_path,
-            output_dir=segmentation_folder,
-            task_name="body_parts",
-            fast_bca=fast_bca,
-            recompute=recompute,
-            force_split=resampling_bca > force_split_threshold,
-            totalsegmentator_params=totalsegmentator_params,
-        )
+        else:
+            inference(
+                ct_path=ct_path,
+                output_dir=segmentation_folder,
+                task_name=boa_task,
+                fast_bca=fast_bca,
+                recompute=recompute,
+                force_split=resampling_bca > force_split_threshold,
+                totalsegmentator_params=totalsegmentator_params,
+            )
     return stats
