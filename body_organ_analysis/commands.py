@@ -1,7 +1,8 @@
 import logging
 import platform
 import sys
-from collections.abc import Iterable, Iterator
+import traceback
+from collections.abc import Callable, Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from time import time
@@ -38,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 @contextmanager
-def _debug_log_handler(path: Path, header: str = "") -> Iterator[None]:
+def _debug_log_handler(path: Path, header: str = "") -> Iterator[Callable[[str], None]]:
     # The header is written straight to the file (bypassing logging) so it
     # appears only in debug_information.txt, never on the console.
     path.write_text(header)
@@ -48,8 +49,19 @@ def _debug_log_handler(path: Path, header: str = "") -> Iterator[None]:
     )
     root = logging.getLogger()
     root.addHandler(handler)
+
+    def write_debug(text: str) -> None:
+        # Append raw text to the handler's file, bypassing the logging system,
+        # so it lands only in debug_information.txt and never on the console.
+        handler.acquire()
+        try:
+            handler.stream.write(text if text.endswith("\n") else text + "\n")  # type: ignore
+            handler.flush()
+        finally:
+            handler.release()
+
     try:
-        yield
+        yield write_debug
     except Exception:
         logger.exception("BOA run failed")
         raise
@@ -98,7 +110,7 @@ def analyze_ct(
 
     with _debug_log_handler(
         processed_output_folder / "debug_information.txt", header=header
-    ):
+    ) as write_debug:
         if cnr_adjustment and "heartchambers_highres" not in models:
             logger.warning(
                 "--cnr-adjustment is enabled but 'heartchambers_highres' is not "
@@ -223,13 +235,12 @@ def analyze_ct(
                     "phase_ensemble_prediction"
                 ]
                 stats["git_contrast"] = contrast_information["git_ensemble_prediction"]
-            except AssertionError:
+            except Exception:
                 logger.warning("Contrast phase prediction failed")
+                write_debug(traceback.format_exc())
 
         info_df = pd.DataFrame(ct_info).set_index("name")
-
         excel_path = excel_output_folder / "output.xlsx"
-
         start = time()
         with pd.ExcelWriter(excel_path, engine="xlsxwriter") as writer:
             info_df.to_excel(writer, sheet_name="info", header=False)
