@@ -221,6 +221,7 @@ supplied — otherwise request it explicitly by name (e.g.
 | --- | --- | --- |
 | `total` | `total.nii.gz` | Full-body TotalSegmentator (100+ structures). |
 | `body_parts` | `body_parts.nii.gz` | Body and extremities. |
+| `body_regions` | `body_regions.nii.gz` | Body regions (abdomen / thorax / brain). Also produced internally by `bca`. |
 | `bca` | `tissues.nii.gz`, `body_regions.nii.gz`, `report.pdf` | Body Composition Analysis. Implicitly adds `total`; always runs `body_parts` + `body_regions` internally. |
 | `lung_vessels` | `lung_vessels_airways.nii.gz` | Lung vessels and airways. |
 | `cerebral_bleed` | `cerebral_bleed.nii.gz` | Intracerebral hemorrhage. |

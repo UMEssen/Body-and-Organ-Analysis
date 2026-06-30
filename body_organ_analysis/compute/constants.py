@@ -13,11 +13,12 @@ SERIES_DESCRIPTIONS = {
     "ct_pfav": "Pulmonary Fat Segmentation",
 }
 
-BASE_MODELS = ["bca", "total"]
+BASE_MODELS = {"bca", "body_regions", "body_parts"}
 
 ALL_MODELS = {
     "bca",
     "body_parts",
+    "body_regions",
     "cerebral_bleed",
     "hip_implant",
     "liver_vessels",
