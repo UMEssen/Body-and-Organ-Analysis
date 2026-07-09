@@ -42,7 +42,10 @@ def major_minor_axis(
     middle_slice = body_mask[int(np.median(slices)), :, :]
     if np.sum(middle_slice) == 0:
         return None, None
-    major_p1, major_p2, minor_p1, minor_p2 = find_axes(middle_slice)
+    axes = find_axes(middle_slice)
+    if axes is None:
+        return None, None
+    major_p1, major_p2, minor_p1, minor_p2 = axes
     if plot_axes is not None:
         _, ax = plt.subplots(1, 1)
         ax.imshow(middle_slice, cmap="gray")

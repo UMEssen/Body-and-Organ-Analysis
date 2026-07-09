@@ -23,7 +23,7 @@ def find_minor_point(
     rotated_point: Point,
     length: int,
     target_size: tuple[int, ...],
-) -> Point:
+) -> Point | None:
     # Rotate the vector 90 degrees by swapping x and y, and inverting one of them
     point = Point(
         int(mid_point.x + rotated_point.x * length),
@@ -42,11 +42,16 @@ def find_minor_point(
         2,
     )
     p_options = np.logical_and(contour_array, p_array).nonzero()
+    # The perpendicular ray may not intersect the contour
+    if len(p_options[0]) == 0:
+        return None
     # Swap points for opencv weirdness
     return Point(p_options[1][0], p_options[0][0])
 
 
-def find_axes(middle_slice: np.ndarray) -> tuple[Point, Point, Point, Point]:
+def find_axes(
+    middle_slice: np.ndarray,
+) -> tuple[Point, Point, Point, Point] | None:
     # Get all points where the shape is
     points = np.flip(np.transpose(np.where(middle_slice)))
     hull_points = points[spatial.ConvexHull(points).vertices]
@@ -82,4 +87,6 @@ def find_axes(middle_slice: np.ndarray) -> tuple[Point, Point, Point, Point]:
         length=length,
         target_size=middle_slice.shape,
     )
+    if minor_p1 is None or minor_p2 is None:
+        return None
     return major_p1, major_p2, minor_p1, minor_p2
