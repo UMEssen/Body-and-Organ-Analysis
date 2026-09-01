@@ -13,6 +13,7 @@ from body_organ_analysis.commands import analyze_ct
 from body_organ_analysis.compute.config import (
     env_bool,
     env_str,
+    require_license,
     resolve_device,
     resolve_models,
 )
@@ -241,6 +242,7 @@ def run(argv: list[str] | None = None) -> None:
     # Resolve here (not at argparse time): a valid license adds the opt-in
     # heartchambers_highres model when 'all' is requested.
     models_to_compute = resolve_models(args.models, license_number=license_number)
+    require_license(models_to_compute)
 
     # TODO: remove in 1.1.0
     if "PREDICT_FAST" in os.environ:

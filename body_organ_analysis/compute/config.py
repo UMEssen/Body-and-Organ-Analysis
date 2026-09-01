@@ -56,6 +56,32 @@ def resolve_models(
     return models
 
 
+def require_license(models: set[str]) -> None:
+    """Abort before inference if a license-only model was requested without one.
+
+    TotalSegmentator only checks once it reaches the task, and it does so with
+    ``sys.exit(1)``: the run died after every earlier model had already been
+    computed, and because ``SystemExit`` is not an ``Exception`` it left nothing
+    behind but a truncated log.
+    """
+    licensed = models & LICENSE_MODELS
+    if not licensed:
+        return
+    from totalsegmentator.config import has_valid_license_offline  # noqa: PLC0415
+
+    status, message = has_valid_license_offline()
+    if status == "yes":
+        return
+    logger.error(
+        "%s The model(s) %s require a TotalSegmentator license: pass "
+        "--license-number, set the LICENSE_NUMBER environment variable, or drop "
+        "them from the requested models.",
+        message,
+        ", ".join(sorted(licensed)),
+    )
+    raise SystemExit(1)
+
+
 def resolve_device(device: str | None = None) -> str:
     device_str = device or os.environ.get("DEVICE", "gpu")
     device_str, _, gpu_id = device_str.partition(":")
