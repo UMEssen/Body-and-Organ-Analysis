@@ -1,23 +1,18 @@
 exclude: "^body_organ_analysis/_external/(nnunetv2|totalsegmentator)/"
 
-# Pin the Node version for `language: node` hooks (e.g. markdownlint-cli2).
-# Without this, pre-commit uses the runner's "system" Node. On the self-hosted
-# runners that resolves to a stale Node that gets paired with a newer npm,
-# producing "Cannot find module 'node:path'". Pinning makes nodeenv fetch a
-# self-consistent node+npm pair instead.
 default_language_version:
-  node: "20.20.2"
+  node: "24.21.0"
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.12
+    rev: v0.16.8
     hooks:
       - id: ruff-check
         args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.20.2
+    rev: v2.3.1
     hooks:
       - id: mypy
         language_version: python3.12
@@ -32,13 +27,13 @@ repos:
         types_or: [html, css, json, javascript, xml, yaml, jinja]
 
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.23.0
+    rev: v2.29.4
     hooks:
       - id: pyproject-fmt
         types: [toml]
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.1.0
+    rev: 4.3.0
     hooks:
       - id: sqlfluff-fix
         name: sqlfluff-fix
@@ -51,13 +46,13 @@ repos:
         additional_dependencies: []
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.22.1
+    rev: v0.23.2
     hooks:
       - id: markdownlint-cli2
         args: [--fix]
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.2
+    rev: v2.4.3
     hooks:
       - id: codespell
         # types: [markdown]
