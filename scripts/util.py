@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import traceback
+import unicodedata
 from pathlib import Path
 from time import time
 from typing import Any
@@ -12,9 +13,51 @@ import imports
 import psycopg2
 import requests
 from psycopg2 import sql
-from unidecode import unidecode
+
+ADDITIONAL_MODELS_OUTPUT_NAME, _ = imports.optional_import(
+    module="body_organ_analysis.compute.util", name="ADDITIONAL_MODELS_OUTPUT_NAME"
+)
+# Forward and backward
+# codespell:ignore-begin
+_UMLAUT_MAPPING = {
+    "Ä": "Ae",
+    "Ö": "Oe",
+    "Ü": "Ue",
+    "ä": "ae",
+    "ö": "oe",
+    "ü": "ue",
+    "ß": "ss",
+}
+# Forward only
+_TRANSLITERATION_MAPPING = {
+    **_UMLAUT_MAPPING,
+    "ẞ": "SS",
+    # Scandinavia
+    "Æ": "Ae",
+    "æ": "ae",
+    "Ø": "Oe",
+    "ø": "oe",
+    "Å": "Aa",
+    "å": "aa",
+    # Other European
+    "Œ": "Oe",
+    "œ": "oe",
+    "Ł": "L",
+    "ł": "l",
+    "Đ": "D",
+    "đ": "d",
+    "Ð": "D",
+    "ð": "d",
+    "Þ": "Th",
+    "þ": "th",
+    "\u0131": "i",  # Turkish dotless i
+}
+# codespell:ignore-end
+# Keeps folder/file names below path length limits
+_MAX_INFO_ELEMENT_LENGTH = 64
 
 logger = logging.getLogger(__name__)
+
 
 pydicom, _ = imports.optional_import(module="pydicom")
 analyze_ct, _ = imports.optional_import(module="body_organ_analysis", name="analyze_ct")
@@ -31,10 +74,6 @@ resolve_device, _ = imports.optional_import(
     module="body_organ_analysis.compute.config", name="resolve_device"
 )
 
-ADDITIONAL_MODELS_OUTPUT_NAME, _ = imports.optional_import(
-    module="body_organ_analysis.compute.util", name="ADDITIONAL_MODELS_OUTPUT_NAME"
-)
-
 store_dicoms, _ = imports.optional_import(
     module="body_organ_analysis", name="store_dicoms"
 )
@@ -43,38 +82,73 @@ store_excel, _ = imports.optional_import(
 )
 
 
-def _replace_umlauts(text: str) -> str:
-    vowel_char_map = {
-        # German
-        ord("ä"): "ae",
-        ord("ü"): "ue",  # codespell:ignore
-        ord("ö"): "oe",
-        ord("ß"): "ss",
-        ord("Ä"): "Ae",
-        ord("Ü"): "Ue",  # codespell:ignore
-        ord("Ö"): "Oe",
-        # Scandinavia
-        ord("æ"): "ae",
-        ord("ø"): "oe",
-        ord("å"): "ae",
-        ord("Æ"): "Ae",
-        ord("Ø"): "Oe",
-        ord("Å"): "Ae",
+def _normalize_string(text: str) -> str:
+    text = re.sub(r"\s+", "_", text)
+    text = re.sub(r"_+", "_", text)
+    return text.strip("_")
+
+
+# https://superuser.com/questions/358855/what-characters-are-safe-in-cross-platform-file-names-for-linux-windows-and-os
+def _allowed_file_names(s: str, ignore_chars: str = "") -> str:
+    allowed_characters = re.compile(rf"[^0-9a-zA-Z .,_\-{ignore_chars}]")
+    o = allowed_characters.sub("", s)
+    # Windows drops trailing spaces and dots in file names
+    return o.rstrip(" .")
+
+
+def _resolve_umlauts(
+    s: str, backwards: bool = False, umlaut_mapping: dict[str, str] | None = None
+) -> str:
+    if umlaut_mapping is None:
+        umlaut_mapping = _UMLAUT_MAPPING if backwards else _TRANSLITERATION_MAPPING
+    elif not umlaut_mapping:
+        return s
+    if not backwards:
+        # Mu\u0308ller would be resolved to Muller
+        s = unicodedata.normalize("NFC", s)
+    for k, v in umlaut_mapping.items():
+        s = s.replace(v, k) if backwards else s.replace(k, v)
+    return s
+
+
+def _remove_accents(s: str) -> str:
+    normalized = unicodedata.normalize("NFKD", s)
+    return "".join(c for c in normalized if not unicodedata.combining(c))
+
+
+def normalize_file_name(s: str, fallback: str = "unnamed") -> str:
+    umlaut_mapping = {
+        **_TRANSLITERATION_MAPPING,
+        "/": "_",
+        "\\": "_",
     }
-    return unidecode(text.translate(vowel_char_map))  # type: ignore
+    o = _resolve_umlauts(s, umlaut_mapping=umlaut_mapping)
+    o = _remove_accents(o)
+    o = _allowed_file_names(o, r"\s")
+    # normalize_string strips "_" and can expose a trailing dot again
+    o = _normalize_string(o).rstrip("._")
+    if not o:
+        return fallback
+    if o.startswith("."):
+        o = fallback + o
+    return o
 
 
 def _process_info_element(
     dicom_tags: dict[str, Any], infos_to_include: list[str]
 ) -> str:
-    layer_info = ""
+    parts = []
     for info in infos_to_include:
-        if info in dicom_tags:
-            layer_info += dicom_tags[info] + "_"
-        else:
-            layer_info += f"Unknown{info}_"
-    # Substitute all characters that might create problems with the filesystem
-    return re.sub(r"[^\w\.]", "_", _replace_umlauts(layer_info[:-1]))
+        value = dicom_tags.get(info)
+        if value is None:
+            value = ""
+        elif isinstance(value, list):
+            value = "_".join(map(str, value))
+        # DICOM uses "^" as component separator (e.g. PatientName "Doe^John")
+        part = normalize_file_name(str(value).replace("^", "_"), fallback="")
+        part = part[:_MAX_INFO_ELEMENT_LENGTH].strip("._")
+        parts.append(part or f"Unknown{info}")
+    return "_".join(parts)
 
 
 def get_naming_scheme(dicom_tags: dict[str, str], patient_info: bool = False) -> str:

@@ -50,7 +50,6 @@ dependencies = [
   "torch==2.5.1",
   "torchvision==0.20.1",
   "tqdm>=4.45,<5",
-  "unidecode>=1.3.6,<2",
   "weasyprint>=60,<70",
   "xlsxwriter>=3.1.2,<4",
   "xvfbwrapper>=0.2.9,<1",
@@ -114,10 +113,16 @@ lint.ignore = [
   "N813", # Camelcase imported as lowercase
   "PLR",  # pylint refactoring
 ]
+lint.per-file-ignores."tests/**" = [
+  "S101", # pytest uses plain asserts
+]
 lint.unfixable = [
   "F401", # Do not fix unused imports, it's annoying during development
 ]
 lint.pydocstyle.convention = "google"
+
+[tool.codespell]
+ignore-multiline-regex = "# codespell:ignore-begin *\\n.*?# codespell:ignore-end *\\n"
 
 [tool.mypy]
 # Restrict dynamic typing
@@ -141,12 +146,18 @@ extraPaths = [ "body_organ_analysis/_external" ]
 
 [tool.pytest]
 ini_options.testpaths = [ "tests" ]
+# Makes the scripts/ modules (util, celery_task, ...) importable from the tests
+ini_options.pythonpath = [ "scripts" ]
+# Inference is opt-in: `pytest -m inference` (add `-k gpu` / `-k cpu` to pick one)
+ini_options.addopts = [ "-m", "not inference" ]
 ini_options.markers = [
-  "integration: heavy end-to-end test needing a GPU, model weights and a TCIA download",
+  "inference: runs BOA on a TCIA download (needs model weights, GPU tests need CUDA)",
 ]
 ini_options.log_level = "INFO"
 ini_options.log_cli = true
 ini_options.log_cli_level = "INFO"
+# Keep the downloaded series and inference outputs only when a test fails
+ini_options.tmp_path_retention_policy = "failed"
 
 [tool.sqlfluff]
 core.dialect = "postgres"
