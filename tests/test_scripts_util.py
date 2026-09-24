@@ -182,6 +182,12 @@ def test_normalize_file_name_fallback() -> None:
             ["SeriesDescription"],
             "A" * util._MAX_INFO_ELEMENT_LENGTH,
         ),
+        # Truncation must not expose a trailing dot
+        (
+            {"SeriesDescription": "A" * (util._MAX_INFO_ELEMENT_LENGTH - 1) + ".B"},
+            ["SeriesDescription"],
+            "A" * (util._MAX_INFO_ELEMENT_LENGTH - 1),
+        ),
     ],
 )
 def test_process_info_element(
@@ -199,6 +205,15 @@ def test_process_info_element(
 )
 def test_get_naming_scheme(patient_info: bool, expected: str) -> None:
     assert util.get_naming_scheme(TAGS, patient_info=patient_info) == expected
+
+
+# Issue #56: NTFS folders ending with a dot cannot be opened or deleted in Explorer
+@pytest.mark.parametrize(
+    "description", ["Thorax.", "Thorax...", "Thorax. .", "Thorax .\t"]
+)
+def test_get_naming_scheme_without_trailing_dots(description: str) -> None:
+    tags = {**TAGS, "StudyDescription": description, "SeriesDescription": description}
+    assert util.get_naming_scheme(tags) == "/BOA/20240101_ACC1_Thorax/3_Thorax/"
 
 
 @pytest.mark.parametrize(
