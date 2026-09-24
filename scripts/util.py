@@ -67,8 +67,11 @@ def _process_info_element(
             layer_info += dicom_tags[info] + "_"
         else:
             layer_info += f"Unknown{info}_"
-    # Substitute all characters that might create problems with the filesystem
-    return re.sub(r"[^\w\.]", "_", _replace_umlauts(layer_info[:-1]))
+    # Substitute all characters that might create problems with the filesystem.
+    # Trailing dots are stripped as well: folder names ending with a dot are
+    # invalid on Windows/NTFS (they can neither be opened nor deleted via
+    # Explorer). Leading and inner dots are kept as they are harmless.
+    return re.sub(r"[^\w\.]", "_", _replace_umlauts(layer_info[:-1])).rstrip(".")
 
 
 def get_naming_scheme(dicom_tags: dict[str, str], patient_info: bool = False) -> str:
