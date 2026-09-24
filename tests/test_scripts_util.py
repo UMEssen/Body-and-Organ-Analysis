@@ -39,6 +39,14 @@ class TestProcessInfoElement(unittest.TestCase):
         )
         self.assertEqual(result, "20240101_ACC_1_UnknownStudyDescription")
 
+    def test_strips_trailing_dots(self) -> None:
+        # Folder names ending with a dot are invalid on Windows/NTFS.
+        tags = {"SeriesNumber": "1", "SeriesDescription": "Abdomen."}
+        result = util._process_info_element(
+            tags, ["SeriesNumber", "SeriesDescription"]
+        )
+        self.assertEqual(result, "1_Abdomen")
+
 
 class TestNamingScheme(unittest.TestCase):
     def test_without_patient_info(self) -> None:
