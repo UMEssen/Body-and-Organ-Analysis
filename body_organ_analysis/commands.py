@@ -62,7 +62,11 @@ def _debug_log_handler(path: Path, header: str = "") -> Iterator[Callable[[str],
 
     try:
         yield write_debug
-    except Exception:
+    except SystemExit as exc:
+        if exc.code not in (None, 0):
+            logger.exception("BOA run exited early with code %s", exc.code)
+        raise
+    except BaseException:
         logger.exception("BOA run failed")
         raise
     finally:

@@ -21,6 +21,12 @@ analyze_ct, _ = imports.optional_import(module="body_organ_analysis", name="anal
 resolve_models, _ = imports.optional_import(
     module="body_organ_analysis.compute.config", name="resolve_models"
 )
+require_license, _ = imports.optional_import(
+    module="body_organ_analysis.compute.config", name="require_license"
+)
+env_str, _ = imports.optional_import(
+    module="body_organ_analysis.compute.config", name="env_str"
+)
 resolve_device, _ = imports.optional_import(
     module="body_organ_analysis.compute.config", name="resolve_device"
 )
@@ -207,15 +213,19 @@ def build_excel(
 ) -> tuple[Path, dict[str, Any]]:
     # Setup before calling
     start = time()
+    license_number = env_str("LICENSE_NUMBER")
+    models = resolve_models(
+        os.environ.get("PACS_MODEL"),
+        license_number=license_number,
+    )
+    require_license(models)
     excel_path, stats = analyze_ct(
         input_folder=input_data_folder,
         processed_output_folder=output_folder,
         excel_output_folder=output_folder,
-        models=resolve_models(
-            os.environ.get("PACS_MODEL"),
-            license_number=os.environ.get("LICENSE_NUMBER"),
-        ),
+        models=models,
         device=resolve_device(),
+        license_number=license_number,
         fast_bca=fast_bca,
         fast_total=fast_total,
     )
