@@ -4,13 +4,13 @@ acvl-utils==0.2.5
     # via body-organ-analysis
 aiohappyeyeballs==2.6.2
     # via aiohttp
-aiohttp==3.14.1
+aiohttp==3.14.3
     # via fury
 aiosignal==1.4.0
     # via aiohttp
 annotated-doc==0.0.4
     # via typer
-anyio==4.12.1
+anyio==4.14.2
     # via httpx
 argparse==1.4.0
     # via unittest2
@@ -117,7 +117,7 @@ huggingface-hub==1.6.0
     # via timm
 identify==2.6.17
     # via pre-commit
-idna==3.11
+idna==3.15
     # via
     #   anyio
     #   httpx
@@ -160,7 +160,7 @@ mdurl==0.1.2
     # via markdown-it-py
 mpmath==1.3.0
     # via sympy
-msgpack==1.1.2
+msgpack==1.2.1
     # via blosc2
 multidict==6.7.1
     # via
@@ -266,7 +266,7 @@ pandas==2.3.3
     #   seaborn
 pathos==0.3.5
     # via p-tqdm
-pillow==12.2.0
+pillow==12.3.0
     # via
     #   batchgenerators
     #   fury
@@ -296,13 +296,13 @@ propcache==0.5.2
     #   yarl
 pycparser==3.0 ; implementation_name != 'PyPy'
     # via cffi
-pydicom==3.0.1
+pydicom==3.0.2
     # via body-organ-analysis
 pydyf==0.12.1
     # via weasyprint
 pygltflib==1.16.5
     # via fury
-pygments==2.19.2
+pygments==2.20.0
     # via
     #   pytest
     #   rich
@@ -355,7 +355,7 @@ scipy==1.17.1
     #   scikit-learn
 seaborn==0.13.2
     # via body-organ-analysis
-setuptools==82.0.1 ; python_full_version >= '3.12'
+setuptools==83.0.0 ; python_full_version >= '3.12'
     # via torch
 shellingham==1.5.4
     # via typer
@@ -436,7 +436,7 @@ virtualenv==21.2.0
     # via pre-commit
 vtk==9.3.1
     # via fury
-weasyprint==68.1
+weasyprint==70.0
     # via body-organ-analysis
 webencodings==0.5.1
     # via
