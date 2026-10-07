@@ -142,8 +142,6 @@ class Builder:
     def _build_document(
         self, template_name: str, **kwargs: Any
     ) -> "weasyprint.Document":
-        # Imported lazily: weasyprint needs the native Pango/GObject libraries,
-        # which are only required when a PDF is actually rendered.
         import weasyprint  # noqa: PLC0415
 
         template = self._env.get_template(template_name)
