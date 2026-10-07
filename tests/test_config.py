@@ -1,6 +1,7 @@
 import os
-import unittest
 from unittest import mock
+
+import pytest
 
 from body_organ_analysis.compute.config import (
     env_bool,
@@ -10,139 +11,116 @@ from body_organ_analysis.compute.config import (
 )
 from body_organ_analysis.compute.constants import ALL_MODELS, LICENSE_MODELS
 
+# bca computes body_parts/body_regions internally, so "all" drops them to avoid
+# running them twice. Without a license, heartchambers_highres is not included.
 ALL_RESOLVED = set(ALL_MODELS) - {"body_parts", "body_regions"}
+LICENSE = "123456789012345678"
 
 
-class TestResolveModels(unittest.TestCase):
-    def test_none_returns_all(self) -> None:
-        self.assertEqual(resolve_models(None), ALL_RESOLVED)
-
-    def test_all_keyword(self) -> None:
-        self.assertEqual(resolve_models("all"), ALL_RESOLVED)
-        self.assertEqual(resolve_models("ALL"), ALL_RESOLVED)
-        self.assertEqual(resolve_models(""), ALL_RESOLVED)
-
-    def test_all_excludes_bca_submodels(self) -> None:
-        # bca is in "all"; its run_pipeline computes body_parts/body_regions
-        # internally, so they must be dropped to avoid running them twice.
-        resolved = resolve_models("all")
-        self.assertIn("bca", resolved)
-        self.assertIn("total", resolved)
-        self.assertNotIn("body_parts", resolved)
-        self.assertNotIn("body_regions", resolved)
-
-    def test_plus_split(self) -> None:
-        self.assertEqual(resolve_models("total+body_parts"), {"total", "body_parts"})
-
-    def test_bca_implicitly_adds_total(self) -> None:
-        self.assertEqual(resolve_models("bca"), {"bca", "total"})
-
-    def test_hyphen_is_normalized_to_underscore(self) -> None:
-        self.assertEqual(resolve_models("body-parts"), {"body_parts"})
-
-    def test_invalid_dropped_when_not_strict(self) -> None:
-        # The legacy "body" name is not in ALL_MODELS and is silently dropped.
-        self.assertEqual(resolve_models("body+total"), {"total"})
-
-    def test_invalid_raises_when_strict(self) -> None:
-        with self.assertRaises(ValueError):
-            resolve_models("body+total", strict=True)
-
-    def test_all_excludes_heartchambers_without_license(self) -> None:
-        # Without a license, heartchambers_highres is not part of "all".
-        self.assertEqual(resolve_models("all"), ALL_RESOLVED)
-        self.assertNotIn("heartchambers_highres", resolve_models("all"))
-
-    def test_all_with_valid_license_adds_heartchambers(self) -> None:
-        with mock.patch("totalsegmentator.config.is_valid_license", return_value=True):
-            self.assertEqual(
-                resolve_models("all", license_number="123456789012345678"),
-                ALL_RESOLVED | LICENSE_MODELS,
-            )
-
-    def test_all_with_invalid_license_keeps_default(self) -> None:
-        with mock.patch("totalsegmentator.config.is_valid_license", return_value=False):
-            self.assertEqual(resolve_models("all", license_number="bad"), ALL_RESOLVED)
-
-    def test_explicit_spec_ignores_license(self) -> None:
-        # A valid license only augments "all"; explicit specs are untouched.
-        with mock.patch(
-            "totalsegmentator.config.is_valid_license", return_value=True
-        ) as is_valid:
-            self.assertEqual(
-                resolve_models("total", license_number="123456789012345678"),
-                {"total"},
-            )
-            is_valid.assert_not_called()
-
-    def test_heartchambers_is_selectable(self) -> None:
-        # It is valid when requested explicitly, in both lenient and strict mode.
-        self.assertEqual(
-            resolve_models("total+heartchambers_highres"),
-            {"total", "heartchambers_highres"},
-        )
-        self.assertEqual(
-            resolve_models("total+heartchambers_highres", strict=True),
-            {"total", "heartchambers_highres"},
-        )
-
-    def test_bca_with_submodels(self) -> None:
-        self.assertEqual(
-            resolve_models("bca+body_regions+body_parts"),
-            {"bca", "total"},
-        )
-
-    def test_submodels_kept_without_bca(self) -> None:
-        # Without bca the submodels are run directly, so the dedup must not strip them.
-        self.assertEqual(
-            resolve_models("body_regions+body_parts"),
-            {"body_regions", "body_parts"},
-        )
+@pytest.mark.parametrize(
+    ("spec", "expected"),
+    [
+        (None, ALL_RESOLVED),
+        ("all", ALL_RESOLVED),
+        ("ALL", ALL_RESOLVED),
+        ("", ALL_RESOLVED),
+        ("total+body_parts", {"total", "body_parts"}),
+        ("bca", {"bca", "total"}),
+        ("bca+body_regions+body_parts", {"bca", "total"}),
+        # Without bca the submodels are run directly and must be kept
+        ("body_regions+body_parts", {"body_regions", "body_parts"}),
+        ("body-parts", {"body_parts"}),
+        # The legacy "body" name is not in ALL_MODELS and is silently dropped
+        ("body+total", {"total"}),
+        ("total+heartchambers_highres", {"total", "heartchambers_highres"}),
+    ],
+)
+def test_resolve_models(spec: str | None, expected: set[str]) -> None:
+    assert resolve_models(spec) == expected
 
 
-class TestResolveDevice(unittest.TestCase):
-    def test_default_is_gpu(self) -> None:
-        with mock.patch.dict(os.environ, {}, clear=True):
-            self.assertEqual(resolve_device(), "gpu")
-
-    def test_cuda_is_aliased_to_gpu(self) -> None:
-        with mock.patch.dict(os.environ, {}, clear=True):
-            self.assertEqual(resolve_device("cuda"), "gpu")
-
-    def test_cpu_passthrough(self) -> None:
-        with mock.patch.dict(os.environ, {}, clear=True):
-            self.assertEqual(resolve_device("cpu"), "cpu")
-
-    def test_explicit_gpu_id_sets_visible_devices(self) -> None:
-        with mock.patch.dict(os.environ, {}, clear=True):
-            self.assertEqual(resolve_device("gpu:2"), "gpu:2")
-            self.assertEqual(os.environ["NVIDIA_VISIBLE_DEVICES"], "2")
-
-    def test_nvidia_id_is_used_as_fallback(self) -> None:
-        with mock.patch.dict(os.environ, {"NVIDIA_ID": "3"}, clear=True):
-            self.assertEqual(resolve_device("gpu"), "gpu:3")
+def test_resolve_models_strict_accepts_heartchambers() -> None:
+    assert resolve_models("total+heartchambers_highres", strict=True) == {
+        "total",
+        "heartchambers_highres",
+    }
 
 
-class TestEnvParsing(unittest.TestCase):
-    def test_env_bool_true_values(self) -> None:
-        for raw in ("1", "true", "TRUE", " True "):
-            with mock.patch.dict(os.environ, {"BOA_X": raw}, clear=True):
-                self.assertTrue(env_bool("BOA_X"))
-
-    def test_env_bool_false_and_default(self) -> None:
-        with mock.patch.dict(os.environ, {"BOA_X": "0"}, clear=True):
-            self.assertFalse(env_bool("BOA_X"))
-        with mock.patch.dict(os.environ, {}, clear=True):
-            self.assertTrue(env_bool("BOA_X", True))
-
-    def test_env_str(self) -> None:
-        with mock.patch.dict(os.environ, {"BOA_Y": "  hi "}, clear=True):
-            self.assertEqual(env_str("BOA_Y"), "hi")
-        with mock.patch.dict(os.environ, {"BOA_Y": "TODO"}, clear=True):
-            self.assertEqual(env_str("BOA_Y", "fallback"), "fallback")
-        with mock.patch.dict(os.environ, {}, clear=True):
-            self.assertIsNone(env_str("BOA_Y"))
+def test_resolve_models_strict_rejects_invalid() -> None:
+    with pytest.raises(ValueError):
+        resolve_models("body+total", strict=True)
 
 
-if __name__ == "__main__":
-    unittest.main()
+@pytest.mark.parametrize(
+    ("spec", "valid", "expected"),
+    [
+        ("all", True, ALL_RESOLVED | LICENSE_MODELS),
+        ("all", False, ALL_RESOLVED),
+        # A valid license only augments "all"; explicit specs are untouched
+        ("total", True, {"total"}),
+    ],
+)
+def test_resolve_models_with_license(
+    spec: str, valid: bool, expected: set[str]
+) -> None:
+    with mock.patch("totalsegmentator.config.is_valid_license", return_value=valid):
+        assert resolve_models(spec, license_number=LICENSE) == expected
+
+
+def test_explicit_spec_skips_license_check() -> None:
+    with mock.patch("totalsegmentator.config.is_valid_license") as is_valid:
+        resolve_models("total", license_number=LICENSE)
+    is_valid.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("env", "device", "expected"),
+    [
+        ({}, None, "gpu"),
+        ({}, "cuda", "gpu"),
+        ({}, "cpu", "cpu"),
+        ({}, "gpu:2", "gpu:2"),
+        ({"NVIDIA_ID": "3"}, "gpu", "gpu:3"),
+    ],
+    indirect=["env"],
+)
+@pytest.mark.usefixtures("env")
+def test_resolve_device(device: str | None, expected: str) -> None:
+    assert resolve_device(device) == expected
+
+
+@pytest.mark.usefixtures("env")
+def test_explicit_gpu_id_sets_visible_devices() -> None:
+    resolve_device("gpu:2")
+    assert os.environ["NVIDIA_VISIBLE_DEVICES"] == "2"
+
+
+@pytest.mark.parametrize(
+    ("env", "default", "expected"),
+    [
+        ({"BOA_X": "1"}, False, True),
+        ({"BOA_X": "true"}, False, True),
+        ({"BOA_X": "TRUE"}, False, True),
+        ({"BOA_X": " True "}, False, True),
+        ({"BOA_X": "0"}, True, False),
+        ({}, True, True),
+    ],
+    indirect=["env"],
+)
+@pytest.mark.usefixtures("env")
+def test_env_bool(default: bool, expected: bool) -> None:
+    assert env_bool("BOA_X", default) is expected
+
+
+@pytest.mark.parametrize(
+    ("env", "default", "expected"),
+    [
+        ({"BOA_Y": "  hi "}, None, "hi"),
+        ({"BOA_Y": "TODO"}, "fallback", "fallback"),
+        ({}, None, None),
+    ],
+    indirect=["env"],
+)
+@pytest.mark.usefixtures("env")
+def test_env_str(default: str | None, expected: str | None) -> None:
+    assert env_str("BOA_Y", default) == expected

@@ -31,9 +31,9 @@ jobs:
       TCIA_API: ${{ secrets.TCIA_API }}
       TCIA_UID: ${{ secrets.TCIA_UID }}
       LICENSE_NUMBER: ${{ secrets.LICENSE_NUMBER }}
-      # On Linux, heavy integration runs on push and on the weekly schedule;
-      # every other event runs the fast unit tests instead. Windows always runs
-      # the fast unit tests (never the heavy integration suite).
+      # The fast unit tests always run. On Linux, the heavy inference tests
+      # additionally run on push and on the weekly schedule; Windows never runs
+      # them.
       HEAVY: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
     steps:
       - uses: actions/checkout@v6
@@ -46,7 +46,7 @@ jobs:
       - if: matrix.os == 'Linux'
         uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "24"
           cache: "npm"
       - if: matrix.os == 'Linux'
         run: |
@@ -54,10 +54,9 @@ jobs:
           make check
           uv run pre-commit run -a --show-diff-on-failure
 
+      - run: uv run pytest
       - if: matrix.os == 'Linux' && env.HEAVY == 'true'
-        run: uv run pytest -m integration --cov=body_organ_analysis --cov-report=xml
-      - if: matrix.os == 'Windows' || env.HEAVY != 'true'
-        run: uv run pytest -m "not integration"
+        run: uv run pytest -m inference --cov=body_organ_analysis --cov-report=xml
       - if: matrix.os == 'Linux' && env.HEAVY == 'true'
         uses: codecov/codecov-action@v7
         with:

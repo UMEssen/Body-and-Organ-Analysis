@@ -5,7 +5,7 @@
 [![Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-009688?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
 [![Python >=3.11](https://img.shields.io/badge/Python-%3E%3D3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![uv](https://img.shields.io/badge/package%20manager-uv-DE5FE9?style=for-the-badge&logo=python&logoColor=111111)](https://docs.astral.sh/uv/)
-[![v1.0.0](https://img.shields.io/badge/version-1.0.0-555555?style=for-the-badge)](https://github.com/UMEssen/Body-and-Organ-Analysis/releases)
+[![version](https://img.shields.io/github/v/release/UMEssen/Body-and-Organ-Analysis?sort=semver&style=for-the-badge&label=version&color=555555)](https://github.com/UMEssen/Body-and-Organ-Analysis/releases)
 
 ---
 
@@ -298,3 +298,16 @@ deep learning-based biomedical image segmentation. Nat. Methods.
 
 BOA is released under the Apache License 2.0. See [LICENSE](LICENSE). The
 underlying TotalSegmentator models carry their own license terms.
+
+## Team
+
+Built with ❤️ by [IKIM](https://ship-ai.ikim.nrw/) and [SHIP](https://ship-ai.ikim.nrw/).
+
+```txt
+██████╗  ██████╗  █████╗         ▆▆▆▖▆▆▆▖╗        ███╗███╗ ████╗███╗███████╗    ███████╗
+██╔══██╗██╔═══██╗██╔══██╗        ███▌███▌║        ███║███║███╔═╝███║███╔████╗  ████╔███║
+██████╔╝██║   ██║███████║   ████▌▆▆▆▖▆▆▆▖████▌╗   ███║███████║  ███║███║╚███║  ███╔╝███║
+██╔══██╗██║   ██║██╔══██║   ╚███▌███▌███▌███▌╔╝   ███║███╔███║  ███║███║ ████╗████║ ███║
+██████╔╝╚██████╔╝██║  ██║    ╚════▆▆▆▆▆▆╔════╝    ███║███║╚████╗███║███║ ╚███████╔╝ ███║
+╚═════╝  ╚═════╝ ╚═╝  ╚═╝         ╚═════╝         ╚══╝╚══╝ ╚═══╝╚══╝╚══╝  ╚══════╝  ╚══╝
+```
