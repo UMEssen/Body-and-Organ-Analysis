@@ -3,14 +3,13 @@ import enum
 import logging
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import jinja2
 import numpy as np
 import pandas as pd
 import SimpleITK as sitk
 import skimage.measure
-import weasyprint
 
 from body_composition_analysis.body_parts.definition import BodyParts
 from body_composition_analysis.report.plots.aggregation import create_aggregation_image
@@ -25,6 +24,9 @@ from body_composition_analysis.report.plots.overview import create_tissue_summar
 from body_composition_analysis.tissue.definition import BodyRegion, Tissue
 from body_organ_analysis._version import __githash__, __version__
 from body_organ_analysis.compute.util import to_png_data_url
+
+if TYPE_CHECKING:
+    import weasyprint
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +139,13 @@ class Builder:
         self.theme = theme
         self.examined_body_part = AggregatableBodyPart(0)
 
-    def _build_document(self, template_name: str, **kwargs: Any) -> weasyprint.HTML:
+    def _build_document(
+        self, template_name: str, **kwargs: Any
+    ) -> "weasyprint.Document":
+        # Imported lazily: weasyprint needs the native Pango/GObject libraries,
+        # which are only required when a PDF is actually rendered.
+        import weasyprint  # noqa: PLC0415
+
         template = self._env.get_template(template_name)
         rendered_content = template.render(
             app_version=f"{__version__} ({__githash__})",
