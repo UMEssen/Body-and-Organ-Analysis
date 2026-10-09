@@ -1,4 +1,5 @@
 import json
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any
 
@@ -24,6 +25,42 @@ def summarize_important_info(dicom_tags: dict[str, Any]) -> str:
     return info_text
 
 
+def split_multi_value(value: Any) -> list[str]:
+    """Return the values of a multi-valued tag as a list of strings.
+
+    Orthanc's simplified-tags return multi-valued tags as a single backslash-joined
+    string (e.g. "ORIGINAL\\PRIMARY\\AXIAL"), so a plain `in` would be a substring
+    check.
+    """
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [part.strip() for part in value.split("\\")]
+    return [str(part).strip() for part in value]
+
+
+def is_axial(
+    image_orientation: Sequence[float | str] | None, tolerance: float = 0.8
+) -> bool:
+    """Return True if the slice normal points predominantly along the z-axis.
+
+    Args:
+        image_orientation: ImageOrientationPatient (0020,0037), six direction cosines.
+        tolerance: Minimum share of the z-component in the slice normal
+            (0.8 ~ 37° tilt).
+    """
+    if image_orientation is None or len(image_orientation) != 6:
+        return False
+    try:
+        rx, ry, rz, cx, cy, cz = (float(value) for value in image_orientation)
+    except (TypeError, ValueError):
+        return False
+    # Cross product of row and column direction = slice normal
+    nx, ny, nz = ry * cz - rz * cy, rz * cx - rx * cz, rx * cy - ry * cx
+    norm: float = (nx**2 + ny**2 + nz**2) ** 0.5
+    return norm > 0 and abs(nz) / norm >= tolerance
+
+
 def generate_task(
     series_info: dict[str, Any], dicom_tags: dict[str, Any], minimum_images: int = 10
 ) -> bool:
@@ -38,14 +75,21 @@ def generate_task(
         orthanc.LogWarning(f"The modality is not CT: {dicom_tags['Modality']}")
         return False
 
-    if "ImageType" in dicom_tags and not all(
-        typ in dicom_tags["ImageType"]
-        for typ in [
-            "AXIAL",  # "PRIMARY", "ORIGINAL"
-        ]
+    if "ImageType" in dicom_tags and "AXIAL" not in split_multi_value(
+        dicom_tags["ImageType"]
     ):
-        orthanc.LogWarning(f"The image type is not 'AXIAL': {dicom_tags['ImageType']}")
-        return False
+        # Not every vendor writes AXIAL into ImageType
+        orientation = dicom_tags.get("ImageOrientationPatient")
+        if not is_axial(split_multi_value(orientation)):
+            orthanc.LogWarning(
+                f"The image type is not 'AXIAL': {dicom_tags['ImageType']} "
+                f"and the orientation is not axial: {orientation}"
+            )
+            return False
+        orthanc.LogWarning(
+            f"The image type is not 'AXIAL': {dicom_tags['ImageType']}, "
+            f"but the orientation is axial: {orientation}"
+        )
 
     return True
 

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 INPUT_DIR=/path/to/the/folder/with/inputs
 OUTPUT_DIR=/path/to/the/folder/for/outputs
 

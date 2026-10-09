@@ -21,6 +21,15 @@ with (
 
 AXIAL = ["ORIGINAL", "PRIMARY", "AXIAL"]
 CORONAL = ["ORIGINAL", "PRIMARY", "CORONAL"]
+NO_PLANE = ["ORIGINAL", "PRIMARY"]
+
+IOP_AXIAL = [1, 0, 0, 0, 1, 0]
+IOP_CORONAL = [1, 0, 0, 0, 0, -1]
+IOP_SAGITTAL = [0, 1, 0, 0, 0, -1]
+IOP_ORTHANC = "1\\0\\0\\0\\1\\0"
+# Rotated about the x-axis, i.e. gantry tilt
+IOP_TILT_30 = [1, 0, 0, 0, 0.866025, -0.5]
+IOP_TILT_45 = [1, 0, 0, 0, 0.707107, -0.707107]
 
 
 @pytest.mark.parametrize(
@@ -30,6 +39,18 @@ CORONAL = ["ORIGINAL", "PRIMARY", "CORONAL"]
         (10, {"Modality": "MR"}, False),
         (10, {"Modality": "CT", "ImageType": CORONAL}, False),
         (10, {"Modality": "CT", "ImageType": AXIAL}, True),
+        # Orthanc's simplified-tags join multi-valued tags with backslashes
+        (10, {"ImageType": "ORIGINAL\\PRIMARY\\AXIAL"}, True),
+        (10, {"ImageType": "ORIGINAL\\PRIMARY\\AXIAL "}, True),
+        (10, {"ImageType": "ORIGINAL\\PRIMARY\\CORONAL"}, False),
+        # Fall back to ImageOrientationPatient if ImageType lacks AXIAL
+        (10, {"ImageType": NO_PLANE, "ImageOrientationPatient": IOP_AXIAL}, True),
+        (10, {"ImageType": NO_PLANE, "ImageOrientationPatient": IOP_ORTHANC}, True),
+        (10, {"ImageType": NO_PLANE, "ImageOrientationPatient": IOP_TILT_30}, True),
+        (10, {"ImageType": NO_PLANE, "ImageOrientationPatient": IOP_TILT_45}, False),
+        (10, {"ImageType": CORONAL, "ImageOrientationPatient": IOP_CORONAL}, False),
+        (10, {"ImageType": NO_PLANE, "ImageOrientationPatient": IOP_SAGITTAL}, False),
+        (10, {"ImageType": NO_PLANE}, False),
         # Modality and ImageType are optional
         (12, {}, True),
     ],
@@ -37,6 +58,26 @@ CORONAL = ["ORIGINAL", "PRIMARY", "CORONAL"]
 def test_generate_task(instances: int, tags: dict[str, Any], expected: bool) -> None:
     series = {"Instances": list(range(instances))}
     assert on_change_callback.generate_task(series, tags) is expected
+
+
+@pytest.mark.parametrize(
+    ("orientation", "expected"),
+    [
+        (IOP_AXIAL, True),
+        ([-1, 0, 0, 0, -1, 0], True),
+        (["1", "0", "0", "0", "1", "0"], True),
+        (IOP_TILT_30, True),
+        (IOP_TILT_45, False),
+        (IOP_CORONAL, False),
+        (IOP_SAGITTAL, False),
+        (None, False),
+        ([1, 0, 0], False),
+        ([1, 0, 0, 1, 0, 0], False),  # Parallel row and column, no normal
+        (["1", "0", "0", "0", "1", "abc"], False),
+    ],
+)
+def test_is_axial(orientation: list[float | str] | None, expected: bool) -> None:
+    assert on_change_callback.is_axial(orientation) is expected
 
 
 @pytest.mark.parametrize("line", ["StudyDate: 20240101", "AccessionNumber: Unknown"])
