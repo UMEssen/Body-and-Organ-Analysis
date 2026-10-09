@@ -58,33 +58,28 @@ repos:
         # types: [markdown]
         exclude: \.(svg|png|jpg|jpeg)$
 
-  - repo: local
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.12.23
     hooks:
-      - id: export-requirements
-        name: Export requirements
-        entry: uv
+      - id: uv-lock
+      - id: uv-export
         args:
           [
-            export,
-            --format,
-            requirements.txt,
-            --locked,
+            --frozen,
             --no-emit-local,
-            --no-all-extras,
             --no-hashes,
-            --output-file,
-            requirements.txt,
+            --output-file=requirements.txt,
+            --quiet,
           ]
-        language: system
-        pass_filenames: false
-        always_run: true
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       - id: check-added-large-files
+      - id: check-executables-have-shebangs
       - id: check-json
       - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
       - id: check-toml
       - id: check-yaml
       - id: detect-private-key
@@ -96,4 +91,3 @@ repos:
     rev: v8.30.1
     hooks:
       - id: gitleaks
-        files: . # Always scan everything for secrets

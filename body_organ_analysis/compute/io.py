@@ -313,8 +313,6 @@ def validate_dicom(
                 f"{abs(normal[2]):.3f} < {axial_normal_z_min}. IOP={list(iop)}"
             )
 
-    # Secondary sanity check on ImageType — only used to *reject* reformats,
-    # not to require "AXIAL" (many genuine acquisitions don't include it).
     image_type = set(dcm.get("ImageType") or ())
     bad_markers = {"LOCALIZER", "REFORMATTED", "DERIVED", "PROJECTION IMAGE"}
     hits = bad_markers & image_type

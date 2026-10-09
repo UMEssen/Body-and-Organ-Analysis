@@ -31,9 +31,7 @@ jobs:
       TCIA_API: ${{ secrets.TCIA_API }}
       TCIA_UID: ${{ secrets.TCIA_UID }}
       LICENSE_NUMBER: ${{ secrets.LICENSE_NUMBER }}
-      # The fast unit tests always run. On Linux, the heavy inference tests
-      # additionally run on push and on the weekly schedule; Windows never runs
-      # them.
+      # The fast unit tests always run. On Linux, the heavy inference tests run.
       HEAVY: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
     steps:
       - uses: actions/checkout@v6

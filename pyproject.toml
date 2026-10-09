@@ -84,10 +84,12 @@ dev = [
 version.path = "body_organ_analysis/_version.py"
 build.targets.wheel.packages = [ "body_organ_analysis" ]
 
+[tool.uv]
+exclude-newer = "7 days"  # prevent supply-chain attacks
+
 [tool.ruff]
 target-version = "py312"
-# Same as Black
-line-length = 88
+line-length = 88  # Same as Black
 lint.select = [
   "ARG",  # Unused arguments
   "B",    # flake8-bugbear
@@ -153,11 +155,6 @@ ini_options.addopts = [ "-m", "not inference" ]
 ini_options.markers = [
   "inference: runs BOA on a TCIA download (needs model weights, GPU tests need CUDA)",
 ]
-ini_options.log_level = "INFO"
-ini_options.log_cli = true
-ini_options.log_cli_level = "INFO"
-# Keep the downloaded series and inference outputs only when a test fails
-ini_options.tmp_path_retention_policy = "failed"
 
 [tool.sqlfluff]
 core.dialect = "postgres"
