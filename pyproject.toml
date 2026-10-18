@@ -50,7 +50,7 @@ dependencies = [
   "torch==2.5.1",
   "torchvision==0.20.1",
   "tqdm>=4.45,<5",
-  "weasyprint>=60,<70",
+  "weasyprint>=60,<71",
   "xlsxwriter>=3.1.2,<4",
   "xvfbwrapper>=0.2.9,<1",
 ]
