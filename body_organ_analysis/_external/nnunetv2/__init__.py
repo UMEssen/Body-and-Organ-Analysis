@@ -13,6 +13,14 @@ Modifications:
       nnUNetTrainer_2000epochs_NoMirroring, with num_epochs changed to 1500
       for the Dataset543_BCA_body_parts nnU-Net model.
 
+    - nnunetv2/inference/data_iterators.py
+
+      The preprocessing iterators start their multiprocessing Manager from the
+      spawn context instead of the default fork context, and
+      preprocessing_iterator_fromfiles uses one Manager for all queues instead
+      of one per worker. Forking the multithreaded Celery worker could
+      deadlock the Manager child and hang the task.
+
 nnU-Net is licensed under the Apache License, Version 2.0.
 
 A copy of the Apache License 2.0 should be included with this project.
