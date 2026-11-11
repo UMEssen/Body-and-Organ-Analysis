@@ -1,6 +1,6 @@
 import multiprocessing
 import queue
-from torch.multiprocessing import Event, Queue, Manager
+from torch.multiprocessing import Event, Queue
 
 from time import sleep
 from typing import Union, List
@@ -68,7 +68,10 @@ def preprocessing_iterator_fromfiles(list_of_lists: List[List[str]],
                                      pin_memory: bool = False,
                                      verbose: bool = False):
     context = multiprocessing.get_context('spawn')
-    manager = Manager()
+    # The manager server must be spawned, not forked: forking the multithreaded
+    # worker process can leave the child stuck on an inherited lock, and the
+    # parent then waits forever for the server to start.
+    manager = context.Manager()
     num_processes = min(len(list_of_lists), num_processes)
     assert num_processes >= 1
     processes = []
@@ -77,7 +80,7 @@ def preprocessing_iterator_fromfiles(list_of_lists: List[List[str]],
     abort_event = manager.Event()
     for i in range(num_processes):
         event = manager.Event()
-        queue = Manager().Queue(maxsize=1)
+        queue = manager.Queue(maxsize=1)
         pr = context.Process(target=preprocess_fromfiles_save_to_queue,
                      args=(
                          list_of_lists[i::num_processes],
@@ -265,7 +268,8 @@ def preprocessing_iterator_fromnpy(list_of_images: List[np.ndarray],
                                    pin_memory: bool = False,
                                    verbose: bool = False):
     context = multiprocessing.get_context('spawn')
-    manager = Manager()
+    # Spawned for the same reason as in preprocessing_iterator_fromfiles.
+    manager = context.Manager()
     num_processes = min(len(list_of_images), num_processes)
     assert num_processes >= 1
     target_queues = []
