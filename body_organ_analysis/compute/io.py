@@ -16,9 +16,17 @@ from pydicom.multival import MultiValue
 from pydicom.valuerep import DA
 
 from body_organ_analysis._version import __githash__, __version__
+from body_organ_analysis.compute.config import env_list
 from body_organ_analysis.compute.constants import SERIES_DESCRIPTIONS
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_IMAGE_TYPE_BAD_MARKERS = [
+    "LOCALIZER",
+    "REFORMATTED",
+    "DERIVED",
+    "PROJECTION IMAGE",
+]
 
 
 def _get_smb_info() -> tuple[str, str]:
@@ -314,7 +322,9 @@ def validate_dicom(
             )
 
     image_type = set(dcm.get("ImageType") or ())
-    bad_markers = {"LOCALIZER", "REFORMATTED", "DERIVED", "PROJECTION IMAGE"}
+    bad_markers = set(
+        env_list("IMAGE_TYPE_BAD_MARKERS", DEFAULT_IMAGE_TYPE_BAD_MARKERS)
+    )
     hits = bad_markers & image_type
     if hits:
         return f"ImageType contains disqualifying marker(s) {hits}: {list(image_type)}"

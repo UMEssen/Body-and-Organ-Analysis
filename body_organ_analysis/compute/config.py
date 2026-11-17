@@ -26,6 +26,17 @@ def env_str(name: str, default: str | None = None) -> str | None:
     return raw.strip()
 
 
+def env_list(name: str, default: list[str]) -> list[str]:
+    """Parse a comma-separated environment variable as a list of stripped items.
+
+    Unset returns ``default``. An empty value returns an empty list.
+    """
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
 def resolve_models(
     spec: str | None, strict: bool = False, license_number: str | None = None
 ) -> set[str]:
