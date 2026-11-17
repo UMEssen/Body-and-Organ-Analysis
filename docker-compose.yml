@@ -39,6 +39,7 @@ services:
       - PACS_MODEL
       - FAST_BCA
       - FAST_TOTAL
+      - IMAGE_TYPE_BAD_MARKERS
       # Output vars
       - PATIENT_INFO_IN_OUTPUT
       - SMB_DIR_OUTPUT
@@ -106,6 +107,7 @@ services:
       - PACS_MODEL
       - FAST_BCA
       - FAST_TOTAL
+      - IMAGE_TYPE_BAD_MARKERS
       # Output vars
       - PATIENT_INFO_IN_OUTPUT
       - SEGMENTATION_UPLOAD_URL

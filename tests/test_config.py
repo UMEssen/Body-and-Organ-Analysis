@@ -5,6 +5,7 @@ import pytest
 
 from body_organ_analysis.compute.config import (
     env_bool,
+    env_list,
     env_str,
     resolve_device,
     resolve_models,
@@ -124,3 +125,21 @@ def test_env_bool(default: bool, expected: bool) -> None:
 @pytest.mark.usefixtures("env")
 def test_env_str(default: str | None, expected: str | None) -> None:
     assert env_str("BOA_Y", default) == expected
+
+
+@pytest.mark.parametrize(
+    ("env", "expected"),
+    [
+        ({"BOA_Z": "A, B C ,D"}, ["A", "B C", "D"]),
+        ({"BOA_Z": "none"}, []),
+        ({"BOA_Z": " None "}, []),
+        ({"BOA_Z": ""}, ["DEFAULT"]),
+        ({"BOA_Z": "TODO"}, ["DEFAULT"]),
+        ({"BOA_Z": " , "}, ["DEFAULT"]),
+        ({}, ["DEFAULT"]),
+    ],
+    indirect=["env"],
+)
+@pytest.mark.usefixtures("env")
+def test_env_list(expected: list[str]) -> None:
+    assert env_list("BOA_Z", ["DEFAULT"]) == expected

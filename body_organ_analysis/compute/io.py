@@ -16,9 +16,17 @@ from pydicom.multival import MultiValue
 from pydicom.valuerep import DA
 
 from body_organ_analysis._version import __githash__, __version__
+from body_organ_analysis.compute.config import env_list
 from body_organ_analysis.compute.constants import SERIES_DESCRIPTIONS
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_IMAGE_TYPE_BAD_MARKERS = [
+    "LOCALIZER",
+    "REFORMATTED",
+    "DERIVED",
+    "PROJECTION IMAGE",
+]
 
 
 def _get_smb_info() -> tuple[str, str]:
@@ -41,6 +49,13 @@ def _first_if_multi(value: Any) -> Any:
     """Return the first element if value is a MultiValue, else value itself."""
     if isinstance(value, MultiValue):
         return value[0] if len(value) else None
+    return value
+
+
+def _join_multi(value: Any) -> Any:
+    """Join a MultiValue with backslashes, the DICOM separator, else return value."""
+    if isinstance(value, MultiValue):
+        return "\\".join(str(v) for v in value)
     return value
 
 
@@ -314,7 +329,9 @@ def validate_dicom(
             )
 
     image_type = set(dcm.get("ImageType") or ())
-    bad_markers = {"LOCALIZER", "REFORMATTED", "DERIVED", "PROJECTION IMAGE"}
+    bad_markers = set(
+        env_list("IMAGE_TYPE_BAD_MARKERS", DEFAULT_IMAGE_TYPE_BAD_MARKERS)
+    )
     hits = bad_markers & image_type
     if hits:
         return f"ImageType contains disqualifying marker(s) {hits}: {list(image_type)}"
@@ -355,6 +372,7 @@ def get_image_info(
         ("SeriesNumber", dcm.get("SeriesNumber")),
         ("SeriesDescription", dcm.get("SeriesDescription")),
         ("Modality", dcm.get("Modality")),
+        ("ImageType", _join_multi(dcm.get("ImageType"))),
         ("CTDIvol", dcm.get("CTDIvol")),
         ("ExposureTime", dcm.get("ExposureTime")),
         ("XRayTubeCurrent", dcm.get("XRayTubeCurrent")),

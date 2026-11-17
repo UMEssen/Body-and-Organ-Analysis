@@ -123,6 +123,7 @@ Booleans accept `1`/`true` (case-insensitive); empty values and the literal
 | `PACS_MODEL` | `all` | `+`-separated model list (e.g. `total+bca`) or `all`. See [Models](../README.md#models). Invalid names are dropped with a warning. |
 | `FAST_BCA` | `False` | Use the single-fold BCA variant instead of the 5-fold ensemble. |
 | `FAST_TOTAL` | `False` | Run TotalSegmentator in fast mode. |
+| `IMAGE_TYPE_BAD_MARKERS` | `LOCALIZER,REFORMATTED,DERIVED,PROJECTION IMAGE` | Comma-separated DICOM `ImageType` values that reject a series. Replaces the default list. `none` disables the check. |
 | `PATIENT_INFO_IN_OUTPUT` | `False` | Insert a `PatientName_PatientBirthDate` layer into the output folder path. **Privacy-sensitive** (see below). |
 | `CELERY_BROKER` | `amqp://TODO:TODO@rabbitmq/` | AMQP URL. Substitute the two `TODO`s with `RABBITMQ_USERNAME` / `RABBITMQ_PASSWORD`. |
 | `TRITON_URL` | (unset) | gRPC URL of a Triton inference server. **Triton is not available yet**; `worker-cpu` runs plain CPU inference regardless of this value. |
