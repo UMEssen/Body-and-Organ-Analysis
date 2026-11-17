@@ -52,6 +52,13 @@ def _first_if_multi(value: Any) -> Any:
     return value
 
 
+def _join_multi(value: Any) -> Any:
+    """Join a MultiValue with backslashes, the DICOM separator, else return value."""
+    if isinstance(value, MultiValue):
+        return "\\".join(str(v) for v in value)
+    return value
+
+
 def _safe_da(value: Any) -> DA | None:
     if not value:
         return None
@@ -365,6 +372,7 @@ def get_image_info(
         ("SeriesNumber", dcm.get("SeriesNumber")),
         ("SeriesDescription", dcm.get("SeriesDescription")),
         ("Modality", dcm.get("Modality")),
+        ("ImageType", _join_multi(dcm.get("ImageType"))),
         ("CTDIvol", dcm.get("CTDIvol")),
         ("ExposureTime", dcm.get("ExposureTime")),
         ("XRayTubeCurrent", dcm.get("XRayTubeCurrent")),
