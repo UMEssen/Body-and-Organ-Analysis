@@ -17,7 +17,8 @@ def _derived_ct() -> Dataset:
         ({}, True),
         ({"IMAGE_TYPE_BAD_MARKERS": "LOCALIZER"}, False),
         ({"IMAGE_TYPE_BAD_MARKERS": "SECONDARY"}, True),
-        ({"IMAGE_TYPE_BAD_MARKERS": ""}, False),
+        ({"IMAGE_TYPE_BAD_MARKERS": ""}, True),
+        ({"IMAGE_TYPE_BAD_MARKERS": "none"}, False),
     ],
     indirect=["env"],
 )

@@ -131,8 +131,11 @@ def test_env_str(default: str | None, expected: str | None) -> None:
     ("env", "expected"),
     [
         ({"BOA_Z": "A, B C ,D"}, ["A", "B C", "D"]),
-        ({"BOA_Z": ""}, []),
-        ({"BOA_Z": " , "}, []),
+        ({"BOA_Z": "none"}, []),
+        ({"BOA_Z": " None "}, []),
+        ({"BOA_Z": ""}, ["DEFAULT"]),
+        ({"BOA_Z": "TODO"}, ["DEFAULT"]),
+        ({"BOA_Z": " , "}, ["DEFAULT"]),
         ({}, ["DEFAULT"]),
     ],
     indirect=["env"],

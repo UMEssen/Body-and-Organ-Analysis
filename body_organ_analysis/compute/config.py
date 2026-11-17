@@ -29,12 +29,16 @@ def env_str(name: str, default: str | None = None) -> str | None:
 def env_list(name: str, default: list[str]) -> list[str]:
     """Parse a comma-separated environment variable as a list of stripped items.
 
-    Unset returns ``default``. An empty value returns an empty list.
+    Unset, empty and ``TODO`` values return ``default``, as in ``env_str``.
+    The value ``none`` (case-insensitive) returns an empty list.
     """
-    raw = os.getenv(name)
+    raw = env_str(name)
     if raw is None:
         return default
-    return [item.strip() for item in raw.split(",") if item.strip()]
+    if raw.lower() == "none":
+        return []
+    items = [item.strip() for item in raw.split(",") if item.strip()]
+    return items or default
 
 
 def resolve_models(
